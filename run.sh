@@ -8,6 +8,7 @@ if [ ! -d .venv ]; then
 fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
+python -m pip install -q --upgrade pip
 pip install -q -r requirements.txt
 
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
