@@ -21,6 +21,7 @@
   --in:#3A3B3C; --in-ink:#E4E6EB; --shadow:0 1px 2px rgba(0,0,0,.5);
 }}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 button:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--msgr);outline-offset:2px}
@@ -136,6 +137,61 @@ textarea#draft:focus{outline:none;background:var(--surface-2)}
 .slotpick button{border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;font-size:12.5px;color:var(--ink-2)}
 .slotpick button.on{border-color:var(--ford);color:var(--ford);font-weight:600}
 
+/* ---- Nav + tour + impact + owner ---- */
+header .nav{display:flex;gap:4px;margin-left:8px}
+header .nav button{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;opacity:.75}
+header .nav button[aria-selected="true"]{background:rgba(255,255,255,.18);opacity:1}
+header .tourbtn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);color:#fff;font-weight:800;font-size:14px;display:grid;place-items:center}
+.overlay{position:fixed;inset:0;background:rgba(0,9,91,.35);z-index:50;display:none}
+.overlay.open{display:block}
+.drawer{position:fixed;top:52px;right:0;bottom:0;width:440px;max-width:96vw;background:var(--surface);box-shadow:-8px 0 30px rgba(0,0,0,.18);z-index:60;transform:translateX(100%);transition:transform .2s;overflow-y:auto;padding:18px 20px}
+.drawer.open{transform:none}
+.drawer h2{margin:0 0 4px;font-size:18px}
+.drawer .reached{font-size:12px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.drawer .head{display:flex;flex-direction:column;gap:6px;margin:12px 0 16px}
+.drawer .head div{font-size:15px;font-weight:700;color:var(--ford);padding:8px 12px;background:var(--msgr-soft);border-radius:10px}
+.grp{margin-bottom:14px}
+.grp h4{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13.5px;color:var(--ink-2)}
+.kv b{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.money{color:var(--ok)}
+.drawer .explain{font-size:11.5px;color:var(--ink-3);line-height:1.5;border-top:1px solid var(--line);padding-top:10px}
+.drawer .close{position:absolute;top:12px;right:14px;font-size:20px;color:var(--ink-3)}
+.owner{grid-column:1/-1;overflow-y:auto;padding:18px 22px;background:var(--bg)}
+.owner h2{margin:0;font-size:22px}
+.owner .sub{color:var(--ink-3);font-size:13px;margin:2px 0 14px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;position:relative}
+.tile .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.tile .num{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.15;margin-top:4px}
+.tile .num.money{color:var(--ok)}
+.tile .why{font-size:12px;color:var(--ink-3);margin-top:4px}
+.tile.usage{border-top:3px solid var(--msgr)} .tile.ret{border-top:3px solid var(--ok)} .tile.safe{border-top:3px solid var(--ford)}
+.section{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin-bottom:14px}
+@media (max-width:1100px){.section{grid-template-columns:1fr}}
+.panel2{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px}
+.panel2 h3{margin:0 0 10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.funnel{display:flex;flex-direction:column;gap:6px}
+.frow{display:grid;grid-template-columns:120px 1fr 48px;gap:10px;align-items:center;font-size:13px;color:var(--ink-2)}
+.frow .bar{height:16px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.frow .bar i{display:block;height:100%;background:var(--ford);border-radius:4px}
+.frow b{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.dist{display:flex;align-items:flex-end;gap:8px;height:110px;padding-top:8px}
+.dist .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--ink-3)}
+.dist .col i{display:block;width:100%;background:var(--msgr);border-radius:4px 4px 0 0;min-height:2px}
+.dist .col b{color:var(--ink);font-variant-numeric:tabular-nums}
+table.reps{width:100%;border-collapse:collapse;font-size:13px}
+table.reps th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:6px 4px;border-bottom:1px solid var(--line)}
+table.reps td{padding:7px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.assump{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:12.5px;color:var(--ink-2);align-items:center}
+.assump input{width:90px;font:inherit;font-size:12.5px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}
+.tour{position:fixed;z-index:70;background:var(--ford);color:#fff;padding:14px 16px;border-radius:12px;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.35);font-size:14px;line-height:1.4}
+.tour b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:4px}
+.tour .r{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.tour button{border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:5px 12px;color:#fff;font-size:13px;font-weight:600}
+.tour button.go{background:#fff;color:var(--ford)}
+.spot{position:relative;z-index:55;box-shadow:0 0 0 4px var(--msgr),0 0 0 9999px rgba(0,9,91,.35)!important;border-radius:10px}
 /* ---- Side ---- */
 .side{border-left:1px solid var(--line);background:var(--bg);overflow-y:auto;padding:12px}
 .panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px}
@@ -164,7 +220,8 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 <header>
   <h1><span class="mark">L</span>LotBeacon</h1>
   <span class="sub" id="dealer">—</span>
-  <div class="right"><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
+  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="owner" aria-selected="false">Owner dashboard</button></nav>
+  <div class="right"><button class="tourbtn" id="tourBtn" title="Guided tour">?</button><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
 </header>
 
 <div class="app">
@@ -173,6 +230,8 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
   <aside class="side" id="side"></aside>
 </div>
 <div class="toast" id="toast"></div>
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer"></aside>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -237,6 +296,7 @@ function renderThread(){
         <span title="Who controls this conversation"><b>${esc(d.ownership.line)}</b></span>
       </div>
       <div class="tools">
+        <button class="btn quiet sm" id="impactBtn" title="What this conversation has produced so far">Impact</button>
         <button class="btn quiet sm ${d.ai_paused?'on':''}" id="manual">${d.ai_paused?'Resume AI drafting':'Switch to manual'}</button>
         <div style="position:relative"><button class="more" id="moreBtn" aria-label="More">⋯</button>
           <div class="menu" id="menu">
@@ -317,6 +377,7 @@ function renderGhost(d){
 
 function bindThread(){
   const d=detail,dr=d.draft;
+  $('#impactBtn').onclick=()=>showImpact(d.id);
   $('#manual').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});await open(d.id);loadQueue();};
   const mb=$('#moreBtn'),menu=$('#menu');
   mb.onclick=e=>{e.stopPropagation();menu.classList.toggle('open');};
@@ -396,6 +457,92 @@ function spark(m,w,h){
   const pts=s.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${m.label}"><title>${s.join(' → ')}</title><line x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}" stroke="var(--line)"></line><polyline fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${pts}"></polyline><circle cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3" fill="${col}"></circle></svg>`;
 }
+
+/* ---------------- impact drawer ---------------- */
+const money=n=>'$'+Math.round(n).toLocaleString();
+async function showImpact(id){
+  const im=await api(`/api/threads/${id}/impact`);const r=im.return;
+  $('#drawer').innerHTML=`<button class="close" id="dclose" aria-label="Close">×</button>
+    <div class="reached">Business impact · reached: ${esc(im.reached)}</div><h2>${esc(detail?.customer?.name||'This conversation')}</h2>
+    <div class="head">${im.headline.map(h=>`<div>${esc(h)}</div>`).join('')}</div>
+    <div class="grp"><h4>Return</h4><div class="kv"><span>Rep attention saved</span><b>${r.rep_minutes_saved} min</b><span>Rep cost saved</span><b class="money">${money(r.rep_cost_saved)}</b><span>Expected gross from this lead</span><b class="money">${money(r.expected_gross)}</b><span>Prevented-claim value</span><b class="money">${money(r.prevented_claim_value)}</b></div></div>
+    <div class="grp"><h4>Speed</h4><div class="kv"><span>First response</span><b>${esc(im.speed.first_response||'—')}</b><span>Median response</span><b>${esc(im.speed.median_response||'—')}</b></div></div>
+    <div class="grp"><h4>Safety</h4><div class="kv"><span>Claims routed for verification</span><b>${im.safety.claims_routed_for_verification}</b><span>Blocked sends</span><b>${im.safety.blocked_sends}</b><span>Handed to a person</span><b>${im.safety.handed_to_a_person}</b><span>Rep corrections to AI memory</span><b>${im.safety.rep_corrections}</b></div></div>
+    <div class="grp"><h4>Usage</h4><div class="kv"><span>Customer messages</span><b>${im.usage.customer_messages}</b><span>Replies sent</span><b>${im.usage.replies_sent}</b><span>Drafts accepted as-is</span><b>${im.usage.drafts_accepted_as_is}</b><span>Drafts edited</span><b>${im.usage.drafts_edited}</b><span>Typed manually</span><b>${im.usage.typed_manually}</b></div></div>
+    <div class="explain">${im.explain.map(e=>`<div>• ${esc(e)}</div>`).join('')}<div style="margin-top:6px">Assumptions are editable on the Owner dashboard and shown next to every dollar. Nothing here is a promise to the customer.</div></div>`;
+  $('#drawer').classList.add('open');$('#overlay').classList.add('open');
+  $('#dclose').onclick=closeDrawer;$('#overlay').onclick=closeDrawer;
+}
+function closeDrawer(){$('#drawer').classList.remove('open');$('#overlay').classList.remove('open');}
+
+/* ---------------- owner dashboard ---------------- */
+let VIEW='work';
+async function showView(v){
+  VIEW=v;document.querySelectorAll('header .nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));
+  const app=document.querySelector('.app');
+  if(v==='owner'){app.querySelector('.queue').hidden=true;app.querySelector('.side').hidden=true;$('#main').hidden=true;let o=$('#owner');if(!o){o=document.createElement('section');o.id='owner';o.className='owner';app.appendChild(o);}o.hidden=false;await renderOwner();}
+  else{app.querySelector('.queue').hidden=false;app.querySelector('.side').hidden=false;$('#main').hidden=false;const o=$('#owner');if(o)o.hidden=true;}
+}
+async function renderOwner(){
+  const m=await api('/api/metrics/owner');const u=m.usage,sp=m.speed,sf=m.safety,f=m.funnel,r=m.return,a=m.assumptions;
+  const fmax=Math.max(1,f.inquiries);
+  const frow=(l,n)=>`<div class="frow"><span>${l}</span><div class="bar"><i style="width:${Math.round(100*n/fmax)}%"></i></div><b>${n}</b></div>`;
+  const dmax=Math.max(1,...sp.response_distribution.map(x=>x.n));
+  $('#owner').innerHTML=`
+    <h2>Owner dashboard</h2><div class="sub">${esc(META.dealership.name)} · last ${m.window_days} days · every dollar is derived from the assumptions at the bottom — edit them to your store</div>
+    <div class="tiles">
+      <div class="tile usage" data-tour="t-active"><div class="lab">Active conversations</div><div class="num">${u.active_conversations}</div><div class="why">${u.conversations_touched} touched · ${u.replies_sent} replies sent</div></div>
+      <div class="tile ret"><div class="lab">Median first response</div><div class="num">${esc(sp.median_first_response)}</div><div class="why">P90 ${esc(sp.p90_first_response)} · ${sp.windows_lost} reply window${sp.windows_lost===1?'':'s'} lost</div></div>
+      <div class="tile ret"><div class="lab">Rep attention saved</div><div class="num">${r.rep_hours_saved} h</div><div class="why">≈ ${money(r.rep_cost_saved)} at $${a.loaded_rep_hourly_cost}/h · ${r.capacity_multiplier?r.capacity_multiplier+'× capacity per reply':''}</div></div>
+      <div class="tile safe"><div class="lab">Claims routed for verification</div><div class="num">${sf.claims_routed_for_verification}</div><div class="why">${sf.blocked_sends} blocked sends · ${sf.handed_to_a_person} handed to a person · ${sf.autonomous_sends} autonomous sends</div></div>
+    </div>
+    <div class="tiles">
+      <div class="tile usage"><div class="lab">Draft acceptance</div><div class="num">${u.draft_acceptance_rate==null?'—':Math.round(u.draft_acceptance_rate*100)+'%'}</div><div class="why">${u.accepted_as_is_rate==null?'':Math.round(u.accepted_as_is_rate*100)+'% sent as drafted'} · ${u.reps_active} rep${u.reps_active===1?'':'s'} active</div></div>
+      <div class="tile ret"><div class="lab">Appointments booked</div><div class="num">${f.booked}</div><div class="why">${f.inquiry_to_booked==null?'':Math.round(f.inquiry_to_booked*100)+'% of inquiries'} · ${f.showed} showed · ${f.sold} sold</div></div>
+      <div class="tile ret"><div class="lab">Expected gross</div><div class="num money">${money(r.expected_gross)}</div><div class="why">booked × ${Math.round(a.appointment_show_rate*100)}% show × ${Math.round(a.show_close_rate*100)}% close × $${a.gross_per_unit.toLocaleString()}</div></div>
+      <div class="tile safe"><div class="lab">Prevented-claim value</div><div class="num money">${money(r.prevented_claim_value)}</div><div class="why">${sf.opt_outs_honored} opt-out${sf.opt_outs_honored===1?'':'s'} honored · ${sf.rep_corrections} memory corrections</div></div>
+    </div>
+    <div class="section">
+      <div class="panel2"><h3>Inquiry → appointment funnel</h3><div class="funnel">${frow('Inquiries',f.inquiries)}${frow('Visit interest',f.visit_interest)}${frow('Booked',f.booked)}${frow('Showed',f.showed)}${frow('Sold',f.sold)}</div></div>
+      <div class="panel2"><h3>Time to reply (all replies)</h3><div class="dist">${sp.response_distribution.map(x=>`<div class="col"><b>${x.n}</b><i style="height:${Math.round(80*x.n/dmax)}px"></i><span>${esc(x.label)}</span></div>`).join('')}</div></div>
+      <div class="panel2"><h3>By rep</h3><table class="reps"><tr><th>Rep</th><th>Threads</th><th>Replies</th><th>Booked</th><th>Min saved</th></tr>${m.per_rep.map(p=>`<tr><td>${esc(p.rep)}</td><td>${p.threads}</td><td>${p.replies}</td><td>${p.booked}</td><td>${Math.round(p.minutes_saved)}</td></tr>`).join('')||'<tr><td colspan="5" class="small">No assigned threads yet — opening a lead assigns it.</td></tr>'}</table></div>
+    </div>
+    <div class="panel2"><h3>Assumptions (your store's numbers — edit and press Enter)</h3><div class="assump">
+      ${[['baseline_minutes_per_reply','Minutes per reply, unassisted'],['assisted_minutes_accept','Minutes to read + approve a draft'],['assisted_minutes_edit','Minutes to edit + approve'],['manual_minutes','Minutes when rep types it (AI paused)'],['loaded_rep_hourly_cost','Loaded rep cost, $/hour'],['appointment_show_rate','Appointment → show rate (0–1)'],['show_close_rate','Show → sold rate (0–1)'],['gross_per_unit','Gross per unit, $'],['value_of_prevented_false_claim','Value of one prevented false claim, $']].map(([k,l])=>`<span>${l}</span><input data-k="${k}" value="${a[k]}">`).join('')}
+    </div><div class="small" style="margin-top:8px">Usage numbers (conversations, replies, acceptance, response times, claims routed) are measured. Return numbers are usage × your assumptions. Pilot hypothesis from the blueprint: 7.0 min unassisted vs 1.8 min assisted per reply ≈ 3.9× capacity.</div></div>`;
+  document.querySelectorAll('.assump input').forEach(i=>i.onkeydown=async e=>{if(e.key!=='Enter')return;const vals={};document.querySelectorAll('.assump input').forEach(x=>vals[x.dataset.k]=x.value);await api('/api/metrics/assumptions',{method:'POST',body:{values:vals}});toast('Assumptions updated');renderOwner();});
+}
+document.querySelectorAll('header .nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+/* ---------------- guided tour ---------------- */
+const TOUR=[
+  {sel:'.queue',title:'The queue',text:'Not a leaderboard — a work list. Each row: who, how long they have waited, what happened, and the exact next action. Buckets are ordered by urgency; scores and colors are gone.'},
+  {sel:'.thead .meta',title:'Channel, window, ownership',text:'Facebook Messenger with a live countdown on the 24-hour reply window, and one plain line saying who drafts and who sends. No autonomous sends, ever.'},
+  {sel:'.stages',title:'Four stages, auto-derived',text:'Engage → Qualify → Book → Visit outcome. The sub-state is precise: "visit interest (tentative)" is not "appointment requested."'},
+  {sel:'#card',title:'One action card',text:'Goal · Missing · Known (click a fact to see the customer\'s own words) · Verified vehicle · the draft. Two real appointment slots, verified against hours and existing bookings. When the customer picks one, this becomes a one-click Book + confirm.'},
+  {sel:'#impactBtn',title:'Business impact',text:'What this conversation has produced: rep attention saved, first-response time, claims kept out of the customer\'s inbox, expected gross once booked. Reps prove the work; managers see the return.'},
+  {sel:'.side',title:'Details, not clutter',text:'Vehicle card, evidence for every fact, momentum, stage history, diagnostics — behind disclosure. The demo simulator lives here too.'},
+  {sel:'header .nav',title:'Owner dashboard',text:'Active conversations, median first response, rep attention saved, claims routed for verification — usage and return, with every assumption editable and visible.'},
+  {sel:'header .keys',title:'Keyboard-first',text:'J/K walk the queue, E edits, ⌘↵ sends and opens the next lead, 1/2 swap the slot pair. Built for volume.'},
+];
+let tourI=0,tourEl=null;
+function startTour(){if(VIEW!=='work')showView('work');tourI=0;setTimeout(showTourStep,150);}
+function showTourStep(){
+  document.querySelectorAll('.spot').forEach(e=>e.classList.remove('spot'));
+  if(tourEl){tourEl.remove();tourEl=null;}
+  if(tourI>=TOUR.length){return;}
+  const st=TOUR[tourI];const target=document.querySelector(st.sel);
+  if(!target){tourI++;showTourStep();return;}
+  target.classList.add('spot');target.scrollIntoView({block:'nearest'});
+  const r=target.getBoundingClientRect();
+  tourEl=document.createElement('div');tourEl.className='tour';
+  tourEl.innerHTML=`<b>${tourI+1} of ${TOUR.length} · ${esc(st.title)}</b>${esc(st.text)}<div class="r"><button id="tSkip">Skip</button><button class="go" id="tNext">${tourI===TOUR.length-1?'Done':'Next'}</button></div>`;
+  document.body.appendChild(tourEl);
+  const w=340;let left=Math.min(window.innerWidth-w-16,Math.max(16,r.left));let top=r.bottom+12;if(top+180>window.innerHeight)top=Math.max(60,r.top-190);if(r.width>window.innerWidth*.5){left=Math.max(16,r.left+40);}
+  tourEl.style.left=left+'px';tourEl.style.top=top+'px';
+  $('#tNext').onclick=()=>{tourI++;showTourStep();};$('#tSkip').onclick=()=>{tourI=TOUR.length;showTourStep();};
+}
+$('#tourBtn').onclick=startTour;
 
 /* ---------------- keyboard ---------------- */
 document.addEventListener('keydown',e=>{

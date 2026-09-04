@@ -18,3 +18,7 @@ INVENTORY_FRESHNESS_SECONDS = int(os.getenv("LOTBEACON_INVENTORY_FRESHNESS_SECON
 MESSAGING_WINDOW_HOURS = int(os.getenv("LOTBEACON_MESSAGING_WINDOW_HOURS", "24"))
 
 RULES_VERSION = "rules-2026.09.04"
+
+# Demo dealership label (the pilot prospect). Inventory stays the same demo set.
+DEALER_NAME = os.getenv("LOTBEACON_DEALER_NAME", "Zoellner Ford")
+DEALER_ADDRESS = os.getenv("LOTBEACON_DEALER_ADDRESS", "1500 N 6th St, Beatrice, NE")

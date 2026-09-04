@@ -1,4 +1,4 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.7 — appointment cockpit)
+# LotBeacon — Messenger Copilot for dealership reps (MVP v0.8 — cockpit + owner dashboard)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -42,6 +42,19 @@ pytest -q                                            # 24 tests, all offline
 python -m scripts.eval                               # 12 golden scenarios through the mock
 python -m scripts.eval --providers mock anthropic    # side by side; exits non-zero if any critical claim reaches a rep unblocked
 ```
+
+## v0.8 — proving the value (usage + return)
+
+- **Owner dashboard** (header tab): Active conversations · Median first response (P90, reply windows lost) · Rep attention
+  saved (hours, $, capacity multiplier) · Claims routed for verification (blocked sends, handed to a person, **0 autonomous
+  sends**) · Draft acceptance · Appointments booked · Expected gross · Prevented-claim value · funnel · time-to-reply
+  distribution · per-rep table. **Assumptions are editable on the page and printed next to every dollar.** Usage numbers are
+  measured; return numbers are usage × assumptions. Nothing is hidden.
+- **Impact** button on every thread: what *this* conversation produced — headline wins, return, speed, safety, usage, and
+  the formulas. Reps prove the work; managers see the return.
+- **Guided tour** (`?` in the header): eight steps over the live UI.
+- Dealership label is configurable (`LOTBEACON_DEALER_NAME`, default "Zoellner Ford" for the pilot prospect).
+- Fix: appointment times round-trip through SQLite in dealership local time (10:30 AM stays 10:30 AM).
 
 ## v0.7 — what the senior rep's audit changed
 
@@ -158,12 +171,13 @@ lotbeacon/
   scripts/eval.py  Provider scorecard (mock vs Claude) with the critical-error override
   voices.py        Six voice profiles (style guide for Claude + deterministic rewrites for the mock)
   booking.py       Resolve 'Saturday' to a date · propose two verified slots · read the customer's pick · one-click book
+  metrics.py       Usage + return metrics, thread impact, editable assumptions
   queue.py         Action queue: buckets, waiting timers, next-action text
   momentum.py      Propensity-to-show score per message + trend (the sparkline)
   timefmt.py       Two-level human durations (2d 4h · 3h 5m · 6m 22s)
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
   web/index.html   Rep workspace
-tests/                     33 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
+tests/                     34 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
 ```
 
 ## Next tickets this unlocks

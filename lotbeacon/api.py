@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import __version__, booking, inventory, memory, momentum, policy, queue, timefmt, voices
+from . import __version__, booking, inventory, memory, metrics, momentum, policy, queue, timefmt, voices
 from .ai.base import resolve_provider_name
 from .config import RULES_VERSION
 from .db import get_session, init_db
@@ -85,6 +85,36 @@ def meta(s: Session = Depends(get_session)):
 def action_queue(s: Session = Depends(get_session)):
     """The rep's work list. Buckets + one-line next action per row. No scores."""
     return queue.build(s, ghost_view)
+
+
+@app.get("/api/metrics/owner")
+def owner(days: int = 7, s: Session = Depends(get_session)):
+    """Owner dashboard: usage + return, with the assumptions shown next to every dollar."""
+    return metrics.owner_dashboard(s, days=days)
+
+
+@app.get("/api/threads/{thread_id}/impact")
+def impact(thread_id: int, s: Session = Depends(get_session)):
+    t = s.get(Thread, thread_id)
+    if not t:
+        raise HTTPException(404)
+    return metrics.thread_impact(s, t)
+
+
+class Assumptions(BaseModel):
+    values: dict
+
+
+@app.post("/api/metrics/assumptions")
+def set_assumptions(body: Assumptions, s: Session = Depends(get_session)):
+    """Dealership-editable ROI inputs. Whole numbers and rates only; nothing here touches customer data."""
+    for k, v in body.values.items():
+        if k in metrics.ASSUMPTIONS:
+            try:
+                metrics.ASSUMPTIONS[k] = float(v)
+            except (TypeError, ValueError):
+                pass
+    return metrics.ASSUMPTIONS
 
 
 @app.get("/api/threads")
@@ -298,7 +328,7 @@ def book(thread_id: int, body: Book, s: Session = Depends(get_session)):
     iso = body.slot_iso or (sel or {}).get("iso")
     if not iso:
         raise HTTPException(422, {"message": "No time selected yet. Send the two options first, or pick a slot."})
-    starts = datetime.fromisoformat(iso)
+    starts = datetime.fromisoformat(iso).astimezone(timezone.utc)
     elig = policy.messaging_eligibility(t, cust)
     if not elig["eligible"]:
         raise HTTPException(403, {"message": "Messaging window closed — book it, then call to confirm."})
@@ -311,7 +341,7 @@ def book(thread_id: int, body: Book, s: Session = Depends(get_session)):
     s.add(a)
     s.flush()
     # 2. confirmation text in the thread's voice, then the claim check (appointment now exists, so "you're set" is allowed)
-    slot = booking.Slot(starts.astimezone(booking.tz_of(dealer)))
+    slot = booking.Slot(starts.astimezone(booking.tz_of(dealer)))  # display in dealership local time
     first = (cust.display_name or "").split(" ")[0]
     vtxt = f" for the {v.year} {v.make} {v.model}" if v else ""
     facts = memory.facts_dict(memory.active_facts(s, t.id))

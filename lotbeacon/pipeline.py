@@ -245,7 +245,7 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     appt_confirmed = appt is not None
     appt_info = None
     if appt:
-        _sl = booking.Slot(appt.starts_at.astimezone(booking.tz_of(dealership)))
+        _sl = booking.Slot(booking.as_utc(appt.starts_at).astimezone(booking.tz_of(dealership)))
         appt_info = {"day_label": _sl.day_label, "label": _sl.label}
     ctx = DraftContext(
         dealership_name=dealership.name, voice=voices.get(thread.voice).style_guide, voice_name=voices.get(thread.voice).label, customer_name=customer.display_name,

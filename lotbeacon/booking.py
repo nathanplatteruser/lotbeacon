@@ -18,6 +18,11 @@ TENTATIVE = re.compile(r"\b(could|probably|maybe|might|possibly|thinking|perhaps
 COMMITTED = re.compile(r"\b(i'?ll be there|see you|coming|i'?m coming|will be there|on my way|count me in|book it|let'?s do|works great|works for me|that works|deal|confirmed|yes to|perfect,? see you)\b", re.I)
 
 
+def as_utc(dt: datetime) -> datetime:
+    """SQLite drops tzinfo; everything we store is UTC, so a naive value IS UTC."""
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
 def tz_of(d: Dealership) -> ZoneInfo:
     try:
         return ZoneInfo(d.timezone or "America/Chicago")
@@ -95,8 +100,8 @@ def propose_slots(s: Session, d: Dealership, day: date, prefer: str | None = Non
         return []
     open_t, close_t = hrs
     tz = tz_of(d)
-    taken = {a.starts_at.astimezone(tz).replace(second=0, microsecond=0) for a in s.scalars(select(Appointment).where(Appointment.status.in_(["requested", "confirmed"])))
-             if a.starts_at and a.starts_at.astimezone(tz).date() == day}
+    taken = {as_utc(a.starts_at).astimezone(tz).replace(second=0, microsecond=0) for a in s.scalars(select(Appointment).where(Appointment.status.in_(["requested", "confirmed"])))
+             if a.starts_at and as_utc(a.starts_at).astimezone(tz).date() == day}
     now = now_local(d)
     candidates_am = [time(10, 30), time(9, 30), time(11, 15), time(9, 0)]
     candidates_pm = [time(13, 45), time(15, 0), time(12, 30), time(16, 15), time(17, 30)]
@@ -166,7 +171,7 @@ def booking_view(s: Session, thread: Thread, d: Dealership, facts: dict, fact_ce
     appt = s.scalar(select(Appointment).where(Appointment.thread_id == thread.id, Appointment.status.in_(["requested", "confirmed", "showed"])).order_by(Appointment.id.desc()))
     tz = tz_of(d)
     if appt and appt.status in ("confirmed", "showed"):
-        st = appt.starts_at.astimezone(tz)
+        st = as_utc(appt.starts_at).astimezone(tz)
         return {"stage": "booked" if appt.status == "confirmed" else "showed", "date": st.date().isoformat(), "date_label": st.strftime("%A, %B %-d"), "time_label": st.strftime("%-I:%M %p").replace(":00", ""),
                 "missing": [], "slots": [], "appointment_id": appt.id, "owner_rep_id": appt.owner_rep_id, "vehicle": vehicle}
     timing = facts.get("timing")

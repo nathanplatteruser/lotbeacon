@@ -314,3 +314,19 @@ def test_booked_appointment_is_sticky_and_book_endpoint_flow(s):
     assert thread.lead_state == LeadState.APPOINTMENT_SET
     assert d3.structured["recommended_action"] == "pre_visit_help" and d3.status == "pending"
     assert "See you Saturday" in d3.text
+
+
+def test_booked_time_round_trips_through_sqlite_in_local_time(s):
+    """SQLite drops tzinfo. 10:30 AM Central must still read back as 10:30 AM, not 5:30 AM."""
+    from datetime import timezone as _tz
+
+    from lotbeacon import booking
+
+    thread, d = run(s, "Is the black 2024 Tahoe Premier still available? Could come Saturday.", psid="tz1", name="Tia Lane", mid="tz1a")
+    slot = d.structured["booking"]["slots"][0]
+    starts = datetime.fromisoformat(slot["iso"]).astimezone(_tz.utc)
+    s.add(Appointment(tenant_id=thread.tenant_id, thread_id=thread.id, starts_at=starts, status="confirmed")); s.flush()
+    s.expire_all()
+    dealer = s.get(Dealership, thread.dealership_id)
+    bv = booking.booking_view(s, thread, dealer, {}, {}, [], None)
+    assert bv["stage"] == "booked" and bv["time_label"] == slot["label"]

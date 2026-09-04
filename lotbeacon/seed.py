@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 
+from .config import DEALER_ADDRESS, DEALER_NAME
 from .db import init_db, session_scope
 from .models import Dealership, Draft, Message, Rep, Tenant, Thread, Vehicle
 from .pipeline import audit, ingest_inbound, process_message
@@ -135,7 +136,7 @@ def run():
         tenant = Tenant(name="Pilot Auto Group")
         s.add(tenant)
         s.flush()
-        dealer = Dealership(tenant_id=tenant.id, name="Prairie Chevrolet of Lincoln", page_id="page_100001", timezone="America/Chicago", hours=HOURS, address="4800 N 27th St, Lincoln, NE", voice="friendly")
+        dealer = Dealership(tenant_id=tenant.id, name=DEALER_NAME, page_id="page_100001", timezone="America/Chicago", hours=HOURS, address=DEALER_ADDRESS, voice="friendly")
         s.add(dealer)
         s.flush()
         for n, role in [("Alex Reyes", "rep"), ("Jordan Kim", "rep"), ("Morgan Blake", "manager")]:
