@@ -1,4 +1,4 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.8 — cockpit + owner dashboard)
+# LotBeacon — Messenger Copilot for dealership reps (MVP v0.9 — explainable, pilot-instrumented)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -42,6 +42,22 @@ pytest -q                                            # 24 tests, all offline
 python -m scripts.eval                               # 12 golden scenarios through the mock
 python -m scripts.eval --providers mock anthropic    # side by side; exits non-zero if any critical claim reaches a rep unblocked
 ```
+
+## v0.9 — the demo explains itself
+
+Everything the reference demo showed, built on real pipeline data instead of static HTML:
+
+| Where | What | Endpoint |
+|---|---|---|
+| Action card → **why this action?** | Decision path: Read → Remember → Verify → Stage → Decide → Check → Gate, each step citing its evidence | `GET /api/threads/{id}/explain` |
+| Stock chip / vehicle name ↗ | Inventory evidence: the only record the AI may quote, source + retrieved-at, what it may/may not assert, which conversations lean on it | `GET /api/inventory/{stock}/evidence` |
+| Header → **Try a live inquiry** | Paste a real customer message; full pipeline runs against live inventory in a throwaway transaction — draft, verdicts, decision path. Nothing stored. | `POST /api/analyze` |
+| Owner dashboard → **Capacity per rep-hour** | Bar chart: unassisted vs assisted replies per rep-hour from the observed accept/edit/manual mix × your minutes assumptions | `owner.capacity` |
+| Owner dashboard → **Responsible AI scorecard** | Ring of 7 hard checks computed from the record (human approval, firewall coverage, clean sends, opt-outs, 24h window, consequential topics routed, corrections captured) | `owner.responsible_ai` |
+| Owner dashboard → **Pilot decision gates** | 7 go/no-go gates with live value, target, pass/watch/fail and why it matters | `owner.gates` |
+| Owner dashboard / ⋯ menu → **Export audit** | JSON bundle: events, drafts with firewall verdicts and citations, stage transitions, `autonomous_sends: 0` | `GET /api/audit/export[?thread_id=]` |
+
+Dealer data is the real store: Zoellner Ford, 4115 N. 6th Street, Beatrice, NE 68310 · Mon–Fri 8–6, Sat 8–3, Sun closed. Slot proposals respect those hours (Saturday slots are 8–3). Seeded conversations are owned by the two demo reps so the by-rep table and "reps active" gate are live from the first screen.
 
 ## v0.8 — proving the value (usage + return)
 

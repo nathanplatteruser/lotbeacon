@@ -16,7 +16,7 @@ from .models import Dealership, Draft, Message, Rep, Tenant, Thread, Vehicle
 from .pipeline import audit, ingest_inbound, process_message
 from .ai.mock import MockProvider
 
-HOURS = {"mon": "9:00-19:00", "tue": "9:00-19:00", "wed": "9:00-19:00", "thu": "9:00-19:00", "fri": "9:00-18:00", "sat": "9:00-17:00", "sun": "Closed"}
+HOURS = {"mon": "8:00-18:00", "tue": "8:00-18:00", "wed": "8:00-18:00", "thu": "8:00-18:00", "fri": "8:00-18:00", "sat": "8:00-15:00", "sun": "Closed"}  # Zoellner Ford sales hours
 
 VEHICLES = [
     # stock, vin, year, make, model, trim, color, body, miles, price, status, drivetrain
@@ -139,8 +139,9 @@ def run():
         dealer = Dealership(tenant_id=tenant.id, name=DEALER_NAME, page_id="page_100001", timezone="America/Chicago", hours=HOURS, address=DEALER_ADDRESS, voice="friendly")
         s.add(dealer)
         s.flush()
-        for n, role in [("Alex Reyes", "rep"), ("Jordan Kim", "rep"), ("Morgan Blake", "manager")]:
-            s.add(Rep(tenant_id=tenant.id, dealership_id=dealer.id, name=n, role=role))
+        reps = [Rep(tenant_id=tenant.id, dealership_id=dealer.id, name=n, role=role) for n, role in [("Alex Reyes", "rep"), ("Jordan Kim", "rep"), ("Morgan Blake", "manager")]]
+        s.add_all(reps)
+        s.flush()
         now = datetime.now(timezone.utc)
         for st, vin, y, mk, md, tr, col, body, mi, pr, status, drv in VEHICLES:
             s.add(Vehicle(tenant_id=tenant.id, dealership_id=dealer.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, drivetrain=drv, mileage=mi, price=pr, status=status, source="pilot-feed-sim", retrieved_at=now - timedelta(seconds=43)))
@@ -154,7 +155,9 @@ def run():
                     if new:
                         process_message(s, thread, msg, provider=MockProvider())
                 else:
-                    s.add(Message(tenant_id=tenant.id, thread_id=thread.id, external_id=f"out_seed_{i}_{j}", direction="out", author="rep", text=text, sent_at=when))
+                    if not thread.assigned_rep_id:
+                        thread.assigned_rep_id = reps[i % 2].id  # whoever replied first owns it (seeded history alternates the two reps)
+                    s.add(Message(tenant_id=tenant.id, thread_id=thread.id, external_id=f"out_seed_{i}_{j}", direction="out", author="rep", sender=reps[i % 2].name, text=text, sent_at=when))
                     d = s.scalar(select(Draft).where(Draft.thread_id == thread.id).order_by(Draft.id.desc()))
                     if d and d.status in ("pending", "escalated", "blocked"):
                         d.status = "sent"

@@ -192,6 +192,61 @@ table.reps td{padding:7px 4px;border-bottom:1px solid var(--line);font-variant-n
 .tour button{border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:5px 12px;color:#fff;font-size:13px;font-weight:600}
 .tour button.go{background:#fff;color:var(--ford)}
 .spot{position:relative;z-index:55;box-shadow:0 0 0 4px var(--msgr),0 0 0 9999px rgba(0,9,91,.35)!important;border-radius:10px}
+/* ---- v0.9: modals, capacity hero, gates, ring, analyzer ---- */
+.modal{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(0,9,91,.4);padding:20px}
+.modal.open{display:grid}
+.modal .box{background:var(--surface);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:min(720px,96vw);max-height:90vh;overflow-y:auto;padding:20px 22px;position:relative}
+.modal .box h2{margin:0 0 2px;font-size:18px} .modal .box .sub{font-size:12.5px;color:var(--ink-3);margin-bottom:14px}
+.modal .close{position:absolute;top:10px;right:14px;font-size:22px;color:var(--ink-3)}
+.path{display:flex;flex-direction:column;gap:0}
+.pstep{display:grid;grid-template-columns:86px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
+.pstep:last-child{border-bottom:0}
+.pstep .n{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ford);padding-top:2px;display:flex;gap:6px;align-items:center}
+.pstep .n i{width:8px;height:8px;border-radius:50%;background:var(--msgr);display:inline-block}
+.pstep .l{font-weight:600;font-size:14px;color:var(--ink)} .pstep .d{font-size:12.5px;color:var(--ink-3);margin-top:2px;line-height:1.45}
+.pstep .claims{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.pstep .claims span{font-size:12px;padding:3px 8px;border-radius:6px;background:var(--surface-2);color:var(--ink-2)}
+.pstep .claims span.bad{background:var(--bad-soft);color:var(--bad)} .pstep .claims span.ok{background:var(--ok-soft);color:var(--ok)}
+.whybtn{font-size:11.5px;color:var(--msgr);font-weight:700;text-decoration:underline dotted;text-underline-offset:3px;margin-left:8px;letter-spacing:0;text-transform:none}
+.evgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 18px;font-size:13.5px}
+.evgrid div{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:5px 0;color:var(--ink-2)} .evgrid b{color:var(--ink)}
+.may{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.may span{font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok);font-weight:600}
+.may span.no{background:var(--bad-soft);color:var(--bad)}
+.usedin{font-size:13px;color:var(--ink-2)} .usedin button{color:var(--msgr);font-weight:600;text-decoration:underline;padding:2px 0;display:block}
+.chiplink{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.hero{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+@media (max-width:1100px){.hero{grid-template-columns:1fr}}
+.cap .big{font-size:44px;font-weight:900;color:var(--ford);line-height:1;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.cap .line{font-size:13px;color:var(--ink-2);margin-bottom:12px}
+.bars{display:grid;grid-template-columns:150px 1fr 44px;gap:8px 10px;align-items:center;font-size:13px;color:var(--ink-2)}
+.bars .bar{height:22px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.bars .bar i{display:block;height:100%;border-radius:6px;background:var(--line-strong)} .bars .bar i.lb{background:linear-gradient(90deg,var(--ford),var(--msgr))}
+.bars b{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.ringwrap{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
+.ring{position:relative;width:120px;height:120px}
+.ring svg{transform:rotate(-90deg)} .ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:var(--ford);line-height:1}
+.ring .val small{display:block;margin-top:3px;font-size:9px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;font-weight:700;text-align:center}
+.checks{font-size:12.5px;display:flex;flex-direction:column;gap:4px}
+.checks div{display:grid;grid-template-columns:16px 1fr auto;gap:6px;align-items:baseline;color:var(--ink-2)} .checks b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+.checks .ok{color:var(--ok);font-weight:900} .checks .no{color:var(--bad);font-weight:900}
+table.gates{width:100%;border-collapse:collapse;font-size:13px}
+table.gates th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:6px 6px;border-bottom:1px solid var(--line)}
+table.gates td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top;font-variant-numeric:tabular-nums}
+table.gates td.why{color:var(--ink-3);font-size:12px}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.03em}
+.pill.pass{background:var(--ok-soft);color:var(--ok)} .pill.watch{background:var(--warn-soft);color:var(--warn)} .pill.fail{background:var(--bad-soft);color:var(--bad)}
+.ownerbar{display:flex;gap:8px;align-items:center;margin:0 0 14px;flex-wrap:wrap}
+.ownerbar .sub{margin:0;flex:1}
+.ana textarea{width:100%;min-height:90px;border:1.5px solid var(--line-strong);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px}
+.ana .r{display:flex;gap:8px;margin:8px 0 14px;align-items:center;flex-wrap:wrap}
+.ana select{font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
+.ana .ex{font-size:12px;color:var(--msgr);text-decoration:underline dotted;text-underline-offset:3px}
+.ana .out{border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.ana .out .draft{padding:12px 14px;font-size:15px;line-height:1.4;background:var(--msgr-soft);color:var(--ink)}
+.ana .out .draft.blocked{background:var(--bad-soft)}
+.ana .out .meta{padding:8px 14px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap}
+.disc{font-size:11.5px;color:var(--ink-3);margin-top:10px}
 /* ---- Side ---- */
 .side{border-left:1px solid var(--line);background:var(--bg);overflow-y:auto;padding:12px}
 .panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px}
@@ -220,7 +275,7 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 <header>
   <h1><span class="mark">L</span>LotBeacon</h1>
   <span class="sub" id="dealer">—</span>
-  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="owner" aria-selected="false">Owner dashboard</button></nav>
+  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="owner" aria-selected="false">Owner dashboard</button><button id="anaBtn" title="Paste a real customer message and watch the pipeline run — nothing is stored">Try a live inquiry</button></nav>
   <div class="right"><button class="tourbtn" id="tourBtn" title="Guided tour">?</button><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
 </header>
 
@@ -232,6 +287,7 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 <div class="toast" id="toast"></div>
 <div class="overlay" id="overlay"></div>
 <aside class="drawer" id="drawer"></aside>
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -302,6 +358,8 @@ function renderThread(){
           <div class="menu" id="menu">
             <div class="lab">Correct stage</div>
             ${[['APPOINTMENT_SET','Appointment booked'],['ARRIVED','Showed up'],['SOLD','Sold'],['NURTURE','Follow up later'],['LOST','Lost / went elsewhere'],['HUMAN_REQUIRED','Needs a person']].map(([k,l])=>`<button data-stage="${k}">${l}</button>`).join('')}
+            <div class="lab">Compliance</div>
+            <button id="expThread">Export audit for this conversation (JSON)</button>
             <div class="lab">Reply style</div>
             <label><select id="voice"><option value="auto" ${!d.voice_locked?'selected':''}>Auto (${esc((META.voices.find(v=>v.id===(d.voice||'dealer'))||{}).label||'Dealership default')})</option>${META.voices.map(v=>`<option value="${v.id}" ${d.voice_locked&&v.id===d.voice?'selected':''}>${esc(v.label)}</option>`).join('')}</select></label>
           </div></div>
@@ -317,7 +375,7 @@ function renderThread(){
 function renderCard(d){
   const dr=d.draft,bk=d.booking||{},v=d.vehicle;
   if(d.customer.opted_out||d.funnel.state==='DO_NOT_CONTACT') return `<div class="card blocked"><div class="top"><div class="goal">Goal<b>Nothing to send</b></div><div class="missing">Opted out — do not contact</div></div></div>`;
-  const veri=v?`<span class="veri ${v.fresh?(v.status==='available'?'':'bad'):'stale'}">${v.fresh?(v.status==='available'?'✓ Available':'✕ '+esc(v.status)):'⚠ Inventory stale'} · ${esc(v.year+' '+v.make+' '+v.model+' '+v.trim)} <span class="chip mono">${esc(v.stock_number)}</span>${v.drivetrain?` <span class="chip">${esc(v.drivetrain)}</span>`:''} <span class="chip">${v.mileage.toLocaleString()} mi</span> <span class="chip">$${v.price.toLocaleString()}</span> <span class="small">verified ${esc(v.age)} ago</span></span>`:'';
+  const veri=v?`<span class="veri ${v.fresh?(v.status==='available'?'':'bad'):'stale'}">${v.fresh?(v.status==='available'?'✓ Available':'✕ '+esc(v.status)):'⚠ Inventory stale'} · ${esc(v.year+' '+v.make+' '+v.model+' '+v.trim)} <span class="chip mono chiplink" data-stock="${esc(v.stock_number)}" title="Evidence behind this vehicle">${esc(v.stock_number)} ↗</span>${v.drivetrain?` <span class="chip">${esc(v.drivetrain)}</span>`:''} <span class="chip">${v.mileage.toLocaleString()} mi</span> <span class="chip">$${v.price.toLocaleString()}</span> <span class="small">verified ${esc(v.age)} ago</span></span>`:'';
   const stage=bk.stage||'', a=dr?.structured?.recommended_action||'';
   let goal='Keep the conversation moving', missing='', missOk=false, cls='';
   if(stage==='booked'){goal=`Booked · ${bk.date_label} · ${bk.time_label}`;missing='✓ Nothing missing';missOk=true;cls='book';}
@@ -351,7 +409,7 @@ function renderCard(d){
   const actions=(stage==='booked'&&!(dr&&dr.status!=='sent'&&dr.text))?'':`<div class="actions">
       ${stage==='time_selected'?`<button class="btn quiet sm" id="sendAnyway">Reply instead</button>`:`<button class="btn primary" id="send" ${(!dr||sent||blocked||!d.window.open)?'disabled':''}>${sent?'Sent':'Send & next'}</button>`}
       <span class="hint" id="valstate">${blocked?'<span style="color:var(--bad);font-weight:700">Blocked — fix the flagged sentence</span>':(sent?'':'claims re-checked at send')} · <kbd>⌘↵</kbd></span></div>`;
-  return `<div class="card ${cls}" id="card"><div class="top"><div class="goal">Goal<b>${esc(goal)}</b></div><div class="missing ${missOk?'ok':''}">${missing}</div>${renderKnown(d)}${veri}${clarify}</div>${body}${actions}</div>`;
+  return `<div class="card ${cls}" id="card"><div class="top"><div class="goal">Goal <button class="whybtn" id="whyBtn" title="The decision path behind this card">why this action?</button><b>${esc(goal)}</b></div><div class="missing ${missOk?'ok':''}">${missing}</div>${renderKnown(d)}${veri}${clarify}</div>${body}${actions}</div>`;
 }
 
 function renderKnown(d){
@@ -378,6 +436,9 @@ function renderGhost(d){
 function bindThread(){
   const d=detail,dr=d.draft;
   $('#impactBtn').onclick=()=>showImpact(d.id);
+  const wb=$('#whyBtn');if(wb)wb.onclick=()=>showWhy(d.id);
+  const ex=$('#expThread');if(ex)ex.onclick=()=>{window.open(`/api/audit/export?thread_id=${d.id}`,'_blank');};
+  document.querySelectorAll('#main .chiplink').forEach(c=>c.onclick=e=>{e.stopPropagation();showEvidence(c.dataset.stock);});
   $('#manual').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});await open(d.id);loadQueue();};
   const mb=$('#moreBtn'),menu=$('#menu');
   mb.onclick=e=>{e.stopPropagation();menu.classList.toggle('open');};
@@ -429,7 +490,7 @@ async function doBook(){
 function renderSide(){
   const d=detail,v=d.vehicle,m=d.momentum;
   $('#side').innerHTML=`
-    ${v?`<div class="panel"><h3>Vehicle</h3><div class="vname">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
+    ${v?`<div class="panel"><h3>Vehicle</h3><div class="vname chiplink" data-stock="${esc(v.stock_number)}" title="Evidence behind this vehicle">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} ↗</div>
       <div class="vrow"><span>Stock</span><span class="mono">${esc(v.stock_number)}</span></div>
       <div class="vrow"><span>Drivetrain</span><span>${esc(v.drivetrain||'—')}</span></div>
       <div class="vrow"><span>Color</span><span>${esc(v.color)}</span></div>
@@ -445,6 +506,7 @@ function renderSide(){
     </div>
     <div class="panel sim"><h3>Demo: simulate customer</h3><textarea id="simText" placeholder="What ${esc(d.customer.name||'the customer')} says next…"></textarea>
       <div class="r"><button class="btn sm" id="simSend">Receive</button>${v?`<select id="simInv"><option value="">Inventory event…</option><option value="sold">Mark ${esc(v.model)} sold</option><option value="pending">Mark pending</option><option value="available">Mark available</option><option value="stale">Make feed stale</option></select>`:''}</div></div>`;
+  document.querySelectorAll('#side .chiplink').forEach(c=>c.onclick=()=>showEvidence(c.dataset.stock));
   document.querySelectorAll('.ev').forEach(b=>{b.onclick=()=>hl(b.dataset.mid);
     b.oncontextmenu=async e=>{e.preventDefault();const nv=prompt('Correct this fact (empty = remove):',b.querySelector('.v').textContent);if(nv===null)return;await api(`/api/facts/${b.dataset.fid}/correct`,{method:'POST',body:{rep_id:repId(),value:nv||null}});toast('Corrected');open(d.id);};});
   $('#simSend').onclick=async()=>{const t=$('#simText').value.trim();if(!t)return;await api('/webhook/messenger',{method:'POST',body:{page_id:META.dealership.page_id,psid:d.customer.psid,text:t,display_name:d.customer.name}});await open(d.id);loadQueue();};
@@ -475,21 +537,76 @@ async function showImpact(id){
 }
 function closeDrawer(){$('#drawer').classList.remove('open');$('#overlay').classList.remove('open');}
 
+/* ---------------- modals: why this action · vehicle evidence · live inquiry ---------------- */
+function openModal(html){$('#modalBox').innerHTML=`<button class="close" id="mclose" aria-label="Close">×</button>`+html;$('#modal').classList.add('open');$('#mclose').onclick=closeModal;}
+function closeModal(){$('#modal').classList.remove('open');}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDrawer();}});
+function pathHtml(steps){
+  return `<div class="path">${steps.map(st=>`<div class="pstep"><div class="n"><i></i>${esc(st.step)}</div><div><div class="l">${esc(st.label)}</div><div class="d">${esc(st.detail)}</div>
+    ${st.claims&&st.claims.length?`<div class="claims">${st.claims.map(c=>`<span class="${c.verdict==='supported'?'ok':'bad'}">${esc(c.kind.replace(/_/g,' '))} · ${esc(c.verdict)} — “${esc(c.text)}”${c.note?' · '+esc(c.note):''}</span>`).join('')}</div>`:''}
+    ${st.vehicle?`<div class="d"><span class="chiplink" data-stock="${esc(st.vehicle.stock_number)}" style="color:var(--msgr);font-weight:600">open inventory evidence ↗</span></div>`:''}</div></div>`).join('')}</div>`;
+}
+async function showWhy(id){
+  const r=await api(`/api/threads/${id}/explain`);
+  openModal(`<h2>Why this action</h2><div class="sub">${esc(detail?.customer?.name||'')} · the same path the rep would narrate: read → remember → verify → stage → decide → check → gate</div>${pathHtml(r.steps)}<div class="disc">Every step cites its evidence. If a step is wrong, correct the fact (right-click it in Details) or the stage (⋯ menu) and the card re-derives.</div>`);
+  document.querySelectorAll('#modalBox .chiplink').forEach(c=>c.onclick=()=>showEvidence(c.dataset.stock));
+}
+async function showEvidence(stock){
+  const r=await api(`/api/inventory/${encodeURIComponent(stock)}/evidence`);const v=r.vehicle,ma=r.may_assert;
+  openModal(`<h2>${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</h2><div class="sub">Stock ${esc(v.stock_number)} · VIN ${esc(v.vin)} · this is the only record the AI may quote from</div>
+    <div class="evgrid"><div><span>Status</span><b>${esc(v.status)}</b></div><div><span>Internet price</span><b>$${v.price.toLocaleString()}</b></div><div><span>Mileage</span><b>${v.mileage.toLocaleString()}</b></div><div><span>Drivetrain</span><b>${esc(v.drivetrain||'—')}</b></div><div><span>Color</span><b>${esc(v.color)}</b></div><div><span>Body</span><b>${esc(v.body)}</b></div><div><span>Source</span><b class="mono">${esc(v.source)}</b></div><div><span>Retrieved</span><b>${esc(v.age)} ago · ${new Date(v.retrieved_at).toLocaleTimeString()}</b></div></div>
+    <div class="may">${Object.entries(ma).map(([k,ok])=>`<span class="${ok?'':'no'}">${ok?'✓':'✕'} may ${k==='availability'?'say it is available':k==='price'?'quote the price':k==='mileage'?'state mileage':'state drivetrain'}</span>`).join('')}</div>
+    <div class="small">${esc(r.freshness_rule)}</div>
+    <div class="grp" style="margin-top:14px"><h4>Conversations leaning on this unit (${r.used_in.length})</h4><div class="usedin">${r.used_in.map(u=>`<button data-open="${u.thread_id}">${esc(u.customer)} · draft ${esc(u.draft_status)} · risk ${esc(u.risk)}</button>`).join('')||'<span class="small">None yet.</span>'}</div></div>`);
+  document.querySelectorAll('#modalBox [data-open]').forEach(b=>b.onclick=()=>{closeModal();if(VIEW!=='work')showView('work');open(+b.dataset.open);});
+}
+const EXAMPLES=['hey is the black tahoe still available? could come by saturday morning','What’s the lowest you’d go on the F-150? I’m pre-approved elsewhere at 5.9%','Yo is that Bronco 4x4 or awd? need something for the farm road','Can you hold the Explorer until Friday? I get paid then','how much for the mustang and can i finance with bad credit'];
+function showAnalyzer(){
+  openModal(`<h2>Try a live inquiry</h2><div class="sub">Paste what a real customer typed. The full pipeline runs against live inventory — classify, extract, verify, decide, draft, firewall. Nothing is stored.</div>
+    <div class="ana"><textarea id="anaText" placeholder="Paste the customer's message…"></textarea>
+    <div class="r"><button class="btn primary sm" id="anaRun">Analyze</button><select id="anaVoice"><option value="">Reply style: auto</option>${META.voices.map(v=>`<option value="${v.id}">${esc(v.label)}</option>`).join('')}</select><span class="ex" id="anaEx">try an example</span></div>
+    <div id="anaOut"></div></div>`);
+  const ta=$('#anaText');let k=0;$('#anaEx').onclick=()=>{ta.value=EXAMPLES[k++%EXAMPLES.length];};
+  $('#anaRun').onclick=async()=>{const t=ta.value.trim();if(!t)return;$('#anaOut').innerHTML='<div class="small">Running…</div>';
+    try{const r=await api('/api/analyze',{method:'POST',body:{text:t,voice:$('#anaVoice').value||null}});const d=r.draft,flags=(d.validation?.claims||[]).filter(c=>c.verdict!=='supported');
+      $('#anaOut').innerHTML=`<div class="out"><div class="draft ${d.status==='blocked'?'blocked':''}">${d.text?esc(d.text):'<i>No AI draft — this is handed to a person: '+esc((d.structured.recommended_action||'').replace(/_/g,' '))+'</i>'}</div>
+        <div class="meta"><span>stage <b>${esc(r.lead_state)}</b></span><span>action <b>${esc((d.structured.recommended_action||'').replace(/_/g,' '))}</b></span><span>risk <b>${esc(d.risk_level)}</b></span><span>style <b>${esc(r.voice)}</b> ${esc(r.voice_reason||'')}</span><span>${flags.length?`<span style="color:var(--bad);font-weight:700">${flags.length} claim${flags.length>1?'s':''} held back</span>`:'<span style="color:var(--ok);font-weight:700">every claim supported</span>'}</span></div></div>
+        <div style="margin-top:12px">${pathHtml(r.explain)}</div><div class="disc">Preview only — no thread was created, no message was sent. AI provider: ${esc(META.provider)}.</div>`;
+      document.querySelectorAll('#modalBox .chiplink').forEach(c=>c.onclick=()=>showEvidence(c.dataset.stock));
+    }catch(e){$('#anaOut').innerHTML=`<div class="small" style="color:var(--bad)">${esc(e.message)}</div>`;}};
+  ta.focus();
+}
+$('#anaBtn').onclick=showAnalyzer;
+
 /* ---------------- owner dashboard ---------------- */
 let VIEW='work';
 async function showView(v){
-  VIEW=v;document.querySelectorAll('header .nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));
+  VIEW=v;document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));
   const app=document.querySelector('.app');
   if(v==='owner'){app.querySelector('.queue').hidden=true;app.querySelector('.side').hidden=true;$('#main').hidden=true;let o=$('#owner');if(!o){o=document.createElement('section');o.id='owner';o.className='owner';app.appendChild(o);}o.hidden=false;await renderOwner();}
   else{app.querySelector('.queue').hidden=false;app.querySelector('.side').hidden=false;$('#main').hidden=false;const o=$('#owner');if(o)o.hidden=true;}
 }
 async function renderOwner(){
-  const m=await api('/api/metrics/owner');const u=m.usage,sp=m.speed,sf=m.safety,f=m.funnel,r=m.return,a=m.assumptions;
+  const m=await api('/api/metrics/owner');const u=m.usage,sp=m.speed,sf=m.safety,f=m.funnel,r=m.return,a=m.assumptions,cap=m.capacity,rai=m.responsible_ai;
+  const cmax=Math.max(cap.baseline_per_rep_hour,cap.assisted_per_rep_hour,1);
+  const C=2*Math.PI*52,dash=C*(rai.score/100);
   const fmax=Math.max(1,f.inquiries);
   const frow=(l,n)=>`<div class="frow"><span>${l}</span><div class="bar"><i style="width:${Math.round(100*n/fmax)}%"></i></div><b>${n}</b></div>`;
   const dmax=Math.max(1,...sp.response_distribution.map(x=>x.n));
   $('#owner').innerHTML=`
-    <h2>Owner dashboard</h2><div class="sub">${esc(META.dealership.name)} · last ${m.window_days} days · every dollar is derived from the assumptions at the bottom — edit them to your store</div>
+    <div class="ownerbar"><div><h2>Owner dashboard</h2><div class="sub">${esc(META.dealership.name)} · last ${m.window_days} days · every dollar is derived from the assumptions at the bottom — edit them to your store</div></div>
+      <button class="btn quiet sm" id="expAll" title="Events, drafts with firewall verdicts, stage transitions — the bundle a compliance reviewer asks for">Export audit log (JSON)</button></div>
+    <div class="hero">
+      <div class="panel2 cap" data-tour="t-cap"><h3>Capacity per rep-hour</h3><div class="big">${cap.multiplier}×</div><div class="line">${esc(cap.line)}</div>
+        <div class="bars"><span>Unassisted (${cap.baseline_minutes} min/reply)</span><div class="bar"><i style="width:${Math.round(100*cap.baseline_per_rep_hour/cmax)}%"></i></div><b>${cap.baseline_per_rep_hour}</b>
+        <span>With LotBeacon (${cap.avg_assisted_minutes} min/reply)</span><div class="bar"><i class="lb" style="width:${Math.round(100*cap.assisted_per_rep_hour/cmax)}%"></i></div><b>${cap.assisted_per_rep_hour}</b></div>
+        <div class="small" style="margin-top:8px">Assisted minutes are ${esc(cap.basis)}: the accept / edit / manual mix of real sends × your minutes assumptions. Same headcount, more conversations — that is the SaaS return.</div></div>
+      <div class="panel2"><h3>Responsible AI scorecard</h3><div class="ringwrap"><div class="ring"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-2)" stroke-width="10"></circle><circle cx="60" cy="60" r="52" fill="none" stroke="${rai.score===100?'var(--ok)':rai.score>=70?'var(--warn)':'var(--bad)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${(C-dash).toFixed(1)}"></circle></svg><div class="val">${rai.score}<small>${rai.passed}/${rai.total} checks</small></div></div>
+        <div class="checks">${rai.checks.map(c=>`<div title="${esc(c.detail)}"><span class="${c.pass?'ok':'no'}">${c.pass?'✓':'✕'}</span><span>${esc(c.label)}</span><b>${esc(c.value)}</b></div>`).join('')}</div></div></div>
+      <div class="panel2"><h3>Pilot decision gates</h3><table class="gates"><tr><th>Gate</th><th>Now</th><th>Target</th><th></th></tr>${m.gates.map(g=>`<tr title="${esc(g.why)}"><td>${esc(g.label)}</td><td><b>${esc(g.value)}</b></td><td>${esc(g.target)}</td><td><span class="pill ${g.status}">${g.status}</span></td></tr>`).join('')}</table>
+        <div class="small" style="margin-top:8px">${m.gates.filter(g=>g.status==='pass').length} of ${m.gates.length} passing. Go = all pass for two consecutive weeks. Hover a gate for why it matters.</div></div>
+    </div>
     <div class="tiles">
       <div class="tile usage" data-tour="t-active"><div class="lab">Active conversations</div><div class="num">${u.active_conversations}</div><div class="why">${u.conversations_touched} touched · ${u.replies_sent} replies sent</div></div>
       <div class="tile ret"><div class="lab">Median first response</div><div class="num">${esc(sp.median_first_response)}</div><div class="why">P90 ${esc(sp.p90_first_response)} · ${sp.windows_lost} reply window${sp.windows_lost===1?'':'s'} lost</div></div>
@@ -510,9 +627,10 @@ async function renderOwner(){
     <div class="panel2"><h3>Assumptions (your store's numbers — edit and press Enter)</h3><div class="assump">
       ${[['baseline_minutes_per_reply','Minutes per reply, unassisted'],['assisted_minutes_accept','Minutes to read + approve a draft'],['assisted_minutes_edit','Minutes to edit + approve'],['manual_minutes','Minutes when rep types it (AI paused)'],['loaded_rep_hourly_cost','Loaded rep cost, $/hour'],['appointment_show_rate','Appointment → show rate (0–1)'],['show_close_rate','Show → sold rate (0–1)'],['gross_per_unit','Gross per unit, $'],['value_of_prevented_false_claim','Value of one prevented false claim, $']].map(([k,l])=>`<span>${l}</span><input data-k="${k}" value="${a[k]}">`).join('')}
     </div><div class="small" style="margin-top:8px">Usage numbers (conversations, replies, acceptance, response times, claims routed) are measured. Return numbers are usage × your assumptions. Pilot hypothesis from the blueprint: 7.0 min unassisted vs 1.8 min assisted per reply ≈ 3.9× capacity.</div></div>`;
+  $('#expAll').onclick=()=>window.open('/api/audit/export','_blank');
   document.querySelectorAll('.assump input').forEach(i=>i.onkeydown=async e=>{if(e.key!=='Enter')return;const vals={};document.querySelectorAll('.assump input').forEach(x=>vals[x.dataset.k]=x.value);await api('/api/metrics/assumptions',{method:'POST',body:{values:vals}});toast('Assumptions updated');renderOwner();});
 }
-document.querySelectorAll('header .nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));
 
 /* ---------------- guided tour ---------------- */
 const TOUR=[
@@ -520,9 +638,11 @@ const TOUR=[
   {sel:'.thead .meta',title:'Channel, window, ownership',text:'Facebook Messenger with a live countdown on the 24-hour reply window, and one plain line saying who drafts and who sends. No autonomous sends, ever.'},
   {sel:'.stages',title:'Four stages, auto-derived',text:'Engage → Qualify → Book → Visit outcome. The sub-state is precise: "visit interest (tentative)" is not "appointment requested."'},
   {sel:'#card',title:'One action card',text:'Goal · Missing · Known (click a fact to see the customer\'s own words) · Verified vehicle · the draft. Two real appointment slots, verified against hours and existing bookings. When the customer picks one, this becomes a one-click Book + confirm.'},
+  {sel:'#whyBtn',title:'Why this action?',text:'Click it and the card explains itself: what it read, what it remembers (with certainty), what it verified in inventory, which stage, which action, which claims it checked, and the human gate. No black box.'},
   {sel:'#impactBtn',title:'Business impact',text:'What this conversation has produced: rep attention saved, first-response time, claims kept out of the customer\'s inbox, expected gross once booked. Reps prove the work; managers see the return.'},
   {sel:'.side',title:'Details, not clutter',text:'Vehicle card, evidence for every fact, momentum, stage history, diagnostics — behind disclosure. The demo simulator lives here too.'},
   {sel:'header .nav',title:'Owner dashboard',text:'Active conversations, median first response, rep attention saved, claims routed for verification — usage and return, with every assumption editable and visible.'},
+  {sel:'#anaBtn',title:'Try a live inquiry',text:'Paste a message a real customer sent your store today. The whole pipeline runs against live inventory and shows the draft, the verdicts and the decision path — nothing is stored.'},
   {sel:'header .keys',title:'Keyboard-first',text:'J/K walk the queue, E edits, ⌘↵ sends and opens the next lead, 1/2 swap the slot pair. Built for volume.'},
 ];
 let tourI=0,tourEl=null;

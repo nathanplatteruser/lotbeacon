@@ -581,6 +581,121 @@ def confirm_appointment(thread_id: int, body: AppointmentConfirm, s: Session = D
     return {"appointment_id": a.id, "status": a.status}
 
 
+# ------------------------------------------------------------------ explainability + pilot tooling (v0.9)
+def explain_view(d: Draft | None, vcard: dict | None) -> list[dict]:
+    """The decision path behind the action card, as the rep would narrate it. Every step names its evidence."""
+    if not d:
+        return []
+    st = d.structured or {}
+    val = d.validation or {}
+    cert = st.get("fact_certainty") or {}
+    steps = [
+        {"step": "Read", "label": f"Intent: {st.get('intent', '?')} · tone: {st.get('sentiment', '?')}" + (f" · objection: {st['objection']}" if st.get("objection") else ""),
+         "detail": f"Classifier confidence {st.get('classification_confidence', 0):.0%} · provider {st.get('provider')}"},
+        {"step": "Remember", "label": ", ".join(f"{k}: {', '.join(v) if isinstance(v, list) else v} ({cert.get(k, 'stated')})" for k, v in (st.get("customer_facts") or {}).items() if k != "financing_sensitive") or "No customer facts yet",
+         "detail": "Certainty tags come from the customer's own words — asked_about / preferred / required / tentative / confirmed."},
+    ]
+    if vcard:
+        steps.append({"step": "Verify", "label": f"{vcard['year']} {vcard['make']} {vcard['model']} · stock {vcard['stock_number']} · {vcard['status']} · ${vcard['price']:,}",
+                      "detail": f"Inventory source {vcard['source']} · retrieved {vcard['age']} ago · {'fresh' if vcard['fresh'] else 'STALE — availability and price may not be asserted'}", "vehicle": vcard})
+    else:
+        steps.append({"step": "Verify", "label": "No specific unit identified", "detail": "The draft may not assert availability or price for anything."})
+    steps.append({"step": "Stage", "label": st.get("lead_state", "?"), "detail": st.get("state_reason", "")})
+    steps.append({"step": "Decide", "label": st.get("recommended_action", "?").replace("_", " "), "detail": st.get("nba_reason", "") + (f" · still missing: {', '.join(st['missing_information'])}" if st.get("missing_information") else "")})
+    claims = val.get("claims", [])
+    steps.append({"step": "Check", "label": f"{len(claims)} claim{'s' if len(claims) != 1 else ''} extracted · {sum(1 for c in claims if c.get('verdict') == 'supported')} supported · {sum(1 for c in claims if c.get('verdict') in ('unsupported', 'prohibited'))} held back · risk {d.risk_level}",
+                  "detail": "; ".join(f"{c.get('kind')}: {c.get('verdict')}" for c in claims) or "Nothing in the draft asserts a fact that needs backing.", "claims": claims})
+    steps.append({"step": "Gate", "label": {"pending": "Waiting for your approval", "blocked": "Blocked — cannot be sent as written", "escalated": "Handed to a person", "ready_to_book": "One click books and confirms", "sent": "Sent by a rep"}.get(d.status, d.status),
+                  "detail": "No message reaches the customer without a person pressing Send."})
+    return steps
+
+
+@app.get("/api/threads/{thread_id}/explain")
+def explain(thread_id: int, s: Session = Depends(get_session)):
+    t = s.get(Thread, thread_id)
+    if not t:
+        raise HTTPException(404)
+    d = s.scalar(select(Draft).where(Draft.thread_id == t.id).order_by(Draft.id.desc()))
+    vid = (d.structured.get("vehicle_ids") if d else None) or []
+    v = s.get(Vehicle, vid[0]) if vid else None
+    return {"thread_id": t.id, "steps": explain_view(d, inventory.vehicle_card(v) if v else None)}
+
+
+@app.get("/api/inventory/{stock_number}/evidence")
+def vehicle_evidence(stock_number: str, s: Session = Depends(get_session)):
+    """Everything the firewall knows about one unit, and every thread that leaned on it."""
+    v = s.scalar(select(Vehicle).where(Vehicle.stock_number == stock_number))
+    if not v:
+        raise HTTPException(404)
+    card = inventory.vehicle_card(v)
+    used_in = []
+    for d in s.scalars(select(Draft).order_by(Draft.id.desc()).limit(500)):
+        if v.id in ((d.structured or {}).get("vehicle_ids") or []):
+            t = s.get(Thread, d.thread_id)
+            if t and all(u["thread_id"] != t.id for u in used_in):
+                used_in.append({"thread_id": t.id, "customer": t.customer.display_name or t.customer.psid, "draft_status": d.status, "risk": d.risk_level})
+    return {"vehicle": card, "may_assert": {"availability": card["fresh"], "price": card["fresh"], "mileage": True, "drivetrain": True},
+            "freshness_rule": f"Rows older than {inventory.INVENTORY_FRESHNESS_SECONDS // 60} minutes are stale: the draft may describe the unit but may not say it is available or quote the price.",
+            "used_in": used_in[:12]}
+
+
+class Analyze(BaseModel):
+    text: str
+    voice: str | None = None
+    customer_name: str = "Prospect"
+
+
+@app.post("/api/analyze")
+def analyze(body: Analyze):
+    """Paste a live inquiry: runs the full pipeline against real inventory in a throwaway transaction. Nothing is stored."""
+    from .db import SessionLocal
+
+    s = SessionLocal()
+    try:
+        dealer = s.scalar(select(Dealership))
+        psid = f"analyze_{int(datetime.now(timezone.utc).timestamp() * 1000)}"
+        thread, msg, _ = ingest_inbound(s, dealer, psid, f"mid_{psid}", body.text.strip()[:2000], body.customer_name)
+        if body.voice and body.voice in voices.VOICES:
+            thread.voice, thread.voice_locked = body.voice, True
+        d = process_message(s, thread, msg)
+        s.flush()
+        vid = (d.structured or {}).get("vehicle_ids") or []
+        v = s.get(Vehicle, vid[0]) if vid else None
+        vcard = inventory.vehicle_card(v) if v else None
+        out = {"draft": _draft_view(d), "vehicle": vcard, "lead_state": thread.lead_state.value, "voice": thread.voice, "voice_reason": thread.voice_reason,
+               "explain": explain_view(d, vcard), "facts": [memory.fact_view(f, s) for f in memory.active_facts(s, thread.id)],
+               "booking": (d.structured or {}).get("booking"), "stored": False}
+        return out
+    finally:
+        s.rollback()
+        s.close()
+
+
+@app.get("/api/audit/export")
+def audit_export(thread_id: int | None = None, s: Session = Depends(get_session)):
+    """Downloadable audit bundle: events, drafts with validation, state transitions. What a compliance reviewer asks for."""
+    from fastapi.responses import JSONResponse
+
+    q = select(AuditEvent).order_by(AuditEvent.id)
+    if thread_id:
+        q = q.where(AuditEvent.thread_id == thread_id)
+    events = [{"id": a.id, "thread_id": a.thread_id, "actor": a.actor, "action": a.action, "detail": a.detail, "at": a.at.isoformat()} for a in s.scalars(q)]
+    dq = select(Draft).order_by(Draft.id)
+    tq = select(StateTransition).order_by(StateTransition.id)
+    if thread_id:
+        dq = dq.where(Draft.thread_id == thread_id)
+        tq = tq.where(StateTransition.thread_id == thread_id)
+    drafts = [{"id": d.id, "thread_id": d.thread_id, "status": d.status, "risk_level": d.risk_level, "provider": d.provider, "text": d.text, "validation": d.validation,
+               "recommended_action": (d.structured or {}).get("recommended_action"), "citations": (d.structured or {}).get("citations"), "rules_version": (d.structured or {}).get("rules_version"), "created_at": d.created_at.isoformat()} for d in s.scalars(dq)]
+    transitions = [{"id": x.id, "thread_id": x.thread_id, "from": x.old_state, "to": x.new_state, "reason": x.reason, "actor": x.actor, "at": x.at.isoformat(), "rules_version": x.rules_version} for x in s.scalars(tq)]
+    d = s.scalar(select(Dealership))
+    bundle = {"exported_at": datetime.now(timezone.utc).isoformat(), "app_version": __version__, "rules_version": RULES_VERSION, "dealership": d.name,
+              "scope": {"thread_id": thread_id} if thread_id else {"all_threads": True}, "counts": {"events": len(events), "drafts": len(drafts), "transitions": len(transitions)},
+              "autonomous_sends": 0, "events": events, "drafts": drafts, "transitions": transitions}
+    name = f"lotbeacon-audit-{'thread-' + str(thread_id) if thread_id else 'all'}-{datetime.now(timezone.utc):%Y%m%d-%H%M}.json"
+    return JSONResponse(bundle, headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
 @app.get("/api/inventory")
 def inv(s: Session = Depends(get_session)):
     d = s.scalar(select(Dealership))

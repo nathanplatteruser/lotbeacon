@@ -21,4 +21,4 @@ RULES_VERSION = "rules-2026.09.04"
 
 # Demo dealership label (the pilot prospect). Inventory stays the same demo set.
 DEALER_NAME = os.getenv("LOTBEACON_DEALER_NAME", "Zoellner Ford")
-DEALER_ADDRESS = os.getenv("LOTBEACON_DEALER_ADDRESS", "1500 N 6th St, Beatrice, NE")
+DEALER_ADDRESS = os.getenv("LOTBEACON_DEALER_ADDRESS", "4115 N. 6th Street, Beatrice, NE 68310")

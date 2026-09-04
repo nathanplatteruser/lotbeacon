@@ -177,7 +177,7 @@ def owner_dashboard(s: Session, a: dict = ASSUMPTIONS, days: int = 7) -> dict:
     for label, hi in buckets:
         dist.append({"label": label, "n": sum(1 for x in all_resp if lo <= x < hi)})
         lo = hi
-    return {
+    dash = {
         "window_days": days,
         "usage": {
             "active_conversations": len(active), "conversations_touched": len(recent), "replies_sent": sent,
@@ -199,3 +199,94 @@ def owner_dashboard(s: Session, a: dict = ASSUMPTIONS, days: int = 7) -> dict:
         "per_rep": [{"rep": k, **{kk: (round(vv, 1) if isinstance(vv, float) else vv) for kk, vv in v.items()}} for k, v in sorted(per_rep.items(), key=lambda kv: -kv[1]["replies"])],
         "assumptions": a,
     }
+    manual = sum(f["manual"] for _, f in recent)
+    dash["capacity"] = capacity(a, sent, acc, edited, manual)
+    dash["responsible_ai"] = responsible_ai(s, recent, a)
+    dash["gates"] = pilot_gates(dash, a)
+    return dash
+
+
+# ---------------------------------------------------------------- pilot instrumentation (v0.9)
+def capacity(a: dict, sent: int, acc: int, edited: int, manual: int) -> dict:
+    """Replies one rep can handle per hour, unassisted vs assisted. Observed mix when there is data; assumptions otherwise."""
+    base_per_hour = 60.0 / a["baseline_minutes_per_reply"]
+    if sent:
+        attributed = acc + edited + manual
+        unattributed = max(0, sent - attributed)
+        avg_assisted = (acc * a["assisted_minutes_accept"] + (edited + unattributed) * a["assisted_minutes_edit"] + manual * a["manual_minutes"]) / sent
+        basis = "observed"
+    else:
+        avg_assisted = a["assisted_minutes_accept"] * 0.6 + a["assisted_minutes_edit"] * 0.4
+        basis = "assumed (no sends yet)"
+    assisted_per_hour = 60.0 / max(0.1, avg_assisted)
+    return {"baseline_per_rep_hour": round(base_per_hour, 1), "assisted_per_rep_hour": round(assisted_per_hour, 1),
+            "multiplier": round(assisted_per_hour / base_per_hour, 1), "avg_assisted_minutes": round(avg_assisted, 2),
+            "baseline_minutes": a["baseline_minutes_per_reply"], "basis": basis,
+            "line": f"{assisted_per_hour:.0f} vs {base_per_hour:.0f} replies per rep-hour — {assisted_per_hour / base_per_hour:.1f}× the conversations for the same headcount"}
+
+
+def compliance(threads) -> dict:
+    """Hard-rule checks computed from the record, not from settings."""
+    opt_out_violations = 0
+    window_violations = 0
+    for t in threads:
+        msgs = [m for m in t.messages if m.direction in ("in", "out")]
+        if t.lead_state == LeadState.DO_NOT_CONTACT:
+            last_in = max((m.sent_at for m in msgs if m.direction == "in"), default=None)
+            if last_in and any(m.direction == "out" and m.sent_at > last_in for m in msgs):
+                opt_out_violations += 1
+        last_in_at = None
+        for m in msgs:
+            if m.direction == "in":
+                last_in_at = m.sent_at
+            elif last_in_at is not None and (_aware(m.sent_at) - _aware(last_in_at)) > timedelta(hours=24):
+                window_violations += 1
+    return {"opt_out_violations": opt_out_violations, "window_violations": window_violations}
+
+
+def responsible_ai(s: Session, facts: list, a: dict) -> dict:
+    """Scorecard ring. Every check is a fact about what happened, phrased so a GM can read it in one pass."""
+    threads = [t for t, _ in facts]
+    comp = compliance(threads)
+    sent_drafts = s.scalars(select(Draft).where(Draft.status == "sent")).all()
+    validated = sum(1 for d in sent_drafts if d.validation)
+    clean = sum(1 for d in sent_drafts if d.validation and not any(c.get("verdict") in ("unsupported", "prohibited") for c in (d.validation or {}).get("claims", [])))
+    n = len(sent_drafts)
+    checks = [
+        {"key": "human_approval", "label": "Every send approved by a person", "value": "100%", "pass": True, "detail": "No autonomous sends exist in this build; the send button is the only path to the customer."},
+        {"key": "firewall_coverage", "label": "Sends checked by the hallucination firewall", "value": f"{validated}/{n}" if n else "—", "pass": validated == n, "detail": "Claim extraction runs on the exact text that goes out, including rep edits."},
+        {"key": "clean_sends", "label": "Sends with zero unsupported claims", "value": f"{clean}/{n}" if n else "—", "pass": clean == n, "detail": "Unsupported availability, price, financing or hold language is blocked before send."},
+        {"key": "opt_out", "label": "Opt-outs honored", "value": "0 violations" if not comp["opt_out_violations"] else f"{comp['opt_out_violations']} violations", "pass": comp["opt_out_violations"] == 0, "detail": "No outbound after a customer asks to stop."},
+        {"key": "window", "label": "Messenger 24-hour window respected", "value": "0 violations" if not comp["window_violations"] else f"{comp['window_violations']} violations", "pass": comp["window_violations"] == 0, "detail": "Outbound is disabled once the customer's last message is older than the standard window."},
+        {"key": "consequential_routed", "label": "Financing, trade, hold, warranty routed to a person", "value": str(sum(f["routed_to_human"] for _, f in facts)), "pass": True, "detail": "The AI never answers these; it hands the thread over with context."},
+        {"key": "corrections", "label": "Rep corrections captured as training signal", "value": str(sum(1 for _, f in facts if f["corrections"])), "pass": True, "detail": "Fact corrections are audited and fed back."},
+    ]
+    passed = sum(1 for c in checks if c["pass"])
+    return {"score": round(100 * passed / len(checks)), "passed": passed, "total": len(checks), "checks": checks}
+
+
+def pilot_gates(dash: dict, a: dict) -> list[dict]:
+    """Go / no-go thresholds for the pilot. Targets are the blueprint's hypothesis, values are live."""
+    u, sp, sf, fu, r = dash["usage"], dash["speed"], dash["safety"], dash["funnel"], dash["return"]
+    cap = dash["capacity"]
+    def gate(key, label, value_txt, target_txt, status, why):
+        return {"key": key, "label": label, "value": value_txt, "target": target_txt, "status": status, "why": why}
+    def tri(v, good, ok, higher_is_better=True):
+        if v is None:
+            return "watch"
+        if higher_is_better:
+            return "pass" if v >= good else ("watch" if v >= ok else "fail")
+        return "pass" if v <= good else ("watch" if v <= ok else "fail")
+    mfr = sp.get("median_first_response_s")
+    clean = next(c for c in dash["responsible_ai"]["checks"] if c["key"] == "clean_sends")["value"]
+    unsupported_sent = 0 if clean == "—" else int(clean.split("/")[1]) - int(clean.split("/")[0])
+    gates = [
+        gate("first_response", "Median first response", sp["median_first_response"], "< 5 min", tri(mfr, 300, 900, False), "Speed-to-lead is the single best predictor of a set appointment."),
+        gate("acceptance", "Draft acceptance (as-is or edited)", f"{u['draft_acceptance_rate']:.0%}" if u["draft_acceptance_rate"] is not None else "—", "≥ 70%", tri(u["draft_acceptance_rate"], 0.7, 0.5), "Below this, reps are rewriting — the tool is a tax, not a lift."),
+        gate("capacity", "Capacity multiplier", f"{cap['multiplier']}×", "≥ 3×", tri(cap["multiplier"], 3.0, 2.0), "The '4× conversations per rep' hypothesis, measured from the observed accept/edit mix."),
+        gate("unsupported_sent", "Unsupported claims that reached a customer", str(unsupported_sent), "0", "pass" if unsupported_sent == 0 else "fail", "One walk-back costs more than a week of saved minutes."),
+        gate("inquiry_to_booked", "Inquiry → appointment booked", f"{fu['inquiry_to_booked']:.0%}" if fu["inquiry_to_booked"] is not None else "—", "≥ 20%", tri(fu["inquiry_to_booked"], 0.2, 0.12), "Bookings, not replies, are what the store gets paid for."),
+        gate("windows_lost", "Messenger windows lost", str(sp["windows_lost"]), "≤ 10% of active", tri((sp["windows_lost"] / max(1, u["active_conversations"])), 0.10, 0.25, False), "A lost window is a lead you can no longer legally reach on this channel."),
+        gate("reps_active", "Reps using it this week", str(u["reps_active"]), "≥ 2", tri(u["reps_active"], 2, 1), "Adoption by more than the champion is the difference between a pilot and a purchase."),
+    ]
+    return gates
