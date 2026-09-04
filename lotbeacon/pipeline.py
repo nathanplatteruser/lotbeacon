@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import inventory, memory, policy
+from . import inventory, memory, policy, voices
 from .ai.base import AIProvider, Classification, DraftContext, ExtractedFact, get_provider
 from .config import RULES_VERSION
 from .models import (
@@ -169,7 +169,7 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     # 6. bounded context → draft
     appt_confirmed = s.scalar(select(Appointment).where(Appointment.thread_id == thread.id, Appointment.status == "confirmed")) is not None
     ctx = DraftContext(
-        dealership_name=dealership.name, voice=dealership.voice, customer_name=customer.display_name,
+        dealership_name=dealership.name, voice=voices.get(thread.voice).style_guide, voice_name=voices.get(thread.voice).label, customer_name=customer.display_name,
         recent_messages=history, facts={k: v for k, v in facts.items() if k != "financing_sensitive"}, vehicle=vcard, vehicle_fresh=fresh,
         alternatives=alternatives, hours_today=policy.hours_today(dealership.hours, dealership.timezone), recommended_action=action,
         missing_information=missing,
@@ -202,6 +202,15 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     s.flush()
     audit(s, thread, f"ai:{provider.name}", "draft.created", {"draft_id": draft.id, "risk": risk, "status": status, "action": action})
     return draft
+
+
+def regenerate(s: Session, draft: Draft, provider: AIProvider | None = None) -> Draft:
+    """Re-run the pipeline for the same trigger message (e.g. after a voice change). Memory dedups; state is stable."""
+    thread = s.get(Thread, draft.thread_id)
+    msg = s.get(Message, draft.trigger_message_id)
+    if draft.status in ("pending", "blocked", "escalated"):
+        draft.status = "discarded"
+    return process_message(s, thread, msg, provider)
 
 
 def revalidate(s: Session, draft: Draft, new_text: str) -> Draft:

@@ -4,6 +4,7 @@ Good enough to run the whole pipeline honestly, and it makes every test reproduc
 """
 import re
 
+from .. import voices
 from .base import Classification, DraftContext, ExtractedFact
 
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -181,7 +182,9 @@ class MockProvider:
 
         if ctx.hours_today and action in ("invite_test_drive", "answer_availability"):
             parts.append(f"We're open until {ctx.hours_today.split('-')[-1].strip()} today.")
-        return (hi + " ".join(parts)).strip()
+        text = (hi + " ".join(parts)).strip()
+        v = next((x for x in voices.VOICES.values() if x.style_guide == ctx.voice), voices.get(None))
+        return voices.apply_mock(text, v, ctx.customer_name)
 
 
 def _window(text: str, needle: str, span: int = 40) -> str:

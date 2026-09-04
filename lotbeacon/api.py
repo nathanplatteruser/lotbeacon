@@ -8,12 +8,12 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import __version__, inventory, memory, policy
+from . import __version__, inventory, memory, policy, timefmt, voices
 from .ai.base import resolve_provider_name
 from .config import RULES_VERSION
 from .db import get_session, init_db
 from .models import Appointment, AuditEvent, Customer, Dealership, Draft, LeadState, MemoryFact, Message, Rep, StateTransition, Thread, Vehicle
-from .pipeline import audit, ingest_inbound, process_message, revalidate
+from .pipeline import audit, ingest_inbound, process_message, regenerate, revalidate
 
 app = FastAPI(title="LotBeacon", version=__version__)
 WEB = Path(__file__).parent / "web"
@@ -58,7 +58,7 @@ def index():
 def meta(s: Session = Depends(get_session)):
     d = s.scalar(select(Dealership))
     reps = s.scalars(select(Rep).where(Rep.dealership_id == d.id)).all()
-    return {"version": __version__, "provider": resolve_provider_name(), "rules_version": RULES_VERSION, "dealership": {"id": d.id, "name": d.name, "page_id": d.page_id, "hours_today": policy.hours_today(d.hours, d.timezone)}, "reps": [{"id": r.id, "name": r.name, "role": r.role} for r in reps]}
+    return {"version": __version__, "provider": resolve_provider_name(), "rules_version": RULES_VERSION, "dealership": {"id": d.id, "name": d.name, "page_id": d.page_id, "hours_today": policy.hours_today(d.hours, d.timezone)}, "reps": [{"id": r.id, "name": r.name, "role": r.role} for r in reps], "voices": voices.as_list()}
 
 
 @app.get("/api/threads")
@@ -72,6 +72,7 @@ def threads(s: Session = Depends(get_session)):
             "id": t.id, "customer": t.customer.display_name or t.customer.psid, "lead_state": t.lead_state.value, "priority": t.priority,
             "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "vehicle": f"{v.year} {v.model}" if v else None,
             "last_customer_message_at": t.last_customer_message_at.isoformat() if t.last_customer_message_at else None,
+            "waiting": timefmt.since(t.last_customer_message_at),
             "risk": d.risk_level if d else None, "draft_status": d.status if d else None,
         })
     return out
@@ -92,7 +93,7 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
     appt = s.scalar(select(Appointment).where(Appointment.thread_id == t.id).order_by(Appointment.id.desc()))
     return {
         "id": t.id, "customer": {"id": cust.id, "name": cust.display_name, "psid": cust.psid, "opted_out": cust.opted_out},
-        "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused,
+        "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "voice": t.voice or "dealer",
         "summary": t.summary, "summary_version": t.summary_version,
         "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "text": m.text, "sent_at": m.sent_at.isoformat()} for m in t.messages],
         "facts": facts,
@@ -167,6 +168,24 @@ def takeover(thread_id: int, body: TakeOver, s: Session = Depends(get_session)):
     t.assigned_rep_id = body.rep_id
     audit(s, t, f"rep:{body.rep_id}", "ai.paused" if body.paused else "ai.resumed", {})
     return {"ai_paused": t.ai_paused}
+
+
+class VoiceChange(BaseModel):
+    rep_id: int
+    voice: str
+
+
+@app.post("/api/threads/{thread_id}/voice")
+def set_voice(thread_id: int, body: VoiceChange, s: Session = Depends(get_session)):
+    """Rep picks a voice profile for this thread. Tone only — the draft is regenerated and re-validated."""
+    if body.voice not in voices.VOICES:
+        raise HTTPException(400, "unknown voice")
+    t = s.get(Thread, thread_id)
+    t.voice = body.voice
+    audit(s, t, f"rep:{body.rep_id}", "voice.changed", {"voice": body.voice})
+    d = s.scalar(select(Draft).where(Draft.thread_id == t.id).order_by(Draft.id.desc()))
+    new = regenerate(s, d) if d and d.trigger_message_id else None
+    return {"voice": t.voice, "draft": _draft_view(new) if new else None}
 
 
 class FactCorrection(BaseModel):

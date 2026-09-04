@@ -29,7 +29,7 @@ class DraftContext:
     """Everything the provider is allowed to know. Anything not here does not exist."""
 
     dealership_name: str
-    voice: str
+    voice: str  # full style guide text
     customer_name: str
     recent_messages: list[dict]  # [{author, text}]
     facts: dict  # key -> value (only ACTIVE facts)
@@ -40,6 +40,7 @@ class DraftContext:
     recommended_action: str
     missing_information: list[str]
     must_not_claim: list[str]  # explicit prohibitions for this turn
+    voice_name: str = "Dealership default"
 
 
 class AIProvider(Protocol):

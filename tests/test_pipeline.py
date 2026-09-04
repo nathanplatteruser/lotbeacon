@@ -175,3 +175,31 @@ def test_prompt_injection_is_just_text(s):
 def test_validator_flags_stray_money():
     r = validate("It's a great truck, and $500 covers everything.", vehicle=None, vehicle_fresh=False, alternatives=[], hours_today=None, appointment_confirmed=False, messaging={"eligible": True})
     assert any(c["kind"] == "money_figure" for c in r.to_dict()["claims"])
+
+
+def test_two_level_durations():
+    from lotbeacon.timefmt import humanize
+
+    assert humanize(45) == "45s"
+    assert humanize(382) == "6m 22s"
+    assert humanize(3 * 3600 + 5 * 60 + 59) == "3h 5m"
+    assert humanize(200000) == "2d 7h"
+
+
+def test_voice_profiles_change_tone_not_facts(s):
+    from lotbeacon import voices
+    from lotbeacon.pipeline import regenerate
+
+    thread, d = run(s, "Hey, is that black Tahoe you posted still available? I've got a 2018 Accord to trade and could probably come Saturday.", psid="v1")
+    base = d.text
+    seen = {base}
+    for vid in voices.VOICES:
+        thread.voice = vid
+        nd = regenerate(s, d)
+        assert nd.status == "pending", (vid, nd.validation)
+        assert "$" not in nd.text and "Tahoe" in nd.text and "Saturday" in nd.text
+        assert all(c["verdict"] == "supported" for c in nd.validation["claims"]), (vid, nd.validation["claims"])
+        # a voice may reword the claim, but the firewall must still SEE the availability claim
+        assert any(c["kind"] == "availability" for c in nd.validation["claims"]), (vid, nd.text)
+        seen.add(nd.text)
+    assert len(seen) >= 6  # six distinct voices actually read differently

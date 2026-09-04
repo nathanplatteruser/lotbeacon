@@ -97,6 +97,7 @@ class Thread(Base):
     assigned_rep_id: Mapped[int | None] = mapped_column(ForeignKey("reps.id"), nullable=True)
     lead_state: Mapped[LeadState] = mapped_column(Enum(LeadState), default=LeadState.NEW)
     ai_paused: Mapped[bool] = mapped_column(Boolean, default=False)  # "Take over"
+    voice: Mapped[str] = mapped_column(String(32), default="dealer")  # rep-chosen voice profile (tone only)
     priority: Mapped[int] = mapped_column(Integer, default=0)
     priority_reason: Mapped[str] = mapped_column(String(200), default="")
     summary: Mapped[str] = mapped_column(Text, default="")

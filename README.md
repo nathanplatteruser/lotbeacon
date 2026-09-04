@@ -1,4 +1,4 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.1)
+# LotBeacon — Messenger Copilot for dealership reps (MVP v0.3)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -66,6 +66,7 @@ Then break it on purpose (right panel, "Simulate"):
 | Receive message: "Please stop messaging me." | `DO_NOT_CONTACT`, customer suppressed, all sends blocked |
 | Right-click a fact | Correct or remove it; extraction can't overwrite a rep correction |
 | *Take over* | AI drafting pauses for that thread; your typed reply still goes through the claim check |
+| **Voice** dropdown → Frank / Celeste / Jon / Dogg / Zee | Same facts, different tone; the draft is regenerated and re-validated — a voice can't smuggle a claim past the firewall |
 
 ## What's real vs. simulated in v0.1
 
@@ -103,9 +104,11 @@ lotbeacon/
   ai/mock.py       Deterministic air-gapped provider
   ai/anthropic_provider.py  Claude via forced tool-use; ResilientProvider falls back to mock
   scripts/eval.py  Provider scorecard (mock vs Claude) with the critical-error override
+  voices.py        Six voice profiles (style guide for Claude + deterministic rewrites for the mock)
+  timefmt.py       Two-level human durations (2d 4h · 3h 5m · 6m 22s)
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
   web/index.html   Rep workspace
-tests/                     24 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
+tests/                     26 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
 ```
 
 ## Next tickets this unlocks

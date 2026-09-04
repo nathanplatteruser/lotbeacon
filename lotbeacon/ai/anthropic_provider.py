@@ -126,7 +126,8 @@ class AnthropicProvider:
         r = self.client.messages.create(
             model=self.model, max_tokens=350, system=SYSTEM,
             messages=[{"role": "user", "content": (
-                f"Write ONE Messenger reply (2–4 short sentences, {ctx.voice} tone) from {ctx.dealership_name} to {ctx.customer_name or 'the customer'}.\n\n"
+                f"Write ONE Messenger reply (2–4 short sentences) from {ctx.dealership_name} to {ctx.customer_name or 'the customer'}.\n"
+                f"Voice profile '{ctx.voice_name}': {ctx.voice}\n\n"
                 f"Recommended action: {ctx.recommended_action}\n"
                 f"Still unknown (ask about at most one, naturally): {ctx.missing_information}\n"
                 f"Known customer facts: {json.dumps(ctx.facts, ensure_ascii=False)}\n"

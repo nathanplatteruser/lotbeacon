@@ -3,110 +3,136 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LotBeacon — Rep Workspace</title>
+<title>LotBeacon · Messenger Copilot</title>
 <style>
+/* ---- Design tokens: Ford chrome (deep Ford Blue, white surfaces, pill controls) + Messenger conversation (grey/blue bubbles) ---- */
 :root{
-  --bg:#f4f3ef;--surface:#fff;--surface-2:#ebe9e3;--line:#d8d5cd;--line-strong:#b6b2a7;
-  --ink:#1c1e24;--ink-2:#4a4e59;--ink-3:#7d818c;
-  --accent:#d97a12;--accent-ink:#8a4a05;--accent-soft:#fbe9d3;
-  --green:#2e8b57;--green-soft:#dcf1e4;--yellow:#b8860b;--yellow-soft:#f8efd0;--orange:#d2691e;--orange-soft:#fbe3d3;--red:#c93a3a;--red-soft:#f8dede;
-  --in:#e9e7e0;--out:#1c1e24;
+  --ford:#00095B; --ford-2:#0A1E8C; --ford-ink:#ffffff;
+  --msgr:#0084FF; --msgr-2:#00B2FF; --msgr-soft:#E7F0FF;
+  --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#F0F2F5; --line:#E4E6EB; --line-strong:#CED0D4;
+  --ink:#050505; --ink-2:#45474D; --ink-3:#65676B;
+  --green:#31A24C; --green-soft:#E6F4EA; --yellow:#C77700; --yellow-soft:#FFF3DF; --orange:#D84A10; --orange-soft:#FDE8DF; --red:#D93025; --red-soft:#FCE8E6;
+  --in:#E4E6EB; --in-ink:#050505; --out:linear-gradient(135deg,#0084FF 0%,#00B2FF 100%); --out-ink:#fff;
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#15171c;--surface:#1d2027;--surface-2:#252932;--line:#323641;--line-strong:#4a4f5c;
-  --ink:#eceef2;--ink-2:#b3b8c4;--ink-3:#7c8290;--accent:#f0932a;--accent-ink:#ffc37a;--accent-soft:#3a2a14;
-  --green:#5cc48a;--green-soft:#1c3a2a;--yellow:#e0b64a;--yellow-soft:#3a3214;--orange:#f0925a;--orange-soft:#3f2818;--red:#ee6b6b;--red-soft:#44201f;
-  --in:#252932;--out:#3a6fd6;
+  --bg:#18191A; --surface:#242526; --surface-2:#3A3B3C; --line:#3E4042; --line-strong:#4E4F50;
+  --ink:#E4E6EB; --ink-2:#B0B3B8; --ink-3:#8A8D91;
+  --ford:#0B1470; --msgr-soft:#1B2A44;
+  --green:#45BD62; --green-soft:#1E3A26; --yellow:#F0A742; --yellow-soft:#3D2F14; --orange:#F0764A; --orange-soft:#42261A; --red:#F28B82; --red-soft:#44201F;
+  --in:#3A3B3C; --in-ink:#E4E6EB;
+  --shadow:0 1px 2px rgba(0,0,0,.5);
 }}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--msgr);outline-offset:2px}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
-.cond{font-family:"Barlow Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+.cond{font-weight:700;letter-spacing:.04em}
 
-header{display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
-header h1{margin:0;font-size:22px}
-header h1 b{color:var(--accent)}
-header .sub{color:var(--ink-3);font-size:12px}
-header .right{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:12px;color:var(--ink-3)}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:2px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+/* ---- Header: Ford Blue bar ---- */
+header{display:flex;align-items:center;gap:18px;padding:0 20px;height:56px;background:var(--ford);color:var(--ford-ink)}
+header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+header h1 .mark{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--ford);display:grid;place-items:center;font-size:15px;font-weight:800}
+header h1 b{font-weight:400;opacity:.85}
+header .sub{font-size:13px;opacity:.8}
+header .right{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:12px;opacity:.9}
+header select{font:inherit;font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 12px}
+header select option{color:#000}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em}
 .pill.green{background:var(--green-soft);color:var(--green)} .pill.yellow{background:var(--yellow-soft);color:var(--yellow)} .pill.orange{background:var(--orange-soft);color:var(--orange)} .pill.red{background:var(--red-soft);color:var(--red)} .pill.grey{background:var(--surface-2);color:var(--ink-3)}
 
-.app{display:grid;grid-template-columns:280px 1fr 340px;height:calc(100vh - 49px)}
-@media (max-width:1100px){.app{grid-template-columns:240px 1fr;}.side{display:none}}
-.inbox{border-right:1px solid var(--line);background:var(--surface);overflow-y:auto}
-.inbox h2{margin:0;padding:12px 14px 8px;font-size:12px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between}
-.lead{display:grid;grid-template-columns:1fr auto;gap:2px 8px;width:100%;text-align:left;padding:10px 14px;border-top:1px solid var(--line)}
-.lead:hover{background:var(--surface-2)} .lead[aria-current="true"]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--accent)}
-.lead .n{font-weight:600} .lead .score{font-size:18px;color:var(--accent);font-variant-numeric:tabular-nums}
-.lead .v{grid-column:1;color:var(--ink-2);font-size:12px} .lead .st{grid-column:1/-1;font-size:11px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
-.lead .ago{font-size:11px;color:var(--ink-3);justify-self:end}
+/* ---- App grid ---- */
+.app{display:grid;grid-template-columns:320px 1fr 360px;height:calc(100vh - 56px);gap:0}
+@media (max-width:1100px){.app{grid-template-columns:280px 1fr}.side{display:none}}
 
-.main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
-.thread-head{padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.thread-head h2{margin:0;font-size:20px}
-.thread-head .state{font-size:13px;color:var(--ink-2)}
+/* ---- Inbox: Messenger list ---- */
+.inbox{background:var(--surface);border-right:1px solid var(--line);overflow-y:auto}
+.inbox h2{margin:0;padding:16px 16px 10px;font-size:22px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+.inbox h2 span:last-child{font-size:13px;color:var(--ink-3);font-weight:500}
+.lead{display:grid;grid-template-columns:48px 1fr auto;grid-template-rows:auto auto auto;gap:1px 12px;width:100%;text-align:left;padding:10px 12px;border-radius:var(--radius);margin:0 8px 2px;width:calc(100% - 16px);align-items:center}
+.lead:hover{background:var(--surface-2)} .lead[aria-current="true"]{background:var(--msgr-soft)}
+.avatar{grid-row:1/4;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px;position:relative}
+.avatar .dot{position:absolute;right:0;bottom:0;width:13px;height:13px;border-radius:50%;background:var(--green);border:2px solid var(--surface)}
+.lead .n{font-weight:600;font-size:15px}
+.lead .score{grid-column:3;grid-row:1;font-size:13px;font-weight:700;color:var(--ford);font-variant-numeric:tabular-nums;background:var(--msgr-soft);padding:2px 8px;border-radius:999px}
+.lead .v{grid-column:2;color:var(--ink-3);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead .ago{grid-column:3;grid-row:2;font-size:12px;color:var(--ink-3);justify-self:end}
+.lead .st{grid-column:2/4;font-size:11px;color:var(--ink-3);display:flex;gap:6px;align-items:center;text-transform:capitalize}
+
+/* ---- Thread ---- */
+.main{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--surface)}
+.thread-head{padding:10px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 1px 0 var(--line)}
+.thread-head .avatar{grid-row:auto;width:40px;height:40px;font-size:15px}
+.thread-head .who{display:flex;flex-direction:column}
+.thread-head h2{margin:0;font-size:17px;font-weight:700}
+.thread-head .state{font-size:12px;color:var(--ink-3);text-transform:capitalize}
 .thread-head .tools{margin-left:auto;display:flex;gap:8px}
-.btn{border:1px solid var(--line-strong);border-radius:3px;padding:6px 12px;font-weight:500;background:var(--surface);color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{border:1.5px solid var(--ford);border-radius:999px;padding:8px 18px;font-weight:600;font-size:14px;background:var(--surface);color:var(--ford)}
+.btn.primary{background:var(--ford);border-color:var(--ford);color:#fff}
+.btn.primary:hover{background:var(--ford-2)}
 .btn.danger{border-color:var(--red);color:var(--red)}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
 .btn.on{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.convo{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.msg{max-width:62%;padding:9px 13px;border-radius:18px;position:relative;font-size:15px;line-height:1.35}
+.msg.in{background:var(--in);color:var(--in-ink);align-self:flex-start;border-bottom-left-radius:6px}
+.msg.out{background:var(--out);color:var(--out-ink);align-self:flex-end;border-bottom-right-radius:6px}
+.msg .t{display:block;font-size:10px;opacity:.65;margin-top:4px}
+.msg.hl{box-shadow:0 0 0 3px var(--msgr)}
 
-.convo{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:68%;padding:8px 12px;border-radius:12px;position:relative}
-.msg.in{background:var(--in);align-self:flex-start;border-bottom-left-radius:3px}
-.msg.out{background:var(--out);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
-.msg .t{display:block;font-size:10px;opacity:.6;margin-top:3px}
-.msg.hl{outline:2px solid var(--accent);outline-offset:2px}
-
+/* ---- Composer ---- */
 .compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px 14px;display:flex;flex-direction:column;gap:10px}
-.nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 12px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:2px}
-.nba .lab{font-size:11px;color:var(--accent-ink);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
-.nba .act{font-weight:600} .nba .why{font-size:12px;color:var(--ink-2)}
+.nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 14px;background:var(--msgr-soft);border-radius:var(--radius)}
+.nba .lab{font-size:11px;color:var(--ford);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.nba .act{font-weight:700} .nba .why{font-size:12px;color:var(--ink-2)}
 .warn{display:flex;flex-direction:column;gap:4px}
-.claim{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;padding:6px 10px;border-radius:2px;font-size:12px}
+.claim{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;padding:6px 12px;border-radius:10px;font-size:12px}
 .claim.supported{background:var(--green-soft)} .claim.unsupported,.claim.prohibited{background:var(--red-soft)} .claim.orange{background:var(--orange-soft)}
 .claim b{font-weight:600} .claim .q{color:var(--ink-2);font-style:italic}
-textarea#draft{width:100%;min-height:84px;border:1px solid var(--line-strong);border-radius:4px;padding:10px 12px;background:var(--surface);color:var(--ink);font:inherit;resize:vertical}
-textarea#draft.blocked{border-color:var(--red)}
+textarea#draft{width:100%;min-height:80px;border:1.5px solid var(--line-strong);border-radius:20px;padding:12px 16px;background:var(--surface-2);color:var(--ink);font:inherit;resize:vertical}
+textarea#draft:focus{background:var(--surface);border-color:var(--msgr)}
+textarea#draft.blocked{border-color:var(--red);background:var(--red-soft)}
 .actions{display:flex;gap:8px;align-items:center}
 .actions .meta{margin-left:auto;font-size:12px;color:var(--ink-3)}
-.blockmsg{font-size:12px;color:var(--red);font-weight:500}
+.blockmsg{font-size:12px;color:var(--red);font-weight:600}
+.voice{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-3)}
+.voice select{font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
 
-.side{border-left:1px solid var(--line);background:var(--surface);overflow-y:auto;padding:14px}
-.side h3{margin:16px 0 8px;font-size:11px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase}
-.side h3:first-child{margin-top:0}
-.summary{font-size:13px;color:var(--ink-2)}
-.fact{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;margin-bottom:6px;width:100%;text-align:left;background:var(--surface)}
-.fact:hover{border-color:var(--accent)}
+/* ---- Side: context cards ---- */
+.side{border-left:1px solid var(--line);background:var(--bg);overflow-y:auto;padding:14px}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+.side h3{margin:0 0 8px;font-size:11px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.summary{font-size:14px;color:var(--ink-2)}
+.fact{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:9px 12px;border-radius:10px;margin-bottom:6px;width:100%;text-align:left;background:var(--surface-2)}
+.fact:hover{background:var(--msgr-soft)}
 .fact .k{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
 .fact .val{font-weight:600;grid-column:1}
 .fact .conf{font-size:11px;color:var(--ink-3);grid-row:1/3;align-self:center}
-.fact .ev{grid-column:1/-1;font-size:11px;color:var(--accent-ink)}
+.fact .ev{grid-column:1/-1;font-size:11px;color:var(--ford)}
 .fact .ev:empty{display:none}
-.vcard{border:1px solid var(--line);border-radius:3px;padding:10px 12px}
-.vcard .name{font-weight:700;font-size:15px}
-.vcard .row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);padding:2px 0}
-.vcard .fresh{margin-top:6px;font-size:11px}
+.vcard .name{font-weight:700;font-size:16px;color:var(--ford)}
+.vcard .row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid var(--line)}
+.vcard .row:last-of-type{border-bottom:0}
+.vcard .fresh{margin-top:8px;font-size:11px}
 .vcard .fresh.ok{color:var(--green)} .vcard .fresh.bad{color:var(--red)}
-.trans{font-size:12px;color:var(--ink-2);padding:4px 0;border-bottom:1px dashed var(--line)}
+.trans{font-size:12px;color:var(--ink-2);padding:5px 0;border-bottom:1px solid var(--line)}
+.trans:last-child{border-bottom:0}
 .trans b{color:var(--ink)}
-.sim{margin-top:20px;padding:12px;border:1px dashed var(--line-strong);border-radius:3px}
-.sim h3{margin-top:0}
-.sim textarea{width:100%;min-height:56px;border:1px solid var(--line-strong);border-radius:3px;padding:8px;background:var(--surface);color:var(--ink);font:inherit}
-.sim .row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
-.sim select{font:inherit;padding:5px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);color:var(--ink)}
+.sim{border:1.5px dashed var(--line-strong);box-shadow:none;background:transparent}
+.sim textarea{width:100%;min-height:56px;border:1.5px solid var(--line-strong);border-radius:16px;padding:10px 12px;background:var(--surface);color:var(--ink);font:inherit}
+.sim .row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.sim select{font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
 .small{font-size:11px;color:var(--ink-3)}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:4px;font-size:13px;opacity:0;transition:opacity .2s}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ford);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;box-shadow:var(--shadow)}
 .toast.show{opacity:1}
 .empty{padding:40px;text-align:center;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <header>
-  <h1 class="cond">Lot<b>Beacon</b></h1>
+  <h1><span class="mark">L</span>LotBeacon <b>· Messenger Copilot</b></h1>
   <span class="sub" id="dealer">—</span>
   <div class="right"><span id="provider"></span><label>Signed in as <select id="rep"></select></label></div>
 </header>
@@ -136,9 +162,12 @@ async function api(path,opts={}){
   return r.json();
 }
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2400);}
-function ago(iso){if(!iso)return'';const s=(Date.now()-new Date(iso))/1000;if(s<60)return Math.round(s)+' sec';if(s<3600)return Math.round(s/60)+' min';if(s<86400)return Math.round(s/3600)+' hr';return Math.round(s/86400)+' d';}
+function human(sec){let s=Math.max(0,Math.round(sec));const d=Math.floor(s/86400);s-=d*86400;const h=Math.floor(s/3600);s-=h*3600;const m=Math.floor(s/60);s-=m*60;if(d)return `${d}d ${h}h`;if(h)return `${h}h ${m}m`;if(m)return `${m}m ${s}s`;return `${s}s`;}
+function ago(iso){if(!iso)return'';return human((Date.now()-new Date(iso))/1000);}
 function repId(){return +$('#rep').value;}
-const STATE_LABEL=s=>s.replace(/_/g,' ');
+const STATE_LABEL=s=>s.replace(/_/g,' ').toLowerCase();
+const AV=['#00095B','#0084FF','#7A3E9D','#C2410C','#0F766E','#B91C1C','#4338CA','#A16207'];
+function avatar(name,extra=''){const n=(name||'?').trim();const ini=n.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return `<span class="avatar" style="background:${AV[h%AV.length]}">${esc(ini)}${extra}</span>`;}
 
 async function loadMeta(){
   META=await api('/api/meta');
@@ -150,8 +179,9 @@ async function loadInbox(){
   const list=await api('/api/threads');
   $('#inboxCount').textContent=list.length;
   $('#leads').innerHTML=list.map(t=>`<button class="lead" data-id="${t.id}" aria-current="${t.id===current}">
+    ${avatar(t.customer,(Date.now()-new Date(t.last_customer_message_at))<600000?'<i class="dot"></i>':'')}
     <span class="n">${esc(t.customer)}</span><span class="score">${t.priority}</span>
-    <span class="v">${esc(t.vehicle||'—')}</span><span class="ago">${ago(t.last_customer_message_at)}</span>
+    <span class="v">${esc(t.vehicle||'—')}</span><span class="ago" title="waiting on a reply">${ago(t.last_customer_message_at)}</span>
     <span class="st">${STATE_LABEL(t.lead_state)}${t.risk?` <span class="pill ${t.risk}">${t.risk}</span>`:''}${t.ai_paused?' <span class="pill grey">AI paused</span>':''}</span>
   </button>`).join('');
   if(!current&&list.length){open(list[0].id);}
@@ -165,8 +195,9 @@ function renderThread(){
   const elig=d.messaging.eligible;
   $('#main').innerHTML=`
     <div class="thread-head">
-      <h2>${esc(d.customer.name||d.customer.psid)}</h2>
-      <span class="state"><b>${STATE_LABEL(d.lead_state)}</b> · ${esc(d.priority_reason)}</span>
+      ${avatar(d.customer.name||d.customer.psid)}
+      <div class="who"><h2>${esc(d.customer.name||d.customer.psid)}</h2>
+      <span class="state"><b>${STATE_LABEL(d.lead_state)}</b> · ${esc(d.priority_reason)}</span></div>
       ${d.customer.opted_out?'<span class="pill red">Do not contact</span>':''}
       ${!elig?`<span class="pill red" title="${esc(d.messaging.reason)}">Send blocked: ${esc(d.messaging.reason)}</span>`:`<span class="pill green">Messaging window open</span>`}
       <div class="tools">
@@ -181,8 +212,9 @@ function renderThread(){
       ${d.ai_paused?'<div class="small">AI drafting is paused for this thread. Type your own reply — it still goes through the claim check.</div>':''}
       <textarea id="draft" class="${blocked?'blocked':''}" ${sent?'disabled':''} placeholder="${dr&&!dr.text?'No AI draft for this action — write your reply, or hand off.':'Draft…'}">${esc(dr?dr.text:'')}</textarea>
       <div class="actions">
-        <button class="btn primary" id="send" ${(!dr||sent||!elig||blocked)?'disabled':''}>${sent?'Sent':'Approve & send'}</button>
+        <button class="btn primary" id="send" ${(!dr||sent||!elig||blocked)?'disabled':''}>${sent?'Sent':'Send'}</button>
         <button class="btn" id="recheck" ${(!dr||sent)?'disabled':''}>Re-check claims</button>
+        <label class="voice">Voice <select id="voice" ${sent?'disabled':''}>${META.voices.map(v=>`<option value="${v.id}" ${v.id===(d.voice||'dealer')?'selected':''} title="${esc(v.tagline)}">${esc(v.label)}</option>`).join('')}</select></label>
         ${blocked?'<span class="blockmsg">Blocked — fix the red sentences before sending.</span>':''}
         <span class="meta">${dr?`draft #${dr.id} · ${dr.provider} · ${dr.approval_required?'rep approval required':'auto-eligible'}`:'no draft yet'}</span>
       </div>
@@ -190,6 +222,7 @@ function renderThread(){
   const convo=$('#convo');convo.scrollTop=convo.scrollHeight;
   $('#takeover').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});toast(d.ai_paused?'AI resumed':'You have the thread');await open(d.id);loadInbox();};
   $('#confirmAppt').onclick=async()=>{const when=prompt('Appointment date/time (e.g. 2026-09-06 14:00). Only confirm what you actually booked in the scheduler.');if(!when)return;try{await api(`/api/threads/${d.id}/appointment`,{method:'POST',body:{rep_id:repId(),starts_at:new Date(when.replace(' ','T')).toISOString()}});toast('Appointment confirmed — "booked" language is now allowed');await open(d.id);loadInbox();}catch(e){toast(e.message);}};
+  $('#voice').onchange=async e=>{toast('Redrafting in '+e.target.selectedOptions[0].text+'…');await api(`/api/threads/${d.id}/voice`,{method:'POST',body:{rep_id:repId(),voice:e.target.value}});await open(d.id);loadInbox();};
   if(dr){
     $('#recheck').onclick=()=>recheck();
     $('#draft').addEventListener('input',()=>{editing=true;});
@@ -212,20 +245,20 @@ function renderClaims(dr){
 function renderSide(){
   const d=detail,v=d.vehicle;
   $('#side').innerHTML=`
-    <h3>AI summary</h3><div class="summary">${esc(d.summary||'—')}</div><div class="small">${esc(d.summary_version)}</div>
-    <h3>What we know <span class="small">(click a fact → source message)</span></h3>
-    ${d.facts.length?d.facts.map(f=>`<button class="fact" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="Click to see evidence · right-click to correct"><span class="k">${esc(f.key.replace(/_/g,' '))}</span><span class="conf">${f.corrected?'rep':Math.round(f.confidence*100)+'%'}</span><span class="val">${esc(f.value)}</span><span class="ev">${f.evidence?'“'+esc(f.evidence.text.slice(0,70))+(f.evidence.text.length>70?'…':'')+'”':'rep-entered'}</span></button>`).join(''):'<div class="small">Nothing extracted yet. Unknown stays unknown.</div>'}
-    <h3>Vehicle</h3>
-    ${v?`<div class="vcard"><div class="name">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
+    <div class="card"><h3>AI summary</h3><div class="summary">${esc(d.summary||'—')}</div><div class="small">${esc(d.summary_version)}</div></div>
+    <div class="card"><h3>What we know <span class="small">(tap a fact → source message)</span></h3>
+    ${d.facts.length?d.facts.map(f=>`<button class="fact" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="Click to see evidence · right-click to correct"><span class="k">${esc(f.key.replace(/_/g,' '))}</span><span class="conf">${f.corrected?'rep':Math.round(f.confidence*100)+'%'}</span><span class="val">${esc(f.value)}</span><span class="ev">${f.evidence?'“'+esc(f.evidence.text.slice(0,70))+(f.evidence.text.length>70?'…':'')+'”':'rep-entered'}</span></button>`).join(''):'<div class="small">Nothing extracted yet. Unknown stays unknown.</div>'}</div>
+    <div class="card vcard"><h3>Vehicle</h3>
+    ${v?`<div><div class="name">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
       <div class="row"><span>Stock / VIN</span><span class="mono">${esc(v.stock_number)} · …${esc(v.vin.slice(-6))}</span></div>
       <div class="row"><span>Color</span><span>${esc(v.color)}</span></div>
       <div class="row"><span>Mileage</span><span class="mono">${v.mileage.toLocaleString()}</span></div>
       <div class="row"><span>Price</span><span class="mono">$${v.price.toLocaleString()}</span></div>
       <div class="row"><span>Status</span><span class="pill ${v.status==='available'?'green':'red'}">${v.status}</span></div>
-      <div class="fresh ${v.fresh?'ok':'bad'}">${v.fresh?'✓':'⚠'} ${esc(v.source)} · verified ${ago(v.retrieved_at)} ago${v.fresh?'':' — STALE, availability/price claims blocked'}</div></div>`:'<div class="small">No specific unit resolved yet.</div>'}
-    <h3>State history</h3>
-    ${d.transitions.map(t=>`<div class="trans"><b>${STATE_LABEL(t.from)} → ${STATE_LABEL(t.to)}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">—</div>'}
-    <div class="sim"><h3>Simulate customer message</h3>
+      <div class="fresh ${v.fresh?'ok':'bad'}">${v.fresh?'✓':'⚠'} ${esc(v.source)} · verified ${ago(v.retrieved_at)} ago${v.fresh?'':' — STALE, availability/price claims blocked'}</div></div>`:'<div class="small">No specific unit resolved yet.</div>'}</div>
+    <div class="card"><h3>State history</h3>
+    ${d.transitions.map(t=>`<div class="trans"><b>${STATE_LABEL(t.from)} → ${STATE_LABEL(t.to)}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">—</div>'}</div>
+    <div class="card sim"><h3>Simulate customer message</h3>
       <textarea id="simText" placeholder="Type what ${esc(d.customer.name||'the customer')} says next…"></textarea>
       <div class="row"><button class="btn" id="simSend">Receive message</button>
         <select id="simInv"><option value="">Inventory event…</option>${v?`<option value="sold">Mark ${esc(v.model)} sold</option><option value="pending">Mark ${esc(v.model)} pending</option><option value="available">Mark ${esc(v.model)} available</option><option value="stale">Make feed stale (3h old)</option>`:''}</select></div>

@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .config import INVENTORY_FRESHNESS_SECONDS
+from .timefmt import humanize
 from .models import Vehicle
 
 
@@ -13,7 +14,7 @@ def vehicle_card(v: Vehicle) -> dict:
     return {
         "id": v.id, "stock_number": v.stock_number, "vin": v.vin, "year": v.year, "make": v.make, "model": v.model,
         "trim": v.trim, "color": v.color, "body": v.body, "mileage": v.mileage, "price": v.price, "status": v.status,
-        "source": v.source, "retrieved_at": v.retrieved_at.isoformat(), "fresh": is_fresh(v), "age_seconds": age_seconds(v),
+        "source": v.source, "retrieved_at": v.retrieved_at.isoformat(), "fresh": is_fresh(v), "age_seconds": age_seconds(v), "age": humanize(age_seconds(v)),
     }
 
 
@@ -88,5 +89,5 @@ def verify_availability(v: Vehicle | None) -> dict:
     if v is None:
         return {"ok": False, "reason": "no_vehicle_resolved"}
     if not is_fresh(v):
-        return {"ok": False, "reason": "stale_inventory", "age_seconds": age_seconds(v)}
+        return {"ok": False, "reason": "stale_inventory", "age_seconds": age_seconds(v), "age": humanize(age_seconds(v))}
     return {"ok": True, "status": v.status, "age_seconds": age_seconds(v)}

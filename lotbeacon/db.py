@@ -19,6 +19,19 @@ def init_db():
     from . import models  # noqa: F401  (register tables)
 
     Base.metadata.create_all(engine)
+    _migrate()
+
+
+def _migrate():
+    """Additive-only column migrations for existing SQLite files (no Alembic yet)."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    if "threads" in insp.get_table_names():
+        cols = {c["name"] for c in insp.get_columns("threads")}
+        if "voice" not in cols:
+            with engine.begin() as c:
+                c.execute(text("ALTER TABLE threads ADD COLUMN voice VARCHAR(32) DEFAULT 'dealer'"))
 
 
 @contextmanager

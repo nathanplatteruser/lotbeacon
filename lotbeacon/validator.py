@@ -58,7 +58,7 @@ def extract_claims(text: str) -> list[Claim]:
             claims.append(Claim(kind, m.group(0).strip()))
 
     # Availability / existence
-    add("availability", r"[^.!?]*\b(still (?:here|available|on the lot|in stock)|is available|we have it|it'?s (?:here|available)|haven'?t sold|still have (?:it|that))\b[^.!?]*[.!?]?")
+    add("availability", r"[^.!?]*\b(still (?:here|available|on the lot|in stock|sittin'? |sitting )|(?:sittin'?|sitting) (?:pretty )?on the lot|on the lot|in stock|ready for you|is available|we have it|it'?s (?:here|available)|haven'?t sold|still have (?:it|that)|still got it)\b[^.!?]*[.!?]?")
     add("unavailable", r"[^.!?]*\b(went (?:sold|pending)|(?:just|already) sold|no longer available|is pending)\b[^.!?]*[.!?]?")
     # Price
     add("price", r"[^.!?]*\b(listed at|priced at|asking|price is|it'?s|for|is|only|just|at|costs?|runs?)\s+(?:only\s+|just\s+|about\s+|around\s+)?" + MONEY + r"[^.!?]*[.!?]?")
@@ -102,7 +102,7 @@ def validate(text: str, *, vehicle: dict | None, vehicle_fresh: bool, alternativ
             if vehicle and vehicle_fresh and vehicle["status"] == "available":
                 c.verdict, c.source, c.risk = "supported", f"inventory:{vehicle['stock_number']}@{vehicle['retrieved_at']}", "yellow"
             elif vehicle and not vehicle_fresh:
-                c.verdict, c.risk, c.note = "unsupported", "red", f"inventory stale ({vehicle['age_seconds']}s) — verify before claiming"
+                c.verdict, c.risk, c.note = "unsupported", "red", f"inventory last verified {vehicle.get('age', str(vehicle['age_seconds']) + 's')} ago — stale, verify before claiming"
             else:
                 c.verdict, c.risk, c.note = "unsupported", "red", "no fresh inventory row says this unit is available"
         elif k == "unavailable":
