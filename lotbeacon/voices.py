@@ -119,3 +119,20 @@ AUTO_THRESHOLD = 0.85  # two independent tells (0.5 + 0.2·n) before overriding 
 
 def as_list() -> list[dict]:
     return [{"id": v.id, "label": v.label, "tagline": v.tagline} for v in VOICES.values()]
+
+
+FOLLOWUPS = {
+    1: "Hey {name}! Just checking in — still happy to help whenever you're ready. Anything I can answer?",
+    2: "Hi {name}, circling back once more. No pressure at all — if now isn't the right time, just say so and I'll leave you be.",
+    3: "{name}, last note from me. If a visit ever makes sense, my door's open. Thanks for considering us!",
+}
+
+
+def followup_text(stage: int, voice: Voice, customer_name: str) -> str:
+    first = customer_name.split(" ")[0] if customer_name else ""
+    base = FOLLOWUPS.get(stage, FOLLOWUPS[3]).replace("{name}", first).replace("Hey !", "Hey!").replace("Hi ,", "Hi,").replace(", last note", "Last note").strip()
+    # reuse the same tone machinery: mock drafts start with "Hey <name>! " — normalise then restyle
+    if voice.id != "dealer":
+        base = base.replace(f"Hey {first}! ", f"Hey {first}! ")
+        return apply_mock(base if base.startswith("Hey") else f"Hey {first}! " + base, voice, customer_name)
+    return base

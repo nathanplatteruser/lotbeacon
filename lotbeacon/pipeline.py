@@ -48,6 +48,10 @@ def ingest_inbound(s: Session, dealership: Dealership, psid: str, external_id: s
     s.add(msg)
     thread.last_customer_message_at = msg.sent_at
     thread.last_activity_at = msg.sent_at
+    thread.ghost_hours_sim = None  # they're back
+    if thread.followup_stage:
+        audit(s, thread, "system", "followup.ended", {"reason": "customer replied", "stage": thread.followup_stage})
+        thread.followup_stage = 0
     s.flush()
     audit(s, thread, "system", "message.ingested", {"message_id": msg.id, "external_id": external_id})
     return thread, msg, True
@@ -69,6 +73,10 @@ def next_state(current: LeadState, cls: Classification, facts: dict, vehicle_res
         return LeadState.HUMAN_REQUIRED, "negative sentiment / complaint"
     if cls.intent == "financing" or "financing_sensitive" in facts:
         return LeadState.HUMAN_REQUIRED, "financing discussion requires a human"
+    if cls.intent == "reschedule":
+        return LeadState.HIGH_INTENT, "appointment cancelled / reschedule requested — still interested"
+    if cls.intent in ("hold", "warranty", "delivery"):
+        return LeadState.HUMAN_REQUIRED, f"{cls.intent} question needs an authoritative answer"
     if cls.intent == "schedule":
         return LeadState.APPOINTMENT_INTENT, "customer proposed a visit/time"
     if cls.objection in ("price", "trade", "payment", "trust"):
@@ -93,7 +101,15 @@ def next_best_action(state: LeadState, cls: Classification, facts: dict, vehicle
     if state in (LeadState.HUMAN_REQUIRED,):
         if cls.intent == "financing" or "financing_sensitive" in facts:
             return "route_financing_to_human", [], "financing is an orange-tier topic"
+        if cls.intent == "hold":
+            return "route_hold_to_human", [], "vehicle holds are dealer policy"
+        if cls.intent == "warranty":
+            return "route_warranty_to_human", [], "warranty terms need authoritative data"
+        if cls.intent == "delivery":
+            return "route_delivery_to_human", [], "delivery is dealer policy"
         return "human_takeover", [], "sensitive conversation"
+    if state == LeadState.HIGH_INTENT and cls.intent == "reschedule":
+        return "offer_reschedule", ["day"], "keep the visit alive — ask for a new day"
     if state == LeadState.LOST:
         return "acknowledge_and_close", [], "stop sales progression"
     if state == LeadState.OBJECTION:
@@ -169,6 +185,10 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
         s.add(StateTransition(tenant_id=thread.tenant_id, thread_id=thread.id, old_state=old.value, new_state=new.value, reason=reason, evidence_message_id=msg.id, actor=f"ai:{provider.name}", rules_version=RULES_VERSION))
     if new == LeadState.DO_NOT_CONTACT:
         customer.opted_out = True
+    if cls.intent == "reschedule":
+        for a in s.scalars(select(Appointment).where(Appointment.thread_id == thread.id, Appointment.status.in_(["requested", "confirmed"]))):
+            a.status = "cancelled"
+            audit(s, thread, f"ai:{provider.name}", "appointment.cancelled_by_customer", {"appointment_id": a.id, "message_id": msg.id})
 
     # 5. NBA
     action, missing, nba_reason = next_best_action(new, cls, facts, vcard, fresh)
@@ -191,7 +211,7 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     elig = policy.messaging_eligibility(thread, customer)
     result = validate(text, vehicle=vcard, vehicle_fresh=fresh, alternatives=alternatives, hours_today=ctx.hours_today, appointment_confirmed=appt_confirmed, messaging=elig, ai_paused=thread.ai_paused)
     risk = result.risk_level
-    if action in ("route_financing_to_human", "route_trade_to_human", "route_price_objection_to_human", "human_takeover"):
+    if action in ("route_financing_to_human", "route_trade_to_human", "route_price_objection_to_human", "human_takeover", "route_hold_to_human", "route_warranty_to_human", "route_delivery_to_human"):
         risk = _max_risk(risk, "orange")
     if action == "escalate_opt_out":
         risk = "red"

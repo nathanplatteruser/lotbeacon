@@ -31,7 +31,7 @@ class MockProvider:
         sentiment = "neutral"
         if has("stop messaging", "stop texting", "unsubscribe", "leave me alone", "do not contact", "don't contact"):
             return Classification("opt_out", "negative", None, 0.99, sig)
-        if has("bought", "went with another", "already purchased", "found one elsewhere"):
+        if has("bought", "buying one somewhere else", "went with another", "already purchased", "found one elsewhere", "somewhere else last", "went elsewhere", "purchased elsewhere"):
             return Classification("sold_elsewhere", "neutral", None, 0.9, sig)
         if has("ridiculous", "scam", "waste of my time", "terrible", "never again", "furious", "angry", "lied"):
             return Classification("complaint", "angry", "trust", 0.9, sig)
@@ -39,17 +39,25 @@ class MockProvider:
             sentiment = "positive"
 
         intent, objection, conf = "general", None, 0.6
-        if has("credit", "finance", "financing", "apr", "interest rate", "per month", "a month", "/mo", "payment", "approved", "pre-approved", "down payment"):
+        if has("cancel", "can't make it", "cant make it", "have to push", "need to push", "reschedule", "something came up", "won't be able to make", "not going to make it", "postpone", "rain check"):
+            intent, conf = "reschedule", 0.9
+        elif has("hold it", "put it on hold", "hold the", "reserve it", "hold for me", "save it for me", "deposit"):
+            intent, conf = "hold", 0.85
+        elif has("warranty", "certified", "cpo", "powertrain", "bumper to bumper"):
+            intent, conf = "warranty", 0.85
+        elif has("deliver", "delivery", "bring it to me", "ship it", "drop it off"):
+            intent, conf = "delivery", 0.85
+        elif has("credit", "finance", "financing", "apr", "interest rate", "per month", "a month", "/mo", "payment", "approved", "pre-approved", "down payment"):
             intent, objection, conf = "financing", "payment", 0.9
         elif (has("worth", "what's my", "whats my", "give me for", "value my", "appraise", "appraisal") and has("trade", "trade-in", "trade in", "my car", "my truck", "my suv")) or has("trade value", "trade-in value"):
             intent, objection, conf = "trade", "trade", 0.85
-        elif has("best price", "lowest", "discount", "deal", "negotiate", "too expensive", "expensive", "cheaper", "come down"):
+        elif has("best price", "lowest", "discount", "deal", "negotiate", "too expensive", "expensive", "cheaper", "come down", "knock", "off first", "off and", "can you match", "price match", "out-the-door", "out the door", "doc fee", "fees"):
             intent, objection, conf = "price", "price", 0.85
         elif has("still available", "available", "still have", "still there", "sold yet", "in stock"):
             intent, conf = "availability", 0.9
         elif has("price", "cost", "how much", "asking"):
             intent, conf = "price", 0.85
-        elif has("test drive", "come by", "come in", "stop by", "swing by", "visit", "appointment", "schedule") or any(has(d) for d in DAYS):
+        elif has("test drive", "come by", "come in", "stop by", "swing by", "pop by", "come out", "come over", "visit", "appointment", "schedule", "on my way", "be there", "in an hour", "checkbook", "right now", "this weekend", "this week") or any(has(d) for d in DAYS):
             intent, conf = "schedule", 0.85
         elif has("looking for", "do you have", "any", "something with", "3 row", "third row", "3-row", "under"):
             intent, conf = "vehicle_search", 0.75
@@ -179,6 +187,14 @@ class MockProvider:
                 parts.append(f"A few that fit what you described: {names}. Want details on any of them?")
             else:
                 parts.append("Nothing on the lot matches that exactly right now — want me to watch for one and let you know?")
+        elif action == "offer_reschedule":
+            parts.append("No problem at all — life happens. What day works better for you? I'll get it set up.")
+        elif action == "route_hold_to_human":
+            parts.append("I'd love to help with that — holds go through our sales manager, so let me ask and get right back to you.")
+        elif action == "route_warranty_to_human":
+            parts.append("Good question — I don't want to guess on coverage. Let me pull the exact warranty details on that unit and send them over.")
+        elif action == "route_delivery_to_human":
+            parts.append("We may be able to do that — let me check our delivery policy for your area and confirm.")
         elif action == "acknowledge_and_close":
             parts.append("Understood — thanks for letting me know, and congrats on the new ride. If anything changes down the road, we're here.")
 

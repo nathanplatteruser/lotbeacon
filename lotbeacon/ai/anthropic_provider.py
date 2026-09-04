@@ -35,7 +35,7 @@ CLASSIFY_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "intent": {"type": "string", "enum": ["availability", "price", "trade", "financing", "schedule", "vehicle_search", "general", "opt_out", "complaint", "sold_elsewhere"]},
+            "intent": {"type": "string", "enum": ["availability", "price", "trade", "financing", "schedule", "reschedule", "hold", "warranty", "delivery", "vehicle_search", "general", "opt_out", "complaint", "sold_elsewhere"]},
             "sentiment": {"type": "string", "enum": ["positive", "neutral", "negative", "angry"]},
             "objection": {"type": ["string", "null"], "enum": ["price", "payment", "trade", "trust", "timing", None]},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},

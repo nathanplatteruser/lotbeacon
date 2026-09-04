@@ -100,6 +100,10 @@ class Thread(Base):
     voice: Mapped[str] = mapped_column(String(32), default="dealer")  # active voice profile (tone only)
     voice_locked: Mapped[bool] = mapped_column(Boolean, default=False)  # True once a rep picks manually; auto-detect then stays out
     voice_reason: Mapped[str] = mapped_column(String(200), default="")  # why this voice is active (auto signals or "rep")
+    followup_stage: Mapped[int] = mapped_column(Integer, default=0)  # 0 = not in a follow-up sequence; 1..3 = which nudge is next. Rep opts in.
+    ghost_hours_sim: Mapped[float | None] = mapped_column(Float, nullable=True)  # DEMO ONLY: pretend the customer has been silent this long
+    demo_script: Mapped[list | None] = mapped_column(JSON, nullable=True)  # DEMO ONLY: scripted customer replies after each rep send
+    demo_cursor: Mapped[int] = mapped_column(Integer, default=0)
     priority: Mapped[int] = mapped_column(Integer, default=0)
     priority_reason: Mapped[str] = mapped_column(String(200), default="")
     summary: Mapped[str] = mapped_column(Text, default="")

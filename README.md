@@ -1,4 +1,4 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.5)
+# LotBeacon — Messenger Copilot for dealership reps (MVP v0.6)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -45,6 +45,32 @@ python -m scripts.eval --providers mock anthropic    # side by side; exits non-z
 
 ## The demo
 
+Twenty seeded conversations, each a persona with a quirk. **Every time you hit Send, that persona answers instantly
+with their next scripted line — or goes quiet.** Silence shows up as a dashed `[ Name has not responded in 20h 0m ]`
+card with two rep-only choices: start a follow-up sequence (three nudges, never automatic — and blocked by the
+messaging-window policy once the customer has been silent past 24h), or log that you reached them offline
+(call / text / email / came in), which this product otherwise can't see.
+
+Presenter cheat-sheet (never shown in the app — names are deliberately plain):
+
+| Customer | What they'll do |
+|---|---|
+| Sarah Miller | Textbook climb → Saturday 10am. Green sparkline |
+| Mike Torres | Price pushback (red dip) → asks for manager → **ghosts 20h** → comes back annoyed |
+| Karen Doyle | Booked Saturday → **cancels** → AI offers a new day → rebooks → ghosts 72h (window closed: follow-up blocked, call instead) |
+| Harold Finch | Rapid-fire "hi / is it there / the gray one / checkbook" — 4 sends, **one** communication block |
+| Priya Raman | Best price / fees / "match Omaha" three ways — always routed, never a number |
+| Craig Bauer | Won't come in until he wins $3k → AI never concedes → ghosts 48h → relents |
+| Denise Okafor | Went dark a day, came back hot → books → ghosts 26h → back |
+| Marcus Bell | Wants a **hold** (orange) → tries a deposit → books Friday |
+| Linda Schwartz | Yukon → F-150 mid-thread; memory supersedes, never merges |
+| Omar Haddad | **Delivery** request (orange) → offers to drive → ghosts 18h |
+| Rachel Kim | Angry → manager steps in → de-escalates → Saturday 11. Red then green |
+| Frankie / Skyler / Gene / Tyler | Voice auto-matches Frank / Celeste / Jon / Zee from their own wording |
+| Victor Alvarez | Bought elsewhere → LOST → then a referral |
+| Dan · Jen · Pat · Lee | Financing → human · 3-row under 40k · asks about a sold unit · opt-out |
+
+
 Open the workspace. Sarah Miller is at the top of the priority inbox:
 
 > "Hey, is that black Tahoe you posted still available? I've got a 2018 Accord to trade and could probably come Saturday."
@@ -70,7 +96,7 @@ Then break it on purpose (right panel, "Simulate"):
 | Open **Tyler Brooks** | His Gen Z wording auto-selected the Zee voice (reason shown next to the dropdown). Pick any voice to pin it; pick *Auto* to hand it back |
 | **Stage tracker** at the top of each thread | Inquiry → Conversation → Needs → Vehicle → Ready → Visit requested → Appointment set → Showed up → Sold. *Update stage…* moves it by hand |
 | **Your move** banner | One sentence telling the rep exactly what to do next |
-| **Momentum sparkline** (tracker + inbox) | One point per customer message; green ↗ gaining, yellow → holding, red ↘ losing. Sarah is climbing, Mike slipped after the price pushback |
+| **Momentum sparkline** (tracker + inbox) | One point per customer *communication* (consecutive sends between our replies count once), last 8; green ↗ gaining, yellow → holding, red ↘ losing. Sarah is climbing, Mike slipped after the price pushback |
 
 ## What's real vs. simulated in v0.1
 
@@ -113,7 +139,7 @@ lotbeacon/
   timefmt.py       Two-level human durations (2d 4h · 3h 5m · 6m 22s)
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
   web/index.html   Rep workspace
-tests/                     28 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
+tests/                     31 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
 ```
 
 ## Next tickets this unlocks

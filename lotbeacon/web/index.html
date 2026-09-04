@@ -118,6 +118,14 @@ header select option{color:#000}
 .lead .mom-mini{grid-column:3;grid-row:3;justify-self:end;display:flex;align-items:center;gap:4px;font-size:10px}
 .lead .mom-mini .arrow{font-weight:800}
 .lead .mom-mini.up .arrow{color:var(--green)} .lead .mom-mini.flat .arrow{color:var(--yellow)} .lead .mom-mini.down .arrow{color:var(--red)}
+/* ---- Ghost / silence + notes ---- */
+.msg.note{align-self:center;background:transparent;color:var(--ink-3);font-size:12px;padding:2px 10px;max-width:90%;text-align:center}
+.ghost{align-self:center;max-width:90%;text-align:center;color:var(--ink-3);font-size:13px;padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:var(--radius);background:var(--surface-2)}
+.ghost b{color:var(--ink-2)}
+.ghost .row{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.ghost .btn{padding:6px 14px;font-size:13px}
+.ghost select{font:inherit;font-size:13px;padding:6px 12px;border:1.5px solid var(--ford);border-radius:999px;background:var(--surface);color:var(--ford);font-weight:600}
+.ghost .demo{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:8px}
 /* ---- Composer ---- */
 .compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px 14px;display:flex;flex-direction:column;gap:10px}
 .nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 14px;background:var(--msgr-soft);border-radius:var(--radius)}
@@ -219,7 +227,7 @@ async function loadInbox(){
     ${avatar(t.customer,(Date.now()-new Date(t.last_customer_message_at))<600000?'<i class="dot"></i>':'')}
     <span class="n">${esc(t.customer)}</span><span class="score">${t.priority}</span>
     <span class="v">${esc(t.vehicle||'—')}</span><span class="ago" title="waiting on a reply">${ago(t.last_customer_message_at)}</span>
-    <span class="st">${STATE_LABEL(t.lead_state)}${t.risk?` <span class="pill ${t.risk}">${t.risk}</span>`:''}${t.ai_paused?' <span class="pill grey">AI paused</span>':''}</span>
+    <span class="st">${STATE_LABEL(t.lead_state)}${t.risk?` <span class="pill ${t.risk}">${t.risk}</span>`:''}${t.ai_paused?' <span class="pill grey">AI paused</span>':''}${t.ghost?` <span class="pill grey" title="no reply since our last message">quiet ${esc(t.ghost)}</span>`:''}</span>
     ${t.momentum&&t.momentum.series.length?`<span class="mom-mini ${t.momentum.trend}" title="${esc(t.momentum.label)}">${spark(t.momentum,44,16)}<span class="arrow">${ARROW[t.momentum.trend]}</span></span>`:''}
   </button>`).join('');
   if(!current&&list.length){open(list[0].id);}
@@ -244,7 +252,7 @@ function renderThread(){
       </div>
     </div>
     ${renderTracker(d)}
-    <div class="convo" id="convo">${d.messages.map(m=>`<div class="msg ${m.direction}" data-mid="${m.id}">${esc(m.text)}<span class="t">${m.author} · ${new Date(m.sent_at).toLocaleString()}</span></div>`).join('')}</div>
+    <div class="convo" id="convo">${d.messages.map(m=>m.direction==='note'?`<div class="msg note" data-mid="${m.id}">${esc(m.text)} · ${new Date(m.sent_at).toLocaleString()}</div>`:`<div class="msg ${m.direction}" data-mid="${m.id}">${esc(m.text)}<span class="t">${m.author} · ${new Date(m.sent_at).toLocaleString()}</span></div>`).join('')}${renderGhost(d)}</div>
     <div class="compose">
       ${d.your_move?`<div class="move ${d.your_move.kind}"><span class="tag">Your move</span><span>${esc(d.your_move.text)}</span></div>`:''}
       ${dr?`<div class="nba"><span class="lab">Next best action</span><div><div class="act">${esc(humanAction(dr.structured.recommended_action))}</div><div class="why">${esc(dr.structured.nba_reason)}${dr.structured.missing_information?.length?' · still unknown: '+dr.structured.missing_information.join(', '):''}</div></div><span class="pill ${dr.risk_level}">${dr.risk_level}</span></div>`:''}
@@ -262,13 +270,16 @@ function renderThread(){
   const convo=$('#convo');convo.scrollTop=convo.scrollHeight;
   $('#takeover').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});toast(d.ai_paused?'AI resumed':'You have the thread');await open(d.id);loadInbox();};
   $('#confirmAppt').onclick=async()=>{const when=prompt('Appointment date/time (e.g. 2026-09-06 14:00). Only confirm what you actually booked in the scheduler.');if(!when)return;try{await api(`/api/threads/${d.id}/appointment`,{method:'POST',body:{rep_id:repId(),starts_at:new Date(when.replace(' ','T')).toISOString()}});toast('Appointment confirmed — "booked" language is now allowed');await open(d.id);loadInbox();}catch(e){toast(e.message);}};
+  const fn=$('#fuNext'); if(fn) fn.onclick=async()=>{const r=await api(`/api/threads/${d.id}/followup`,{method:'POST',body:{rep_id:repId(),action:'next'}});toast(r.blocked&&!r.draft?r.message:`Follow-up ${r.stage} drafted — review and send`);await open(d.id);loadInbox();};
+  const fs=$('#fuStop'); if(fs) fs.onclick=async()=>{await api(`/api/threads/${d.id}/followup`,{method:'POST',body:{rep_id:repId(),action:'stop'}});toast('Sequence stopped');await open(d.id);};
+  const off=$('#offline'); if(off) off.onchange=async e=>{const ch=e.target.value;if(!ch)return;const note=prompt('Quick note (optional):','')??'';await api(`/api/threads/${d.id}/offline`,{method:'POST',body:{rep_id:repId(),channel:ch,note}});toast('Logged — thread no longer reads as ghosted');await open(d.id);loadInbox();};
   const st=$('#stage'); if(st) st.onchange=async e=>{const v=e.target.value;if(!v)return;await api(`/api/threads/${d.id}/state`,{method:'POST',body:{rep_id:repId(),state:v,reason:'rep updated stage'}});toast('Stage updated');await open(d.id);loadInbox();};
   $('#voice').onchange=async e=>{toast('Redrafting in '+e.target.selectedOptions[0].text+'…');await api(`/api/threads/${d.id}/voice`,{method:'POST',body:{rep_id:repId(),voice:e.target.value}});await open(d.id);loadInbox();};
   if(dr){
     $('#recheck').onclick=()=>recheck();
     $('#draft').addEventListener('input',()=>{editing=true;});
     $('#send').onclick=async()=>{
-      try{const r=await api(`/api/drafts/${dr.id}/send`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});toast('Sent to customer (simulated Messenger)');await open(d.id);loadInbox();}
+      try{const r=await api(`/api/drafts/${dr.id}/send`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});toast(r.demo?.replied?'Sent — customer replied':r.demo?.ghost_hours?`Sent — customer went quiet (${r.demo.ghost_hours}h)`:'Sent (simulated Messenger)');await open(d.id);loadInbox();}
       catch(e){toast(e.message||'Blocked');await open(d.id);if(e.detail?.reason)$('#draft').value=$('#draft').value;}
     };
   }
@@ -286,6 +297,18 @@ function spark(m,w,h){
   return `<svg class="spark ${m.trend}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${m.label}, score ${m.score}"><title>${m.label} · ${s.join(' → ')}</title><path class="ar" d="${area}"></path><line class="base" x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}"></line><polyline class="ln" points="${pts}"></polyline><circle class="pt" cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3"></circle></svg>`;
 }
 const ARROW={up:'↗',flat:'→',down:'↘'};
+function renderGhost(d){
+  const g=d.ghost; if(!g) return '';
+  const stage=g.followup_stage||0;
+  const nextLabel=stage>=3?'All 3 nudges sent':stage?`Send nudge ${stage+1} of 3`:'Start follow-up sequence';
+  return `<div class="ghost">[ <b>${esc(d.customer.name||'Customer')}</b> has not responded in <b>${esc(g.label)}</b> ]
+    <div class="row">
+      <button class="btn primary" id="fuNext" ${stage>=3?'disabled':''}>${nextLabel}</button>
+      ${stage?'<button class="btn" id="fuStop">Stop sequence</button>':''}
+      <select id="offline"><option value="">I reached them offline…</option><option value="call">📞 Called them</option><option value="text">💬 Texted them</option><option value="email">✉️ Emailed them</option><option value="visit">🚗 They came in</option></select>
+    </div>
+    <div class="demo">${g.simulated?'demo · simulated silence':'real elapsed time'} · follow-ups are never automatic — your call</div></div>`;
+}
 function renderTracker(d){
   const f=d.funnel; if(!f) return '';
   const segs=f.stages.map((s,i)=>`<div class="seg ${i<f.current?'done':i===f.current?'cur':i<=f.furthest?'reached':''}"></div>`).join('');
@@ -294,11 +317,11 @@ function renderTracker(d){
   const stop=['LOST','DO_NOT_CONTACT'].includes(f.state);
   const opts=[['APPOINTMENT_SET','Appointment set'],['ARRIVED','Showed up'],['SOLD','Sold'],['NURTURE','Follow up later'],['LOST','Lost / went elsewhere'],['HUMAN_REQUIRED','Needs a person']];
   return `<div class="tracker"><div class="bar">${segs}</div><div class="labels">${labs}</div>
-    <div class="status"><span>Stage ${f.current+1} of ${f.stages.length}: <b>${esc(cur)}</b></span>${f.paused?`<span class="paused ${stop?'stop':''}">${esc(f.paused)}</span>`:''}
+    <div class="status"><span>Stage ${f.current+1} of ${f.stages.length}: <b>${esc(cur)}</b></span>${f.paused&&f.paused!=='null'?`<span class="paused ${stop?'stop':''}">${esc(f.paused)}</span>`:''}
     ${d.momentum&&d.momentum.series.length?`<span class="mom ${d.momentum.trend}" title="Propensity to show for the visit, one point per customer message">${spark(d.momentum,120,30)}<span><b>${ARROW[d.momentum.trend]} ${esc(d.momentum.label)}</b><br><span class="small">${d.momentum.series.length} message${d.momentum.series.length>1?'s':''} · score ${d.momentum.score}${d.momentum.delta?` (${d.momentum.delta>0?'+':''}${d.momentum.delta})`:''}</span></span></span>`:''}
     <select id="stage" aria-label="Update stage"><option value="">Update stage…</option>${opts.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div></div>`;
 }
-function humanAction(a){return({answer_availability:'Confirm availability, then ask one useful question',invite_test_drive:'Invite for a test drive',resolve_vehicle_questions:'Answer the vehicle questions',ask_qualifying_question:'Ask one qualifying question',answer_price:'Share the verified listed price',route_financing_to_human:'Hand financing to the finance team',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Hand pricing to the sales manager',offer_alternatives:'Offer matching alternatives',acknowledge_and_close:'Acknowledge and stop selling',escalate_opt_out:'Suppress — customer opted out',human_takeover:'Rep takes over'})[a]||a;}
+function humanAction(a){return({answer_availability:'Confirm availability, then ask one useful question',invite_test_drive:'Invite for a test drive',resolve_vehicle_questions:'Answer the vehicle questions',ask_qualifying_question:'Ask one qualifying question',answer_price:'Share the verified listed price',route_financing_to_human:'Hand financing to the finance team',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Hand pricing to the sales manager',offer_alternatives:'Offer matching alternatives',acknowledge_and_close:'Acknowledge and stop selling',offer_reschedule:'Offer a new day — keep the visit alive',route_hold_to_human:'Hand the hold request to the sales manager',route_warranty_to_human:'Pull real warranty details, then answer',route_delivery_to_human:'Check delivery policy, then answer',follow_up_1:'Follow-up nudge 1 of 3',follow_up_2:'Follow-up nudge 2 of 3',follow_up_3:'Follow-up nudge 3 of 3 (last)',escalate_opt_out:'Suppress — customer opted out',human_takeover:'Rep takes over'})[a]||a;}
 
 function renderClaims(dr){
   const cs=dr.validation?.claims||[];

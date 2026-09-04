@@ -222,16 +222,62 @@ def test_auto_voice_matches_customer_tone_until_rep_pins_one(s):
     assert t3.voice == "dealer"
 
 
+def rep_reply(s, thread, text="Thanks — let me check on that for you."):
+    """A dealership reply closes the customer's current communication block."""
+    from datetime import datetime, timezone
+
+    s.add(Message(tenant_id=thread.tenant_id, thread_id=thread.id, external_id=f"out_{thread.id}_{len(thread.messages)}", direction="out", author="rep", text=text, sent_at=datetime.now(timezone.utc)))
+    s.flush(); s.expire(thread)
+
+
 def test_momentum_tracks_conversation_direction(s):
     from lotbeacon import momentum
 
     t, _ = run(s, "Is the Explorer still available?", psid="m1", name="Kim Park", mid="m1a")
+    rep_reply(s, t)
     t, _ = run(s, "Nice, I need 3rd row seating and this week works", psid="m1", name="Kim Park", mid="m1b")
+    rep_reply(s, t)
     t, _ = run(s, "Great, can I come Saturday for a test drive?", psid="m1", name="Kim Park", mid="m1c")
     up = momentum.view(s, t)
     assert len(up["series"]) == 3 and up["trend"] == "up" and up["series"][-1] > up["series"][0]
     t2, _ = run(s, "Is the Tahoe still there? Could come Saturday.", psid="m2", name="Lou Reed", mid="m2a")
+    rep_reply(s, t2)
     t2, _ = run(s, "Actually this is ridiculous, you people lied about the price.", psid="m2", name="Lou Reed", mid="m2b")
     assert momentum.view(s, t2)["trend"] == "down"
     t3, _ = run(s, "Please stop messaging me.", psid="m3", name="Q", mid="m3a")
     assert momentum.view(s, t3)["trend"] == "down"
+
+
+def test_rapid_fire_messages_count_as_one_communication(s):
+    from lotbeacon import momentum
+
+    t, _ = run(s, "hi", psid="r1", name="Bo Chen", mid="r1a")
+    t, _ = run(s, "is the tahoe available", psid="r1", name="Bo Chen", mid="r1b")
+    t, _ = run(s, "the black one", psid="r1", name="Bo Chen", mid="r1c")
+    t, _ = run(s, "could come saturday", psid="r1", name="Bo Chen", mid="r1d")
+    m = momentum.view(s, t)
+    assert m["blocks"] == 1 and len(m["series"]) == 1  # four sends, one communication
+    rep_reply(s, t)
+    t, _ = run(s, "actually something came up, have to cancel saturday", psid="r1", name="Bo Chen", mid="r1e")
+    m = momentum.view(s, t)
+    assert m["blocks"] == 2 and len(m["series"]) == 2 and m["trend"] == "down"
+
+
+def test_cancellation_keeps_rep_in_the_conversation(s):
+    from datetime import datetime, timedelta, timezone
+
+    t, _ = run(s, "Can I come Saturday at 2 to see the Yukon?", psid="c1", name="Ana Ruiz", mid="c1a")
+    s.add(Appointment(tenant_id=t.tenant_id, thread_id=t.id, starts_at=datetime.now(timezone.utc) + timedelta(days=1), status="confirmed")); s.flush()
+    rep_reply(s, t, "You're all set for Saturday at 2!")
+    t, d = run(s, "Ugh, something came up — I need to cancel Saturday.", psid="c1", name="Ana Ruiz", mid="c1b")
+    assert t.lead_state == LeadState.HIGH_INTENT
+    assert d.structured["recommended_action"] == "offer_reschedule"
+    assert "day" in d.text.lower() and d.status == "pending"
+    assert s.scalar(select(Appointment).where(Appointment.thread_id == t.id)).status == "cancelled"
+
+
+def test_hold_warranty_delivery_route_to_human(s):
+    for msg, action in [("Can you hold it for me until Friday?", "route_hold_to_human"), ("Does the Tahoe still have the factory warranty?", "route_warranty_to_human"), ("Any chance you deliver to Omaha?", "route_delivery_to_human")]:
+        t, d = run(s, msg, psid="h_" + action, name="X")
+        assert d.structured["recommended_action"] == action, msg
+        assert "$" not in d.text and d.risk_level == "orange"

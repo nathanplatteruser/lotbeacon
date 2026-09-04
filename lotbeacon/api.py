@@ -92,7 +92,7 @@ def threads(s: Session = Depends(get_session)):
             "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "vehicle": f"{v.year} {v.model}" if v else None,
             "last_customer_message_at": t.last_customer_message_at.isoformat() if t.last_customer_message_at else None,
             "waiting": timefmt.since(t.last_customer_message_at),
-            "momentum": momentum.view(s, t),
+            "momentum": momentum.view(s, t), "ghost": (ghost_view(t) or {}).get("label"),
             "risk": d.risk_level if d else None, "draft_status": d.status if d else None,
         })
     return out
@@ -114,7 +114,8 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
     return {
         "id": t.id, "customer": {"id": cust.id, "name": cust.display_name, "psid": cust.psid, "opted_out": cust.opted_out},
         "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "voice": t.voice or "dealer", "voice_locked": t.voice_locked, "voice_reason": t.voice_reason,
-        "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust), "momentum": momentum.view(s, t),
+        "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust), "momentum": momentum.view(s, t), "ghost": ghost_view(t),
+        "demo_remaining": max(0, len(t.demo_script or []) - t.demo_cursor),
         "summary": t.summary, "summary_version": t.summary_version,
         "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "text": m.text, "sent_at": m.sent_at.isoformat()} for m in t.messages],
         "facts": facts,
@@ -133,7 +134,7 @@ FUNNEL = [
     ("HIGH_INTENT", "Ready to visit"), ("APPOINTMENT_INTENT", "Visit requested"), ("APPOINTMENT_SET", "Appointment set"), ("ARRIVED", "Showed up"), ("SOLD", "Sold"),
 ]
 _STAGE_OF = {"NEW": 0, "ENGAGED": 1, "DISCOVERY": 2, "VEHICLE_MATCH": 2, "VEHICLE_INTEREST": 3, "OBJECTION": 3, "HIGH_INTENT": 4, "APPOINTMENT_INTENT": 5, "APPOINTMENT_SET": 6, "ARRIVED": 7, "SOLD": 8, "REVIEW_ELIGIBLE": 8}
-_PAUSED = {"HUMAN_REQUIRED": "Paused — a person needs to take this one", "OBJECTION": "Working through an objection", "LOST": "Closed — customer went elsewhere", "DO_NOT_CONTACT": "Stopped — customer opted out", "NURTURE": "Parked — follow up later, when permitted"}
+_PAUSED = {"HIGH_INTENT": None, "HUMAN_REQUIRED": "Paused — a person needs to take this one", "OBJECTION": "Working through an objection", "LOST": "Closed — customer went elsewhere", "DO_NOT_CONTACT": "Stopped — customer opted out", "NURTURE": "Parked — follow up later, when permitted"}
 
 
 def funnel_view(t: Thread, transitions) -> dict:
@@ -152,6 +153,13 @@ def your_move(t: Thread, d: Draft | None, cust: Customer) -> dict:
         return {"kind": "done", "text": "Send the thank-you if you like, then close it out. No more selling."}
     if t.ai_paused:
         return {"kind": "you", "text": "You have the thread. Type your reply — it still gets claim-checked before it goes out."}
+    g = ghost_view(t)
+    if g and (not d or d.status == "sent"):
+        if t.followup_stage >= 3:
+            return {"kind": "wait", "text": f"Quiet for {g['label']} and you've sent all three nudges. Park it in Follow up later, or log a call if you reached them another way."}
+        if t.followup_stage:
+            return {"kind": "you", "text": f"Still quiet ({g['label']}) after nudge {t.followup_stage}. Your call: send nudge {t.followup_stage + 1}, or log the call/text if you already reached them."}
+        return {"kind": "you", "text": f"No reply in {g['label']}. Your call: start a follow-up sequence, or log it if you've already called or texted them."}
     if not d:
         return {"kind": "wait", "text": "Waiting on the customer."}
     a = d.structured.get("recommended_action", "")
@@ -165,6 +173,16 @@ def your_move(t: Thread, d: Draft | None, cust: Customer) -> dict:
         return {"kind": "you", "text": "Price pushback. Approve the hand-off reply and take it to your sales manager."}
     if a == "human_takeover":
         return {"kind": "you", "text": "Sensitive conversation. Hit Take over and reply personally."}
+    if a == "route_hold_to_human":
+        return {"kind": "you", "text": "They want the car held. Approve the reply, then ask your sales manager — the AI never promises a hold."}
+    if a == "route_warranty_to_human":
+        return {"kind": "you", "text": "Warranty question. Approve the reply, then pull the real coverage sheet for that VIN and send it yourself."}
+    if a == "route_delivery_to_human":
+        return {"kind": "you", "text": "Delivery request. Approve the reply, then check the store's delivery policy before promising anything."}
+    if a.startswith("follow_up_"):
+        return {"kind": "approve", "text": f"Follow-up {a[-1]} of 3 is drafted. Read it, hit Send — or skip it if you've already reached them another way."}
+    if a == "offer_reschedule":
+        return {"kind": "approve", "text": "They cancelled but they're still interested. Send the reschedule reply, and cancel the old slot in your scheduler."}
     if d.status == "blocked" or d.risk_level == "red":
         return {"kind": "fix", "text": "Fix the red sentence(s) in the draft, hit Re-check claims, then Send."}
     if a == "invite_test_drive":
@@ -221,7 +239,44 @@ def send_draft(draft_id: int, body: DraftSend, s: Session = Depends(get_session)
     t.last_activity_at = datetime.now(timezone.utc)
     audit(s, t, f"rep:{body.rep_id}", "message.sent", {"draft_id": d.id, "risk": d.risk_level, "channel": "messenger-sim"})
     s.flush()
-    return {"sent": True, "message_id": msg.id}
+    demo = _demo_advance(s, t)
+    return {"sent": True, "message_id": msg.id, "demo": demo}
+
+
+def _demo_advance(s: Session, t: Thread) -> dict | None:
+    """DEMO ONLY: the persona answers instantly — or goes quiet. Production has no such thing; Messenger does."""
+    script = t.demo_script or []
+    if t.demo_cursor >= len(script):
+        return None
+    item = script[t.demo_cursor]
+    t.demo_cursor += 1
+    if isinstance(item, dict) and "ghost" in item:
+        t.ghost_hours_sim = float(item["ghost"])
+        audit(s, t, "demo", "customer.ghosted", {"hours": item["ghost"]})
+        return {"ghost_hours": item["ghost"]}
+    dealer = s.get(Dealership, t.dealership_id)
+    cust = s.get(Customer, t.customer_id)
+    thread, msg, new = ingest_inbound(s, dealer, cust.psid, f"demo_{t.id}_{t.demo_cursor}", str(item), cust.display_name)
+    if new:
+        process_message(s, thread, msg)
+    return {"replied": str(item)}
+
+
+def ghost_view(t: Thread) -> dict | None:
+    """Silence after our last message. Simulated hours in the demo; real elapsed time otherwise (threshold 4h)."""
+    msgs = [m for m in t.messages if m.direction in ("in", "out")]
+    if not msgs or msgs[-1].direction != "out":
+        return None
+    if t.ghost_hours_sim is not None:
+        hrs = t.ghost_hours_sim
+    else:
+        last = msgs[-1].sent_at
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+        hrs = (datetime.now(timezone.utc) - last).total_seconds() / 3600
+        if hrs < 4:
+            return None
+    return {"hours": round(hrs, 1), "label": timefmt.humanize(hrs * 3600), "simulated": t.ghost_hours_sim is not None, "followup_stage": t.followup_stage}
 
 
 class TakeOver(BaseModel):
@@ -262,6 +317,60 @@ def set_voice(thread_id: int, body: VoiceChange, s: Session = Depends(get_sessio
     d = s.scalar(select(Draft).where(Draft.thread_id == t.id).order_by(Draft.id.desc()))
     new = regenerate(s, d) if d and d.trigger_message_id else None
     return {"voice": t.voice, "voice_locked": t.voice_locked, "voice_reason": t.voice_reason, "draft": _draft_view(new) if new else None}
+
+
+class FollowUp(BaseModel):
+    rep_id: int
+    action: str  # start | next | stop
+
+
+@app.post("/api/threads/{thread_id}/followup")
+def followup(thread_id: int, body: FollowUp, s: Session = Depends(get_session)):
+    """Rep-initiated only. Never automatic: the rep may know about calls/texts this product can't see."""
+    t = s.get(Thread, thread_id)
+    cust = s.get(Customer, t.customer_id)
+    if body.action == "stop":
+        audit(s, t, f"rep:{body.rep_id}", "followup.stopped", {"stage": t.followup_stage})
+        t.followup_stage = 0
+        return {"stage": 0, "draft": None}
+    stage = min(t.followup_stage + 1, 3)
+    elig = policy.messaging_eligibility(t, cust)
+    t.followup_stage = stage
+    audit(s, t, f"rep:{body.rep_id}", "followup.requested", {"stage": stage, "eligible": elig["eligible"], "reason": elig.get("reason")})
+    if not elig["eligible"]:
+        return {"stage": stage, "draft": None, "blocked": True, "reason": elig["reason"],
+                "message": "Messenger won't allow an outbound message here — the customer hasn't written in over 24 hours. Call or text them instead, then log it."}
+    text = voices.followup_text(stage, voices.get(t.voice), cust.display_name)
+    from .validator import validate
+
+    res = validate(text, vehicle=None, vehicle_fresh=False, alternatives=[], hours_today=None, appointment_confirmed=False, messaging=elig)
+    last_in = s.scalar(select(Message).where(Message.thread_id == t.id, Message.direction == "in").order_by(Message.id.desc()))
+    d = Draft(tenant_id=t.tenant_id, thread_id=t.id, trigger_message_id=last_in.id if last_in else None, text=text,
+              structured={"recommended_action": f"follow_up_{stage}", "nba_reason": f"rep-initiated follow-up {stage} of 3", "lead_state": t.lead_state.value, "intent": "follow_up", "customer_facts": {}, "vehicle_ids": [], "missing_information": [], "messaging_eligibility": elig, "voice": t.voice},
+              validation=res.to_dict(), risk_level=res.risk_level, status="blocked" if res.blocked else "pending", approval_required=True, provider="template")
+    s.add(d)
+    s.flush()
+    return {"stage": stage, "draft": _draft_view(d), "blocked": res.blocked}
+
+
+class Offline(BaseModel):
+    rep_id: int
+    channel: str  # call | text | email | visit
+    note: str = ""
+
+
+@app.post("/api/threads/{thread_id}/offline")
+def log_offline(thread_id: int, body: Offline, s: Session = Depends(get_session)):
+    """The rep reached the customer somewhere this product can't see. Log it so the thread stops looking ghosted."""
+    t = s.get(Thread, thread_id)
+    icon = {"call": "📞", "text": "💬", "email": "✉️", "visit": "🚗"}.get(body.channel, "📝")
+    m = Message(tenant_id=t.tenant_id, thread_id=t.id, external_id=f"note_{t.id}_{int(datetime.now(timezone.utc).timestamp())}", direction="note", author="rep", text=f"{icon} {body.channel.title()} logged by rep" + (f" — {body.note}" if body.note else ""))
+    s.add(m)
+    t.ghost_hours_sim = None
+    t.last_activity_at = datetime.now(timezone.utc)
+    audit(s, t, f"rep:{body.rep_id}", "offline.logged", {"channel": body.channel, "note": body.note})
+    s.flush()
+    return {"ok": True, "message_id": m.id}
 
 
 class FactCorrection(BaseModel):
