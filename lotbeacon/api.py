@@ -9,7 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import __version__, inventory, memory, policy
-from .config import AI_PROVIDER, RULES_VERSION
+from .ai.base import resolve_provider_name
+from .config import RULES_VERSION
 from .db import get_session, init_db
 from .models import Appointment, AuditEvent, Customer, Dealership, Draft, LeadState, MemoryFact, Message, Rep, StateTransition, Thread, Vehicle
 from .pipeline import audit, ingest_inbound, process_message, revalidate
@@ -57,7 +58,7 @@ def index():
 def meta(s: Session = Depends(get_session)):
     d = s.scalar(select(Dealership))
     reps = s.scalars(select(Rep).where(Rep.dealership_id == d.id)).all()
-    return {"version": __version__, "provider": AI_PROVIDER, "rules_version": RULES_VERSION, "dealership": {"id": d.id, "name": d.name, "page_id": d.page_id, "hours_today": policy.hours_today(d.hours, d.timezone)}, "reps": [{"id": r.id, "name": r.name, "role": r.role} for r in reps]}
+    return {"version": __version__, "provider": resolve_provider_name(), "rules_version": RULES_VERSION, "dealership": {"id": d.id, "name": d.name, "page_id": d.page_id, "hours_today": policy.hours_today(d.hours, d.timezone)}, "reps": [{"id": r.id, "name": r.name, "role": r.role} for r in reps]}
 
 
 @app.get("/api/threads")

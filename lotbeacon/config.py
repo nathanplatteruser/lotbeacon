@@ -6,8 +6,9 @@ ROOT = Path(__file__).resolve().parent.parent
 
 DATABASE_URL = os.getenv("LOTBEACON_DATABASE_URL", f"sqlite:///{ROOT / 'lotbeacon.db'}")
 
-# "mock" = deterministic, air-gapped provider. "anthropic" = real model calls (needs ANTHROPIC_API_KEY).
-AI_PROVIDER = os.getenv("LOTBEACON_AI_PROVIDER", "mock").lower()
+# "auto" (default): Claude when ANTHROPIC_API_KEY is set, else the deterministic mock.
+# "mock" = force air-gapped. "anthropic" = force Claude (fails loudly if no key).
+AI_PROVIDER = os.getenv("LOTBEACON_AI_PROVIDER", "auto").lower()
 ANTHROPIC_MODEL = os.getenv("LOTBEACON_ANTHROPIC_MODEL", "claude-sonnet-4-5")
 
 # Inventory data older than this is treated as stale: the draft may not assert availability or price.

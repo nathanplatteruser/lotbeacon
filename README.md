@@ -8,9 +8,11 @@ correct vehicle from authoritative inventory → structured memory with evidence
 next-best action → grounded draft → **claim-by-claim validation** → rep approval → send. Maturity L1–L3; nothing
 autonomous.
 
-Runs fully **air-gapped** by default (deterministic mock AI provider, SQLite, no network). Flip one env var to use
-real model calls through the same interface — the hallucination firewall checks the model's draft exactly the
-same way it checks the mock's, and the rep's edits too.
+**Claude-powered when a key is present, air-gapped when it isn't.** Put `ANTHROPIC_API_KEY` in `.env` and the
+pipeline classifies, extracts memory, and drafts with Claude (forced tool-use for structured outputs, timeouts,
+one retry, automatic fallback to the deterministic mock if the API is unreachable — the audit trail records which
+one produced each draft). Remove the key and everything still runs, deterministically, with no network. Either
+way the hallucination firewall checks every claim in the draft — Claude's, the mock's, or the rep's edits.
 
 ## Run it
 
@@ -26,10 +28,19 @@ pip install -r requirements.txt
 uvicorn lotbeacon.api:app --port 8080
 ```
 
-Tests (the blueprint's golden scenarios, §16):
+Add Claude (2 minutes):
 
 ```bash
-pytest -q
+cp .env.example .env        # then paste your key from console.anthropic.com → API Keys
+./run.sh                    # header shows "AI: anthropic"
+```
+
+Tests and the eval scorecard (§15/§16):
+
+```bash
+pytest -q                                            # 24 tests, all offline
+python -m scripts.eval                               # 12 golden scenarios through the mock
+python -m scripts.eval --providers mock anthropic    # side by side; exits non-zero if any critical claim reaches a rep unblocked
 ```
 
 ## The demo
@@ -70,6 +81,13 @@ Then break it on purpose (right panel, "Simulate"):
 | Messaging-window + opt-out policy engine | |
 | Append-only audit log, priority inbox, evidence UI | |
 
+## Working on it with Claude
+
+- **Cowork sessions in the LotBeacon Claude project** build features end to end: clone → change → tests → eval → push. Give the
+  session the repo URL; it reads `CLAUDE.md` for the rules that must not be simplified away.
+- **Claude Code on your Mac** for hands-on iteration against the running server (`./run.sh --reload`).
+- **The live tracker** (Claude artifact) is the backlog; commit messages cite ticket numbers.
+
 ## Layout
 
 ```
@@ -83,10 +101,11 @@ lotbeacon/
   models.py        Canonical schema (SQLAlchemy)
   ai/base.py       Provider interface + DraftContext (the ONLY thing a provider gets to see)
   ai/mock.py       Deterministic air-gapped provider
-  ai/anthropic_provider.py  Same contract, real model
+  ai/anthropic_provider.py  Claude via forced tool-use; ResilientProvider falls back to mock
+  scripts/eval.py  Provider scorecard (mock vs Claude) with the critical-error override
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
   web/index.html   Rep workspace
-tests/test_pipeline.py     17 golden scenarios
+tests/                     24 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
 ```
 
 ## Next tickets this unlocks

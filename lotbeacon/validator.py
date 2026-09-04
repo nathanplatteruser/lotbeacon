@@ -61,7 +61,7 @@ def extract_claims(text: str) -> list[Claim]:
     add("availability", r"[^.!?]*\b(still (?:here|available|on the lot|in stock)|is available|we have it|it'?s (?:here|available)|haven'?t sold|still have (?:it|that))\b[^.!?]*[.!?]?")
     add("unavailable", r"[^.!?]*\b(went (?:sold|pending)|(?:just|already) sold|no longer available|is pending)\b[^.!?]*[.!?]?")
     # Price
-    add("price", r"[^.!?]*\b(listed at|priced at|asking|price is|it'?s|for)\s+" + MONEY + r"[^.!?]*[.!?]?")
+    add("price", r"[^.!?]*\b(listed at|priced at|asking|price is|it'?s|for|is|only|just|at|costs?|runs?)\s+(?:only\s+|just\s+|about\s+|around\s+)?" + MONEY + r"[^.!?]*[.!?]?")
     # Discount / negotiation
     add("discount", r"[^.!?]*\b(knock (?:off|\$)|take \$?\d+ off|discount|i can do \$|we can do \$|come down to|best price is|lowest i can go)\b[^.!?]*[.!?]?")
     # Financing
@@ -145,9 +145,9 @@ def validate(text: str, *, vehicle: dict | None, vehicle_fresh: bool, alternativ
         res.claims.append(c)
 
     # Any money figure not attributable to a supported claim is suspicious.
-    supported_money = {v for c in res.claims if c.verdict == "supported" for v in _money_values(c.text)}
-    stray = [v for v in price_vals if v not in supported_money]
-    if stray and not any(c.kind in ("financing", "trade_value", "discount", "price") for c in res.claims):
+    claimed_money = {v for c in res.claims for v in _money_values(c.text)}
+    stray = [v for v in price_vals if v not in claimed_money]
+    if stray:
         res.claims.append(Claim("money_figure", f"${stray[0]:,}", "unsupported", None, "dollar figure with no verified source", "orange"))
 
     worst = max([RANK[c.risk] for c in res.claims] + [RANK[res.risk_level]], default=0)

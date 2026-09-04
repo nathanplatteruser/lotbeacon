@@ -52,13 +52,57 @@ class AIProvider(Protocol):
     def draft(self, ctx: DraftContext) -> str: ...
 
 
-def get_provider() -> AIProvider:
+class ResilientProvider:
+    """Primary provider with a deterministic fallback.
+
+    Fail soft on assistant availability (rep still gets a draft), never on facts (the validator runs regardless).
+    `name` reflects what actually produced the LAST call, so the audit trail is truthful.
+    """
+
+    def __init__(self, primary: AIProvider, fallback: AIProvider):
+        self.primary, self.fallback = primary, fallback
+        self.name = primary.name
+        self.last_error: str | None = None
+
+    def _run(self, method: str, *args):
+        try:
+            out = getattr(self.primary, method)(*args)
+            self.name, self.last_error = self.primary.name, None
+            return out
+        except Exception as e:  # noqa: BLE001 — any provider failure degrades to mock
+            self.last_error = f"{type(e).__name__}: {e}"[:200]
+            self.name = f"{self.fallback.name}(fallback:{self.primary.name})"
+            return getattr(self.fallback, method)(*args)
+
+    def classify(self, text, history):
+        return self._run("classify", text, history)
+
+    def extract_facts(self, text, hint):
+        return self._run("extract_facts", text, hint)
+
+    def draft(self, ctx):
+        return self._run("draft", ctx)
+
+
+def resolve_provider_name() -> str:
+    """auto → anthropic when a key and the SDK are present, else mock."""
+    import importlib.util
+    import os
+
     from ..config import AI_PROVIDER
 
-    if AI_PROVIDER == "anthropic":
-        from .anthropic_provider import AnthropicProvider
+    if AI_PROVIDER != "auto":
+        return AI_PROVIDER
+    if os.getenv("ANTHROPIC_API_KEY") and importlib.util.find_spec("anthropic"):
+        return "anthropic"
+    return "mock"
 
-        return AnthropicProvider()
+
+def get_provider() -> AIProvider:
     from .mock import MockProvider
 
+    if resolve_provider_name() == "anthropic":
+        from .anthropic_provider import AnthropicProvider
+
+        return ResilientProvider(AnthropicProvider(), MockProvider())
     return MockProvider()
