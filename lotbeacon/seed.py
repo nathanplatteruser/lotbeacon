@@ -13,6 +13,7 @@ from sqlalchemy import select
 from .db import init_db, session_scope
 from .models import Dealership, Draft, Message, Rep, Tenant, Thread, Vehicle
 from .pipeline import audit, ingest_inbound, process_message
+from .ai.mock import MockProvider
 
 HOURS = {"mon": "9:00-19:00", "tue": "9:00-19:00", "wed": "9:00-19:00", "thu": "9:00-19:00", "fri": "9:00-18:00", "sat": "9:00-17:00", "sun": "Closed"}
 
@@ -150,7 +151,7 @@ def run():
                 if who == "c":
                     thread, msg, new = ingest_inbound(s, dealer, psid, f"mid_seed_{i}_{j}", text, name, sent_at=when)
                     if new:
-                        process_message(s, thread, msg)
+                        process_message(s, thread, msg, provider=MockProvider())
                 else:
                     s.add(Message(tenant_id=tenant.id, thread_id=thread.id, external_id=f"out_seed_{i}_{j}", direction="out", author="rep", text=text, sent_at=when))
                     d = s.scalar(select(Draft).where(Draft.thread_id == thread.id).order_by(Draft.id.desc()))
