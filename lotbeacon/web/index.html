@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LotBeacon — Rep Workspace</title>
+<style>
+:root{
+  --bg:#f4f3ef;--surface:#fff;--surface-2:#ebe9e3;--line:#d8d5cd;--line-strong:#b6b2a7;
+  --ink:#1c1e24;--ink-2:#4a4e59;--ink-3:#7d818c;
+  --accent:#d97a12;--accent-ink:#8a4a05;--accent-soft:#fbe9d3;
+  --green:#2e8b57;--green-soft:#dcf1e4;--yellow:#b8860b;--yellow-soft:#f8efd0;--orange:#d2691e;--orange-soft:#fbe3d3;--red:#c93a3a;--red-soft:#f8dede;
+  --in:#e9e7e0;--out:#1c1e24;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#15171c;--surface:#1d2027;--surface-2:#252932;--line:#323641;--line-strong:#4a4f5c;
+  --ink:#eceef2;--ink-2:#b3b8c4;--ink-3:#7c8290;--accent:#f0932a;--accent-ink:#ffc37a;--accent-soft:#3a2a14;
+  --green:#5cc48a;--green-soft:#1c3a2a;--yellow:#e0b64a;--yellow-soft:#3a3214;--orange:#f0925a;--orange-soft:#3f2818;--red:#ee6b6b;--red-soft:#44201f;
+  --in:#252932;--out:#3a6fd6;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.cond{font-family:"Barlow Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+
+header{display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:22px}
+header h1 b{color:var(--accent)}
+header .sub{color:var(--ink-3);font-size:12px}
+header .right{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:12px;color:var(--ink-3)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:2px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.pill.green{background:var(--green-soft);color:var(--green)} .pill.yellow{background:var(--yellow-soft);color:var(--yellow)} .pill.orange{background:var(--orange-soft);color:var(--orange)} .pill.red{background:var(--red-soft);color:var(--red)} .pill.grey{background:var(--surface-2);color:var(--ink-3)}
+
+.app{display:grid;grid-template-columns:280px 1fr 340px;height:calc(100vh - 49px)}
+@media (max-width:1100px){.app{grid-template-columns:240px 1fr;}.side{display:none}}
+.inbox{border-right:1px solid var(--line);background:var(--surface);overflow-y:auto}
+.inbox h2{margin:0;padding:12px 14px 8px;font-size:12px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between}
+.lead{display:grid;grid-template-columns:1fr auto;gap:2px 8px;width:100%;text-align:left;padding:10px 14px;border-top:1px solid var(--line)}
+.lead:hover{background:var(--surface-2)} .lead[aria-current="true"]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--accent)}
+.lead .n{font-weight:600} .lead .score{font-size:18px;color:var(--accent);font-variant-numeric:tabular-nums}
+.lead .v{grid-column:1;color:var(--ink-2);font-size:12px} .lead .st{grid-column:1/-1;font-size:11px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+.lead .ago{font-size:11px;color:var(--ink-3);justify-self:end}
+
+.main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.thread-head{padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.thread-head h2{margin:0;font-size:20px}
+.thread-head .state{font-size:13px;color:var(--ink-2)}
+.thread-head .tools{margin-left:auto;display:flex;gap:8px}
+.btn{border:1px solid var(--line-strong);border-radius:3px;padding:6px 12px;font-weight:500;background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+
+.convo{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:68%;padding:8px 12px;border-radius:12px;position:relative}
+.msg.in{background:var(--in);align-self:flex-start;border-bottom-left-radius:3px}
+.msg.out{background:var(--out);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.msg .t{display:block;font-size:10px;opacity:.6;margin-top:3px}
+.msg.hl{outline:2px solid var(--accent);outline-offset:2px}
+
+.compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px 14px;display:flex;flex-direction:column;gap:10px}
+.nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 12px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:2px}
+.nba .lab{font-size:11px;color:var(--accent-ink);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.nba .act{font-weight:600} .nba .why{font-size:12px;color:var(--ink-2)}
+.warn{display:flex;flex-direction:column;gap:4px}
+.claim{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;padding:6px 10px;border-radius:2px;font-size:12px}
+.claim.supported{background:var(--green-soft)} .claim.unsupported,.claim.prohibited{background:var(--red-soft)} .claim.orange{background:var(--orange-soft)}
+.claim b{font-weight:600} .claim .q{color:var(--ink-2);font-style:italic}
+textarea#draft{width:100%;min-height:84px;border:1px solid var(--line-strong);border-radius:4px;padding:10px 12px;background:var(--surface);color:var(--ink);font:inherit;resize:vertical}
+textarea#draft.blocked{border-color:var(--red)}
+.actions{display:flex;gap:8px;align-items:center}
+.actions .meta{margin-left:auto;font-size:12px;color:var(--ink-3)}
+.blockmsg{font-size:12px;color:var(--red);font-weight:500}
+
+.side{border-left:1px solid var(--line);background:var(--surface);overflow-y:auto;padding:14px}
+.side h3{margin:16px 0 8px;font-size:11px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase}
+.side h3:first-child{margin-top:0}
+.summary{font-size:13px;color:var(--ink-2)}
+.fact{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;margin-bottom:6px;width:100%;text-align:left;background:var(--surface)}
+.fact:hover{border-color:var(--accent)}
+.fact .k{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.fact .val{font-weight:600;grid-column:1}
+.fact .conf{font-size:11px;color:var(--ink-3);grid-row:1/3;align-self:center}
+.fact .ev{grid-column:1/-1;font-size:11px;color:var(--accent-ink)}
+.fact .ev:empty{display:none}
+.vcard{border:1px solid var(--line);border-radius:3px;padding:10px 12px}
+.vcard .name{font-weight:700;font-size:15px}
+.vcard .row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);padding:2px 0}
+.vcard .fresh{margin-top:6px;font-size:11px}
+.vcard .fresh.ok{color:var(--green)} .vcard .fresh.bad{color:var(--red)}
+.trans{font-size:12px;color:var(--ink-2);padding:4px 0;border-bottom:1px dashed var(--line)}
+.trans b{color:var(--ink)}
+.sim{margin-top:20px;padding:12px;border:1px dashed var(--line-strong);border-radius:3px}
+.sim h3{margin-top:0}
+.sim textarea{width:100%;min-height:56px;border:1px solid var(--line-strong);border-radius:3px;padding:8px;background:var(--surface);color:var(--ink);font:inherit}
+.sim .row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.sim select{font:inherit;padding:5px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);color:var(--ink)}
+.small{font-size:11px;color:var(--ink-3)}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:4px;font-size:13px;opacity:0;transition:opacity .2s}
+.toast.show{opacity:1}
+.empty{padding:40px;text-align:center;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="cond">Lot<b>Beacon</b></h1>
+  <span class="sub" id="dealer">—</span>
+  <div class="right"><span id="provider"></span><label>Signed in as <select id="rep"></select></label></div>
+</header>
+
+<div class="app">
+  <aside class="inbox">
+    <h2><span>Priority leads</span><span id="inboxCount"></span></h2>
+    <div id="leads"></div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="empty">Pick a lead.</div>
+  </main>
+
+  <aside class="side" id="side"></aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let META=null, current=null, detail=null, editing=false;
+
+async function api(path,opts={}){
+  const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});
+  if(!r.ok){let e={};try{e=await r.json();}catch(_){ } throw Object.assign(new Error(e.detail?.message||e.detail||r.statusText),{detail:e.detail});}
+  return r.json();
+}
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2400);}
+function ago(iso){if(!iso)return'';const s=(Date.now()-new Date(iso))/1000;if(s<60)return Math.round(s)+' sec';if(s<3600)return Math.round(s/60)+' min';if(s<86400)return Math.round(s/3600)+' hr';return Math.round(s/86400)+' d';}
+function repId(){return +$('#rep').value;}
+const STATE_LABEL=s=>s.replace(/_/g,' ');
+
+async function loadMeta(){
+  META=await api('/api/meta');
+  $('#dealer').textContent=META.dealership.name+(META.dealership.hours_today?' · open '+META.dealership.hours_today:'');
+  $('#provider').textContent='AI: '+META.provider+' · '+META.rules_version;
+  $('#rep').innerHTML=META.reps.map(r=>`<option value="${r.id}">${esc(r.name)} (${r.role})</option>`).join('');
+}
+async function loadInbox(){
+  const list=await api('/api/threads');
+  $('#inboxCount').textContent=list.length;
+  $('#leads').innerHTML=list.map(t=>`<button class="lead" data-id="${t.id}" aria-current="${t.id===current}">
+    <span class="n">${esc(t.customer)}</span><span class="score">${t.priority}</span>
+    <span class="v">${esc(t.vehicle||'—')}</span><span class="ago">${ago(t.last_customer_message_at)}</span>
+    <span class="st">${STATE_LABEL(t.lead_state)}${t.risk?` <span class="pill ${t.risk}">${t.risk}</span>`:''}${t.ai_paused?' <span class="pill grey">AI paused</span>':''}</span>
+  </button>`).join('');
+  if(!current&&list.length){open(list[0].id);}
+}
+async function open(id){current=id;editing=false;detail=await api('/api/threads/'+id);renderThread();renderSide();document.querySelectorAll('.lead').forEach(l=>l.setAttribute('aria-current',+l.dataset.id===id));}
+
+function renderThread(){
+  const d=detail,dr=d.draft;
+  const blocked=dr&&(dr.status==='blocked'||dr.risk_level==='red');
+  const sent=dr&&dr.status==='sent';
+  const elig=d.messaging.eligible;
+  $('#main').innerHTML=`
+    <div class="thread-head">
+      <h2>${esc(d.customer.name||d.customer.psid)}</h2>
+      <span class="state"><b>${STATE_LABEL(d.lead_state)}</b> · ${esc(d.priority_reason)}</span>
+      ${d.customer.opted_out?'<span class="pill red">Do not contact</span>':''}
+      ${!elig?`<span class="pill red" title="${esc(d.messaging.reason)}">Send blocked: ${esc(d.messaging.reason)}</span>`:`<span class="pill green">Messaging window open</span>`}
+      <div class="tools">
+        <button class="btn ${d.ai_paused?'on':''}" id="takeover">${d.ai_paused?'Resume AI':'Take over'}</button>
+        <button class="btn" id="confirmAppt" ${d.lead_state==='DO_NOT_CONTACT'?'disabled':''}>Confirm appointment…</button>
+      </div>
+    </div>
+    <div class="convo" id="convo">${d.messages.map(m=>`<div class="msg ${m.direction}" data-mid="${m.id}">${esc(m.text)}<span class="t">${m.author} · ${new Date(m.sent_at).toLocaleString()}</span></div>`).join('')}</div>
+    <div class="compose">
+      ${dr?`<div class="nba"><span class="lab">Next best action</span><div><div class="act">${esc(humanAction(dr.structured.recommended_action))}</div><div class="why">${esc(dr.structured.nba_reason)}${dr.structured.missing_information?.length?' · still unknown: '+dr.structured.missing_information.join(', '):''}</div></div><span class="pill ${dr.risk_level}">${dr.risk_level}</span></div>`:''}
+      ${dr?renderClaims(dr):''}
+      ${d.ai_paused?'<div class="small">AI drafting is paused for this thread. Type your own reply — it still goes through the claim check.</div>':''}
+      <textarea id="draft" class="${blocked?'blocked':''}" ${sent?'disabled':''} placeholder="${dr&&!dr.text?'No AI draft for this action — write your reply, or hand off.':'Draft…'}">${esc(dr?dr.text:'')}</textarea>
+      <div class="actions">
+        <button class="btn primary" id="send" ${(!dr||sent||!elig||blocked)?'disabled':''}>${sent?'Sent':'Approve & send'}</button>
+        <button class="btn" id="recheck" ${(!dr||sent)?'disabled':''}>Re-check claims</button>
+        ${blocked?'<span class="blockmsg">Blocked — fix the red sentences before sending.</span>':''}
+        <span class="meta">${dr?`draft #${dr.id} · ${dr.provider} · ${dr.approval_required?'rep approval required':'auto-eligible'}`:'no draft yet'}</span>
+      </div>
+    </div>`;
+  const convo=$('#convo');convo.scrollTop=convo.scrollHeight;
+  $('#takeover').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});toast(d.ai_paused?'AI resumed':'You have the thread');await open(d.id);loadInbox();};
+  $('#confirmAppt').onclick=async()=>{const when=prompt('Appointment date/time (e.g. 2026-09-06 14:00). Only confirm what you actually booked in the scheduler.');if(!when)return;try{await api(`/api/threads/${d.id}/appointment`,{method:'POST',body:{rep_id:repId(),starts_at:new Date(when.replace(' ','T')).toISOString()}});toast('Appointment confirmed — "booked" language is now allowed');await open(d.id);loadInbox();}catch(e){toast(e.message);}};
+  if(dr){
+    $('#recheck').onclick=()=>recheck();
+    $('#draft').addEventListener('input',()=>{editing=true;});
+    $('#send').onclick=async()=>{
+      try{const r=await api(`/api/drafts/${dr.id}/send`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});toast('Sent to customer (simulated Messenger)');await open(d.id);loadInbox();}
+      catch(e){toast(e.message||'Blocked');await open(d.id);if(e.detail?.reason)$('#draft').value=$('#draft').value;}
+    };
+  }
+}
+async function recheck(){const dr=detail.draft;const v=await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});detail.draft=v;renderThread();toast(v.status==='blocked'?'Still blocked':'Claims re-checked: '+v.risk_level);}
+
+function humanAction(a){return({answer_availability:'Confirm availability, then ask one useful question',invite_test_drive:'Invite for a test drive',resolve_vehicle_questions:'Answer the vehicle questions',ask_qualifying_question:'Ask one qualifying question',answer_price:'Share the verified listed price',route_financing_to_human:'Hand financing to the finance team',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Hand pricing to the sales manager',offer_alternatives:'Offer matching alternatives',acknowledge_and_close:'Acknowledge and stop selling',escalate_opt_out:'Suppress — customer opted out',human_takeover:'Rep takes over'})[a]||a;}
+
+function renderClaims(dr){
+  const cs=dr.validation?.claims||[];
+  if(!cs.length&&dr.text)return'<div class="small">No factual claims detected in this draft.</div>';
+  return `<div class="warn">${cs.map(c=>`<div class="claim ${c.verdict}${c.risk==='orange'?' orange':''}"><b>${c.verdict==='supported'?'✓':'⚠'} ${esc(c.kind.replace(/_/g,' '))}</b><span><span class="q">“${esc(c.text)}”</span>${c.source?` — <span class="mono">${esc(c.source)}</span>`:''}${c.note?` — ${esc(c.note)}`:''}</span></div>`).join('')}</div>`;
+}
+
+function renderSide(){
+  const d=detail,v=d.vehicle;
+  $('#side').innerHTML=`
+    <h3>AI summary</h3><div class="summary">${esc(d.summary||'—')}</div><div class="small">${esc(d.summary_version)}</div>
+    <h3>What we know <span class="small">(click a fact → source message)</span></h3>
+    ${d.facts.length?d.facts.map(f=>`<button class="fact" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="Click to see evidence · right-click to correct"><span class="k">${esc(f.key.replace(/_/g,' '))}</span><span class="conf">${f.corrected?'rep':Math.round(f.confidence*100)+'%'}</span><span class="val">${esc(f.value)}</span><span class="ev">${f.evidence?'“'+esc(f.evidence.text.slice(0,70))+(f.evidence.text.length>70?'…':'')+'”':'rep-entered'}</span></button>`).join(''):'<div class="small">Nothing extracted yet. Unknown stays unknown.</div>'}
+    <h3>Vehicle</h3>
+    ${v?`<div class="vcard"><div class="name">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
+      <div class="row"><span>Stock / VIN</span><span class="mono">${esc(v.stock_number)} · …${esc(v.vin.slice(-6))}</span></div>
+      <div class="row"><span>Color</span><span>${esc(v.color)}</span></div>
+      <div class="row"><span>Mileage</span><span class="mono">${v.mileage.toLocaleString()}</span></div>
+      <div class="row"><span>Price</span><span class="mono">$${v.price.toLocaleString()}</span></div>
+      <div class="row"><span>Status</span><span class="pill ${v.status==='available'?'green':'red'}">${v.status}</span></div>
+      <div class="fresh ${v.fresh?'ok':'bad'}">${v.fresh?'✓':'⚠'} ${esc(v.source)} · verified ${ago(v.retrieved_at)} ago${v.fresh?'':' — STALE, availability/price claims blocked'}</div></div>`:'<div class="small">No specific unit resolved yet.</div>'}
+    <h3>State history</h3>
+    ${d.transitions.map(t=>`<div class="trans"><b>${STATE_LABEL(t.from)} → ${STATE_LABEL(t.to)}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">—</div>'}
+    <div class="sim"><h3>Simulate customer message</h3>
+      <textarea id="simText" placeholder="Type what ${esc(d.customer.name||'the customer')} says next…"></textarea>
+      <div class="row"><button class="btn" id="simSend">Receive message</button>
+        <select id="simInv"><option value="">Inventory event…</option>${v?`<option value="sold">Mark ${esc(v.model)} sold</option><option value="pending">Mark ${esc(v.model)} pending</option><option value="available">Mark ${esc(v.model)} available</option><option value="stale">Make feed stale (3h old)</option>`:''}</select></div>
+      <div class="small">Air-gapped demo controls. In production these come from Messenger and the inventory feed.</div></div>`;
+  document.querySelectorAll('.fact').forEach(b=>{
+    b.onclick=()=>{const mid=b.dataset.mid;document.querySelectorAll('.msg').forEach(m=>m.classList.toggle('hl',m.dataset.mid===mid));const el=document.querySelector(`.msg[data-mid="${mid}"]`);if(el)el.scrollIntoView({block:'center'});};
+    b.oncontextmenu=async e=>{e.preventDefault();const nv=prompt('Correct this fact (empty = remove):',b.querySelector('.val').textContent);if(nv===null)return;await api(`/api/facts/${b.dataset.fid}/correct`,{method:'POST',body:{rep_id:repId(),value:nv||null}});toast('Memory corrected');open(d.id);};
+  });
+  $('#simSend').onclick=async()=>{const t=$('#simText').value.trim();if(!t)return;await api('/webhook/messenger',{method:'POST',body:{page_id:META.dealership.page_id,psid:d.customer.psid,text:t,display_name:d.customer.name}});toast('Message received → pipeline ran');await open(d.id);loadInbox();};
+  $('#simInv').onchange=async e=>{const val=e.target.value;if(!val||!v)return;await api('/api/inventory/'+v.stock_number,{method:'POST',body:val==='stale'?{stale:true}:{status:val}});toast('Inventory updated — re-check the draft');e.target.value='';await open(d.id);};
+}
+
+document.addEventListener('click',e=>{const l=e.target.closest('.lead');if(l)open(+l.dataset.id);});
+(async()=>{await loadMeta();await loadInbox();setInterval(loadInbox,15000);})();
+</script>
+</body>
+</html>

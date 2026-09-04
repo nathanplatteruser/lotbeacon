@@ -1,0 +1,7 @@
+fastapi>=0.110
+uvicorn>=0.29
+sqlalchemy>=2.0
+pydantic>=2.6
+pytest>=8.0
+# Optional — only needed when LOTBEACON_AI_PROVIDER=anthropic
+# anthropic>=0.40
