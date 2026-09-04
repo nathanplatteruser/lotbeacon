@@ -21,4 +21,4 @@ echo ""
 echo "  LotBeacon rep workspace  →  http://localhost:${PORT}"
 echo "  AI provider: ${RESOLVED}"
 echo ""
-exec uvicorn lotbeacon.api:app --host 127.0.0.1 --port "${PORT}" "${@}"
+exec uvicorn lotbeacon.api:app --host 127.0.0.1 --port "${PORT}" ${@:+"$@"}
