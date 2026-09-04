@@ -220,3 +220,18 @@ def test_auto_voice_matches_customer_tone_until_rep_pins_one(s):
     # one weak tell is not enough to override the default
     t3, _ = run(s, "Look at the mileage on that F-150 please", psid="z3", name="Sam Roe")
     assert t3.voice == "dealer"
+
+
+def test_momentum_tracks_conversation_direction(s):
+    from lotbeacon import momentum
+
+    t, _ = run(s, "Is the Explorer still available?", psid="m1", name="Kim Park", mid="m1a")
+    t, _ = run(s, "Nice, I need 3rd row seating and this week works", psid="m1", name="Kim Park", mid="m1b")
+    t, _ = run(s, "Great, can I come Saturday for a test drive?", psid="m1", name="Kim Park", mid="m1c")
+    up = momentum.view(s, t)
+    assert len(up["series"]) == 3 and up["trend"] == "up" and up["series"][-1] > up["series"][0]
+    t2, _ = run(s, "Is the Tahoe still there? Could come Saturday.", psid="m2", name="Lou Reed", mid="m2a")
+    t2, _ = run(s, "Actually this is ridiculous, you people lied about the price.", psid="m2", name="Lou Reed", mid="m2b")
+    assert momentum.view(s, t2)["trend"] == "down"
+    t3, _ = run(s, "Please stop messaging me.", psid="m3", name="Q", mid="m3a")
+    assert momentum.view(s, t3)["trend"] == "down"

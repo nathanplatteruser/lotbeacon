@@ -24,14 +24,14 @@ VEHICLES = [
 ]
 
 CONVERSATIONS = [
-    # (psid, name, minutes_ago, text)
-    ("psid_sarah_001", "Sarah Miller", 2, "Hey, is that black Tahoe you posted still available? I've got a 2018 Accord to trade and could probably come Saturday."),
-    ("psid_mike_002", "Mike Torres", 18, "How much is the blue F-150 Lariat? Is that your best price or can you come down?"),
-    ("psid_jen_003", "Jen Alvarez", 41, "Looking for something with a third row under 40k, do you have anything?"),
-    ("psid_dan_004", "Dan Whitfield", 66, "Can you do $400/month on the Ram? My credit is around 580."),
-    ("psid_pat_005", "Pat O'Neil", 130, "Is the 2021 Tahoe RST still there?"),
-    ("psid_lee_006", "Lee Nakamura", 300, "Please stop messaging me."),
-    ("psid_tyler_007", "Tyler Brooks", 9, "yo is the yukon still there?? lowkey been looking for a 3rd row fr, could swing by this weekend"),
+    # (psid, name, minutes_ago, text)  — or a list of (minutes_ago, text) for multi-message history (drives the momentum sparkline)
+    ("psid_sarah_001", "Sarah Miller", [(190, "Hi, do you have any 3 row SUVs?"), (95, "The Tahoe looks nice, is it AWD?"), (2, "Hey, is that black Tahoe you posted still available? I've got a 2018 Accord to trade and could probably come Saturday.")]),
+    ("psid_mike_002", "Mike Torres", [(140, "Is the blue F-150 Lariat still available? Could stop by this week."), (18, "How much is it? Is that your best price or can you come down? Honestly feels too expensive.")]),
+    ("psid_jen_003", "Jen Alvarez", [(41, "Looking for something with a third row under 40k, do you have anything?")]),
+    ("psid_dan_004", "Dan Whitfield", [(66, "Can you do $400/month on the Ram? My credit is around 580.")]),
+    ("psid_pat_005", "Pat O'Neil", [(130, "Is the 2021 Tahoe RST still there?")]),
+    ("psid_lee_006", "Lee Nakamura", [(300, "Please stop messaging me.")]),
+    ("psid_tyler_007", "Tyler Brooks", [(9, "yo is the yukon still there?? lowkey been looking for a 3rd row fr, could swing by this weekend")]),
 ]
 
 
@@ -53,10 +53,12 @@ def run():
         for st, vin, y, mk, md, tr, col, body, mi, pr, status in VEHICLES:
             s.add(Vehicle(tenant_id=tenant.id, dealership_id=dealer.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, mileage=mi, price=pr, status=status, source="pilot-feed-sim", retrieved_at=now - timedelta(seconds=43)))
         s.flush()
-        for i, (psid, name, mins, text) in enumerate(CONVERSATIONS):
-            thread, msg, new = ingest_inbound(s, dealer, psid, f"mid_seed_{i}", text, name, sent_at=now - timedelta(minutes=mins))
-            if new:
-                process_message(s, thread, msg)
+        for i, (psid, name, payload) in enumerate(CONVERSATIONS):
+            msgs = payload
+            for j, (mins, text) in enumerate(msgs):
+                thread, msg, new = ingest_inbound(s, dealer, psid, f"mid_seed_{i}_{j}", text, name, sent_at=now - timedelta(minutes=mins))
+                if new:
+                    process_message(s, thread, msg)
         return {"seeded": True, "dealership_id": dealer.id}
 
 

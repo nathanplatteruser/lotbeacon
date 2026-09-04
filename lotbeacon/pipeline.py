@@ -69,10 +69,12 @@ def next_state(current: LeadState, cls: Classification, facts: dict, vehicle_res
         return LeadState.HUMAN_REQUIRED, "negative sentiment / complaint"
     if cls.intent == "financing" or "financing_sensitive" in facts:
         return LeadState.HUMAN_REQUIRED, "financing discussion requires a human"
-    if cls.intent == "schedule" or (facts.get("timing") and vehicle_resolved):
+    if cls.intent == "schedule":
         return LeadState.APPOINTMENT_INTENT, "customer proposed a visit/time"
     if cls.objection in ("price", "trade", "payment", "trust"):
         return LeadState.OBJECTION, f"objection: {cls.objection}"
+    if facts.get("timing") and vehicle_resolved and cls.intent in ("availability", "general", "vehicle_search"):
+        return LeadState.APPOINTMENT_INTENT, "specific unit + stated timing"
     if vehicle_resolved and cls.intent in ("availability", "price"):
         return LeadState.VEHICLE_INTEREST, "specific unit identified"
     if cls.intent == "vehicle_search":

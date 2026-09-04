@@ -1,2 +1,2 @@
 """LotBeacon — Messenger copilot for dealership reps. L1–L3 maturity: remember, recommend, draft, verify, approve."""
-__version__ = "0.4.0"
+__version__ = "0.5.0"

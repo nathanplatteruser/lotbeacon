@@ -103,6 +103,21 @@ header select option{color:#000}
 .move .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ford)}
 .move.approve{background:var(--green-soft);color:var(--green)} .move.you{background:var(--orange-soft);color:var(--orange)} .move.fix{background:var(--red-soft);color:var(--red)} .move.stop{background:var(--red-soft);color:var(--red)} .move.wait,.move.done{background:var(--surface-2);color:var(--ink-2)}
 .voice .why{font-size:11px;color:var(--ink-3);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ---- Momentum sparkline (status colors: good / warning / critical) ---- */
+.spark{display:inline-block;vertical-align:middle}
+.spark .base{stroke:var(--line);stroke-width:1}
+.spark .ln{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.spark .ar{opacity:.18}
+.spark .pt{stroke:var(--surface);stroke-width:1.5}
+.spark.up .ln,.spark.up .pt{stroke:var(--green)} .spark.up .ar,.spark.up .pt{fill:var(--green)}
+.spark.flat .ln,.spark.flat .pt{stroke:var(--yellow)} .spark.flat .ar,.spark.flat .pt{fill:var(--yellow)}
+.spark.down .ln,.spark.down .pt{stroke:var(--red)} .spark.down .ar,.spark.down .pt{fill:var(--red)}
+.mom{display:flex;align-items:center;gap:10px;margin-left:auto;font-size:12px;color:var(--ink-2)}
+.mom b{font-weight:700}
+.mom.up b{color:var(--green)} .mom.flat b{color:var(--yellow)} .mom.down b{color:var(--red)}
+.lead .mom-mini{grid-column:3;grid-row:3;justify-self:end;display:flex;align-items:center;gap:4px;font-size:10px}
+.lead .mom-mini .arrow{font-weight:800}
+.lead .mom-mini.up .arrow{color:var(--green)} .lead .mom-mini.flat .arrow{color:var(--yellow)} .lead .mom-mini.down .arrow{color:var(--red)}
 /* ---- Composer ---- */
 .compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px 14px;display:flex;flex-direction:column;gap:10px}
 .nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 14px;background:var(--msgr-soft);border-radius:var(--radius)}
@@ -205,6 +220,7 @@ async function loadInbox(){
     <span class="n">${esc(t.customer)}</span><span class="score">${t.priority}</span>
     <span class="v">${esc(t.vehicle||'—')}</span><span class="ago" title="waiting on a reply">${ago(t.last_customer_message_at)}</span>
     <span class="st">${STATE_LABEL(t.lead_state)}${t.risk?` <span class="pill ${t.risk}">${t.risk}</span>`:''}${t.ai_paused?' <span class="pill grey">AI paused</span>':''}</span>
+    ${t.momentum&&t.momentum.series.length?`<span class="mom-mini ${t.momentum.trend}" title="${esc(t.momentum.label)}">${spark(t.momentum,44,16)}<span class="arrow">${ARROW[t.momentum.trend]}</span></span>`:''}
   </button>`).join('');
   if(!current&&list.length){open(list[0].id);}
 }
@@ -259,6 +275,17 @@ function renderThread(){
 }
 async function recheck(){const dr=detail.draft;const v=await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});detail.draft=v;renderThread();toast(v.status==='blocked'?'Still blocked':'Claims re-checked: '+v.risk_level);}
 
+function spark(m,w,h){
+  if(!m||!m.series||!m.series.length) return '';
+  let s=m.series.slice(-8); if(s.length===1) s=[s[0],s[0]];
+  const pad=3, W=w-pad*2, H=h-pad*2, n=s.length;
+  const x=i=>pad+(n===1?W/2:i*W/(n-1)), y=v=>pad+H-(Math.max(0,Math.min(100,v))/100)*H;
+  const pts=s.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area=`M${x(0).toFixed(1)},${(pad+H).toFixed(1)} L${pts.replace(/ /g,' L')} L${x(n-1).toFixed(1)},${(pad+H).toFixed(1)} Z`;
+  const arrow={up:'↗',flat:'→',down:'↘'}[m.trend];
+  return `<svg class="spark ${m.trend}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${m.label}, score ${m.score}"><title>${m.label} · ${s.join(' → ')}</title><path class="ar" d="${area}"></path><line class="base" x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}"></line><polyline class="ln" points="${pts}"></polyline><circle class="pt" cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3"></circle></svg>`;
+}
+const ARROW={up:'↗',flat:'→',down:'↘'};
 function renderTracker(d){
   const f=d.funnel; if(!f) return '';
   const segs=f.stages.map((s,i)=>`<div class="seg ${i<f.current?'done':i===f.current?'cur':i<=f.furthest?'reached':''}"></div>`).join('');
@@ -268,6 +295,7 @@ function renderTracker(d){
   const opts=[['APPOINTMENT_SET','Appointment set'],['ARRIVED','Showed up'],['SOLD','Sold'],['NURTURE','Follow up later'],['LOST','Lost / went elsewhere'],['HUMAN_REQUIRED','Needs a person']];
   return `<div class="tracker"><div class="bar">${segs}</div><div class="labels">${labs}</div>
     <div class="status"><span>Stage ${f.current+1} of ${f.stages.length}: <b>${esc(cur)}</b></span>${f.paused?`<span class="paused ${stop?'stop':''}">${esc(f.paused)}</span>`:''}
+    ${d.momentum&&d.momentum.series.length?`<span class="mom ${d.momentum.trend}" title="Propensity to show for the visit, one point per customer message">${spark(d.momentum,120,30)}<span><b>${ARROW[d.momentum.trend]} ${esc(d.momentum.label)}</b><br><span class="small">${d.momentum.series.length} message${d.momentum.series.length>1?'s':''} · score ${d.momentum.score}${d.momentum.delta?` (${d.momentum.delta>0?'+':''}${d.momentum.delta})`:''}</span></span></span>`:''}
     <select id="stage" aria-label="Update stage"><option value="">Update stage…</option>${opts.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div></div>`;
 }
 function humanAction(a){return({answer_availability:'Confirm availability, then ask one useful question',invite_test_drive:'Invite for a test drive',resolve_vehicle_questions:'Answer the vehicle questions',ask_qualifying_question:'Ask one qualifying question',answer_price:'Share the verified listed price',route_financing_to_human:'Hand financing to the finance team',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Hand pricing to the sales manager',offer_alternatives:'Offer matching alternatives',acknowledge_and_close:'Acknowledge and stop selling',escalate_opt_out:'Suppress — customer opted out',human_takeover:'Rep takes over'})[a]||a;}

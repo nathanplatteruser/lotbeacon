@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import __version__, inventory, memory, policy, timefmt, voices
+from . import __version__, inventory, memory, momentum, policy, timefmt, voices
 from .ai.base import resolve_provider_name
 from .config import RULES_VERSION
 from .db import get_session, init_db
@@ -92,6 +92,7 @@ def threads(s: Session = Depends(get_session)):
             "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "vehicle": f"{v.year} {v.model}" if v else None,
             "last_customer_message_at": t.last_customer_message_at.isoformat() if t.last_customer_message_at else None,
             "waiting": timefmt.since(t.last_customer_message_at),
+            "momentum": momentum.view(s, t),
             "risk": d.risk_level if d else None, "draft_status": d.status if d else None,
         })
     return out
@@ -113,7 +114,7 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
     return {
         "id": t.id, "customer": {"id": cust.id, "name": cust.display_name, "psid": cust.psid, "opted_out": cust.opted_out},
         "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "voice": t.voice or "dealer", "voice_locked": t.voice_locked, "voice_reason": t.voice_reason,
-        "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust),
+        "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust), "momentum": momentum.view(s, t),
         "summary": t.summary, "summary_version": t.summary_version,
         "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "text": m.text, "sent_at": m.sent_at.isoformat()} for m in t.messages],
         "facts": facts,
