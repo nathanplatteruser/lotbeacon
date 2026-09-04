@@ -3,6 +3,7 @@
 Each profile carries a style guide (used verbatim in the Claude prompt) and a small set of deterministic rewrites so
 the air-gapped mock shows the same variety. Profiles are demo-scoped; a dealership would configure its own.
 """
+import re
 from dataclasses import dataclass, field
 
 
@@ -81,6 +82,39 @@ def apply_mock(text: str, voice: Voice, customer_name: str) -> str:
     if voice.closer and voice.closer not in out:
         out = f"{out} {voice.closer}"
     return out
+
+
+# Tone detection from the customer's own words. Deterministic; the Claude provider may also return a voice_hint,
+# which is merged with this. A rep's manual pick always wins (thread.voice_locked).
+_TONE = {
+    "zee": ["lowkey", "highkey", "fr", "ngl", "no cap", "bet", "rn", "tbh", "lol", "lmao", "omg", "vibe", "slaps", "bussin", "sus", "deadass", "ong", "wyd", "hbu", "istg", "idk", "tho", "pls", "ur", "u", "yall"],
+    "dogg": ["yo", "what's good", "whats good", "fo sho", "fosho", "homie", "fam", "dope", "chillin", "roll through", "rollin", "we good", "my guy", "ya feel", "feel me", "no doubt", "word", "aight", "bruh", "smooth", "whip"],
+    "frank": ["listen", "look", "cut to the chase", "bottom line", "no bs", "whaddya", "gimme", "outta", "gonna need", "straight up", "real talk", "don't waste my time", "let's not", "what's the deal", "c'mon", "fuhgeddaboudit", "gotta"],
+    "celeste": ["stoked", "chill", "rad", "dude", "totally", "vibes", "no worries", "for sure", "hella", "super", "amazing", "love that", "so good", "sounds dreamy", "mellow"],
+    "jon": ["ope", "you bet", "oh gosh", "thanks a bunch", "folks", "appreciate ya", "sure thing", "no rush", "whenever", "gosh", "darn", "heck", "pop by", "ya know", "the missus", "the wife and i", "we're just", "much obliged"],
+}
+
+
+def detect(text: str) -> tuple[str | None, float, list[str]]:
+    """Return (voice_id, confidence, signals). None when the customer sounds neutral → dealership default."""
+    low = " " + text.lower() + " "
+    scores: dict[str, list[str]] = {}
+    for vid, words in _TONE.items():
+        hits = [w for w in words if re.search(r"(?<![a-z'])" + re.escape(w) + r"(?![a-z])", low)]
+        if hits:
+            scores[vid] = hits
+    # Gen Z stylistic tells: lowercase-only with no terminal punctuation, or 2+ exclamation runs
+    if text and text == text.lower() and len(text) > 12 and not re.search(r"[.!?]$", text.strip()):
+        scores.setdefault("zee", []).append("lowercase, no punctuation")
+    if not scores:
+        return None, 0.0, []
+    best = max(scores, key=lambda k: len(scores[k]))
+    n = len(scores[best])
+    conf = min(0.5 + 0.2 * n, 0.95)
+    return best, conf, scores[best]
+
+
+AUTO_THRESHOLD = 0.85  # two independent tells (0.5 + 0.2·n) before overriding the dealership default
 
 
 def as_list() -> list[dict]:

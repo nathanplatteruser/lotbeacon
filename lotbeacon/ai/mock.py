@@ -56,7 +56,8 @@ class MockProvider:
 
         if intent != "schedule" and any(d in t for d in DAYS):
             sig.append("day_mention")
-        return Classification(intent, sentiment, objection, conf, sig)
+        vh, vconf, vsig = voices.detect(text)
+        return Classification(intent, sentiment, objection, conf, sig + [f"tone:{x}" for x in vsig], vh, vconf)
 
     # ---------- memory extraction ----------
     def extract_facts(self, text: str, inventory_hint: list[dict]) -> list[ExtractedFact]:
@@ -97,7 +98,7 @@ class MockProvider:
             facts.append(ExtractedFact("preferred_vehicle", label, min(0.6 + 0.15 * best_score, 0.95), _window(t, best["model"].lower())))
 
         # Needs
-        for phrase, val in [("3 row", "3-row seating"), ("third row", "3-row seating"), ("3-row", "3-row seating"), ("tow", "Towing"), ("awd", "AWD"), ("4x4", "4x4"), ("leather", "Leather")]:
+        for phrase, val in [("3 row", "3-row seating"), ("3rd row", "3-row seating"), ("third row", "3-row seating"), ("3-row", "3-row seating"), ("tow", "Towing"), ("awd", "AWD"), ("4x4", "4x4"), ("leather", "Leather")]:
             if phrase in low:
                 facts.append(ExtractedFact("need", val, 0.85, _window(t, phrase)))
 
@@ -150,6 +151,7 @@ class MockProvider:
         if action == "invite_test_drive":
             when = ctx.facts.get("timing")
             if when:
+                when = when if when.lower() in DAYS or when.isupper() else when[0].lower() + when[1:]
                 parts.append(f"Want to come drive it {when}? " + ("Morning or afternoon work better for you?" if "time" in ctx.missing_information else ""))
             else:
                 parts.append("Want to come take it for a spin this week? Tell me a day and I'll get it pulled up front.")

@@ -13,6 +13,7 @@ Requires: pip install anthropic; ANTHROPIC_API_KEY in the environment.
 import json
 import time
 
+from .. import voices
 from ..config import ANTHROPIC_MODEL
 from .base import Classification, DraftContext, ExtractedFact
 
@@ -39,8 +40,10 @@ CLASSIFY_TOOL = {
             "objection": {"type": ["string", "null"], "enum": ["price", "payment", "trade", "trust", "timing", None]},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
             "signals": {"type": "array", "items": {"type": "string"}, "description": "Short phrases from the message that drove the decision"},
+            "voice_hint": {"type": ["string", "null"], "enum": ["frank", "celeste", "jon", "dogg", "zee", None], "description": "Only if the customer's OWN tone strongly matches: frank=fast/direct East Coast, celeste=laid-back Californian, jon=polite Midwestern, dogg=West Coast hip-hop slang, zee=Gen Z texting style. Null for neutral."},
+            "voice_confidence": {"type": "number", "minimum": 0, "maximum": 1},
         },
-        "required": ["intent", "sentiment", "objection", "confidence", "signals"],
+        "required": ["intent", "sentiment", "objection", "confidence", "signals", "voice_hint", "voice_confidence"],
     },
 }
 
@@ -98,7 +101,11 @@ class AnthropicProvider:
     # ---------------------------------------------------------------- contract
     def classify(self, text: str, history: list[dict]) -> Classification:
         d = self._tool_call(CLASSIFY_TOOL, f"Conversation so far (oldest first):\n{json.dumps(history[-8:], ensure_ascii=False)}\n\nLatest customer message:\n{text}")
-        return Classification(d["intent"], d["sentiment"], d.get("objection"), float(d.get("confidence", 0.5)), list(d.get("signals", [])))
+        vh, vconf = d.get("voice_hint"), float(d.get("voice_confidence") or 0)
+        dh, dconf, dsig = voices.detect(text)
+        if dh and (dh == vh or not vh):  # rules and model agree, or model abstained → trust the rules' evidence
+            vh, vconf = dh, max(vconf, dconf)
+        return Classification(d["intent"], d["sentiment"], d.get("objection"), float(d.get("confidence", 0.5)), list(d.get("signals", [])), vh, vconf)
 
     def extract_facts(self, text: str, inventory_hint: list[dict]) -> list[ExtractedFact]:
         d = self._tool_call(EXTRACT_TOOL, (

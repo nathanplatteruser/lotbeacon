@@ -129,8 +129,16 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     customer = s.get(Customer, thread.customer_id)
     history = [{"author": m.author, "text": m.text} for m in thread.messages[-10:]]
 
-    # 1. classify
+    # 1. classify (+ tone). Auto-voice only while the rep hasn't pinned one.
     cls = provider.classify(msg.text, history)
+    if not thread.voice_locked and cls.voice_hint and cls.voice_hint in voices.VOICES and cls.voice_confidence >= voices.AUTO_THRESHOLD and cls.voice_hint != thread.voice:
+        old_voice = thread.voice
+        thread.voice = cls.voice_hint
+        tone_sig = [x[5:] for x in cls.signals if x.startswith("tone:")][:3]
+        thread.voice_reason = "auto · matched customer tone" + (f" ({', '.join(tone_sig)})" if tone_sig else "")
+        audit(s, thread, f"ai:{provider.name}", "voice.auto", {"from": old_voice, "to": thread.voice, "confidence": cls.voice_confidence, "signals": tone_sig, "message_id": msg.id})
+    elif not thread.voice_locked and not thread.voice_reason:
+        thread.voice_reason = "auto · dealership default"
 
     # 2. memory
     inv = inventory.list_inventory(s, dealership.id)
@@ -193,6 +201,7 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
         "tools_used": ["inventory.resolve_vehicle", "inventory.search", "policy.messaging_eligibility", "memory.extract"],
         "citations": ([f"inventory:{vcard['stock_number']}@{vcard['retrieved_at']}"] if vcard else []) + [f"message:{msg.id}"],
         "messaging_eligibility": elig, "rules_version": RULES_VERSION, "provider": provider.name,
+        "voice": thread.voice, "voice_locked": thread.voice_locked, "voice_reason": thread.voice_reason,
     }
     status = "blocked" if result.blocked else ("escalated" if risk == "orange" and not text else "pending")
     if not text and not result.blocked:

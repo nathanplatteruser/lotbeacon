@@ -1,4 +1,4 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.3)
+# LotBeacon — Messenger Copilot for dealership reps (MVP v0.4)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -67,6 +67,9 @@ Then break it on purpose (right panel, "Simulate"):
 | Right-click a fact | Correct or remove it; extraction can't overwrite a rep correction |
 | *Take over* | AI drafting pauses for that thread; your typed reply still goes through the claim check |
 | **Voice** dropdown → Frank / Celeste / Jon / Dogg / Zee | Same facts, different tone; the draft is regenerated and re-validated — a voice can't smuggle a claim past the firewall |
+| Open **Tyler Brooks** | His Gen Z wording auto-selected the Zee voice (reason shown next to the dropdown). Pick any voice to pin it; pick *Auto* to hand it back |
+| **Stage tracker** at the top of each thread | Inquiry → Conversation → Needs → Vehicle → Ready → Visit requested → Appointment set → Showed up → Sold. *Update stage…* moves it by hand |
+| **Your move** banner | One sentence telling the rep exactly what to do next |
 
 ## What's real vs. simulated in v0.1
 
@@ -108,7 +111,7 @@ lotbeacon/
   timefmt.py       Two-level human durations (2d 4h · 3h 5m · 6m 22s)
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
   web/index.html   Rep workspace
-tests/                     26 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
+tests/                     27 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
 ```
 
 ## Next tickets this unlocks

@@ -29,9 +29,11 @@ def _migrate():
     insp = inspect(engine)
     if "threads" in insp.get_table_names():
         cols = {c["name"] for c in insp.get_columns("threads")}
-        if "voice" not in cols:
-            with engine.begin() as c:
-                c.execute(text("ALTER TABLE threads ADD COLUMN voice VARCHAR(32) DEFAULT 'dealer'"))
+        adds = {"voice": "VARCHAR(32) DEFAULT 'dealer'", "voice_locked": "BOOLEAN DEFAULT 0", "voice_reason": "VARCHAR(200) DEFAULT ''"}
+        with engine.begin() as c:
+            for col, ddl in adds.items():
+                if col not in cols:
+                    c.execute(text(f"ALTER TABLE threads ADD COLUMN {col} {ddl}"))
 
 
 @contextmanager

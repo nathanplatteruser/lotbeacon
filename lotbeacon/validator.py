@@ -113,6 +113,8 @@ def validate(text: str, *, vehicle: dict | None, vehicle_fresh: bool, alternativ
         elif k == "price":
             if vehicle and vehicle_fresh and any(v == vehicle["price"] for v in _money_values(c.text)):
                 c.verdict, c.source, c.risk = "supported", f"inventory:{vehicle['stock_number']}.price", "yellow"
+            elif vehicle and not vehicle_fresh:
+                c.verdict, c.risk, c.note = "unsupported", "red", f"inventory last verified {vehicle.get('age')} ago — stale, re-verify price"
             else:
                 c.verdict, c.risk, c.note = "unsupported", "red", "price does not match a fresh inventory price"
         elif k == "mileage":
@@ -120,6 +122,8 @@ def validate(text: str, *, vehicle: dict | None, vehicle_fresh: bool, alternativ
             val = int(m.group(1).replace(",", "")) * (1000 if m and m.group(2) else 1) if m else -1
             if vehicle and vehicle_fresh and abs(val - vehicle["mileage"]) <= (500 if val < 1000000 else 0):
                 c.verdict, c.source, c.risk = "supported", f"inventory:{vehicle['stock_number']}.mileage", "yellow"
+            elif vehicle and not vehicle_fresh:
+                c.verdict, c.risk, c.note = "unsupported", "red", f"inventory last verified {vehicle.get('age')} ago — stale, re-verify mileage"
             else:
                 c.verdict, c.risk, c.note = "unsupported", "red", "mileage not from inventory"
         elif k == "hours":

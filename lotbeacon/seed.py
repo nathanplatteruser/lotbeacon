@@ -31,6 +31,7 @@ CONVERSATIONS = [
     ("psid_dan_004", "Dan Whitfield", 66, "Can you do $400/month on the Ram? My credit is around 580."),
     ("psid_pat_005", "Pat O'Neil", 130, "Is the 2021 Tahoe RST still there?"),
     ("psid_lee_006", "Lee Nakamura", 300, "Please stop messaging me."),
+    ("psid_tyler_007", "Tyler Brooks", 9, "yo is the yukon still there?? lowkey been looking for a 3rd row fr, could swing by this weekend"),
 ]
 
 

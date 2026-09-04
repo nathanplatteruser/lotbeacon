@@ -68,7 +68,7 @@ header select option{color:#000}
 .thread-head h2{margin:0;font-size:17px;font-weight:700}
 .thread-head .state{font-size:12px;color:var(--ink-3);text-transform:capitalize}
 .thread-head .tools{margin-left:auto;display:flex;gap:8px}
-.btn{border:1.5px solid var(--ford);border-radius:999px;padding:8px 18px;font-weight:600;font-size:14px;background:var(--surface);color:var(--ford)}
+.btn{white-space:nowrap;border:1.5px solid var(--ford);border-radius:999px;padding:8px 18px;font-weight:600;font-size:14px;background:var(--surface);color:var(--ford)}
 .btn.primary{background:var(--ford);border-color:var(--ford);color:#fff}
 .btn.primary:hover{background:var(--ford-2)}
 .btn.danger{border-color:var(--red);color:var(--red)}
@@ -81,6 +81,28 @@ header select option{color:#000}
 .msg .t{display:block;font-size:10px;opacity:.65;margin-top:4px}
 .msg.hl{box-shadow:0 0 0 3px var(--msgr)}
 
+/* ---- Funnel tracker (pizza-tracker style) ---- */
+.tracker{padding:14px 20px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
+.tracker .bar{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.tracker .seg{height:10px;border-radius:999px;background:var(--surface-2);position:relative;overflow:hidden}
+.tracker .seg.done{background:var(--ford)}
+.tracker .seg.cur{background:var(--msgr)}
+.tracker .seg.cur::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:sweep 1.6s linear infinite}
+.tracker .seg.reached{background:var(--line-strong)}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.tracker .labels{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:6px}
+.tracker .labels span{font-size:10.5px;line-height:1.2;color:var(--ink-3);text-align:center;letter-spacing:.01em}
+.tracker .labels span.done{color:var(--ford);font-weight:600}
+.tracker .labels span.cur{color:var(--msgr);font-weight:700}
+.tracker .status{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:13px}
+.tracker .status b{color:var(--ford)}
+.tracker .paused{background:var(--yellow-soft);color:var(--yellow);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.tracker .paused.stop{background:var(--red-soft);color:var(--red)}
+.tracker select{margin-left:auto;font:inherit;font-size:12px;padding:5px 10px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
+.move{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:12px 16px;border-radius:var(--radius);font-size:15px;font-weight:600}
+.move .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ford)}
+.move.approve{background:var(--green-soft);color:var(--green)} .move.you{background:var(--orange-soft);color:var(--orange)} .move.fix{background:var(--red-soft);color:var(--red)} .move.stop{background:var(--red-soft);color:var(--red)} .move.wait,.move.done{background:var(--surface-2);color:var(--ink-2)}
+.voice .why{font-size:11px;color:var(--ink-3);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ---- Composer ---- */
 .compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px 14px;display:flex;flex-direction:column;gap:10px}
 .nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 14px;background:var(--msgr-soft);border-radius:var(--radius)}
@@ -93,7 +115,7 @@ header select option{color:#000}
 textarea#draft{width:100%;min-height:80px;border:1.5px solid var(--line-strong);border-radius:20px;padding:12px 16px;background:var(--surface-2);color:var(--ink);font:inherit;resize:vertical}
 textarea#draft:focus{background:var(--surface);border-color:var(--msgr)}
 textarea#draft.blocked{border-color:var(--red);background:var(--red-soft)}
-.actions{display:flex;gap:8px;align-items:center}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .actions .meta{margin-left:auto;font-size:12px;color:var(--ink-3)}
 .blockmsg{font-size:12px;color:var(--red);font-weight:600}
 .voice{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-3)}
@@ -205,8 +227,10 @@ function renderThread(){
         <button class="btn" id="confirmAppt" ${d.lead_state==='DO_NOT_CONTACT'?'disabled':''}>Confirm appointment…</button>
       </div>
     </div>
+    ${renderTracker(d)}
     <div class="convo" id="convo">${d.messages.map(m=>`<div class="msg ${m.direction}" data-mid="${m.id}">${esc(m.text)}<span class="t">${m.author} · ${new Date(m.sent_at).toLocaleString()}</span></div>`).join('')}</div>
     <div class="compose">
+      ${d.your_move?`<div class="move ${d.your_move.kind}"><span class="tag">Your move</span><span>${esc(d.your_move.text)}</span></div>`:''}
       ${dr?`<div class="nba"><span class="lab">Next best action</span><div><div class="act">${esc(humanAction(dr.structured.recommended_action))}</div><div class="why">${esc(dr.structured.nba_reason)}${dr.structured.missing_information?.length?' · still unknown: '+dr.structured.missing_information.join(', '):''}</div></div><span class="pill ${dr.risk_level}">${dr.risk_level}</span></div>`:''}
       ${dr?renderClaims(dr):''}
       ${d.ai_paused?'<div class="small">AI drafting is paused for this thread. Type your own reply — it still goes through the claim check.</div>':''}
@@ -214,7 +238,7 @@ function renderThread(){
       <div class="actions">
         <button class="btn primary" id="send" ${(!dr||sent||!elig||blocked)?'disabled':''}>${sent?'Sent':'Send'}</button>
         <button class="btn" id="recheck" ${(!dr||sent)?'disabled':''}>Re-check claims</button>
-        <label class="voice">Voice <select id="voice" ${sent?'disabled':''}>${META.voices.map(v=>`<option value="${v.id}" ${v.id===(d.voice||'dealer')?'selected':''} title="${esc(v.tagline)}">${esc(v.label)}</option>`).join('')}</select></label>
+        <label class="voice">Voice <select id="voice" ${sent?'disabled':''}><option value="auto" ${!d.voice_locked?'selected':''}>Auto · ${esc((META.voices.find(v=>v.id===(d.voice||'dealer'))||{}).label||'Dealership default')}</option>${META.voices.map(v=>`<option value="${v.id}" ${d.voice_locked&&v.id===(d.voice||'dealer')?'selected':''} title="${esc(v.tagline)}">${esc(v.label)}</option>`).join('')}</select><span class="why" title="${esc(d.voice_reason||'')}">${esc(d.voice_reason||'')}</span></label>
         ${blocked?'<span class="blockmsg">Blocked — fix the red sentences before sending.</span>':''}
         <span class="meta">${dr?`draft #${dr.id} · ${dr.provider} · ${dr.approval_required?'rep approval required':'auto-eligible'}`:'no draft yet'}</span>
       </div>
@@ -222,6 +246,7 @@ function renderThread(){
   const convo=$('#convo');convo.scrollTop=convo.scrollHeight;
   $('#takeover').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});toast(d.ai_paused?'AI resumed':'You have the thread');await open(d.id);loadInbox();};
   $('#confirmAppt').onclick=async()=>{const when=prompt('Appointment date/time (e.g. 2026-09-06 14:00). Only confirm what you actually booked in the scheduler.');if(!when)return;try{await api(`/api/threads/${d.id}/appointment`,{method:'POST',body:{rep_id:repId(),starts_at:new Date(when.replace(' ','T')).toISOString()}});toast('Appointment confirmed — "booked" language is now allowed');await open(d.id);loadInbox();}catch(e){toast(e.message);}};
+  const st=$('#stage'); if(st) st.onchange=async e=>{const v=e.target.value;if(!v)return;await api(`/api/threads/${d.id}/state`,{method:'POST',body:{rep_id:repId(),state:v,reason:'rep updated stage'}});toast('Stage updated');await open(d.id);loadInbox();};
   $('#voice').onchange=async e=>{toast('Redrafting in '+e.target.selectedOptions[0].text+'…');await api(`/api/threads/${d.id}/voice`,{method:'POST',body:{rep_id:repId(),voice:e.target.value}});await open(d.id);loadInbox();};
   if(dr){
     $('#recheck').onclick=()=>recheck();
@@ -234,6 +259,17 @@ function renderThread(){
 }
 async function recheck(){const dr=detail.draft;const v=await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});detail.draft=v;renderThread();toast(v.status==='blocked'?'Still blocked':'Claims re-checked: '+v.risk_level);}
 
+function renderTracker(d){
+  const f=d.funnel; if(!f) return '';
+  const segs=f.stages.map((s,i)=>`<div class="seg ${i<f.current?'done':i===f.current?'cur':i<=f.furthest?'reached':''}"></div>`).join('');
+  const labs=f.stages.map((s,i)=>`<span class="${i<f.current?'done':i===f.current?'cur':''}">${esc(s.label)}</span>`).join('');
+  const cur=f.stages[f.current]?.label||'';
+  const stop=['LOST','DO_NOT_CONTACT'].includes(f.state);
+  const opts=[['APPOINTMENT_SET','Appointment set'],['ARRIVED','Showed up'],['SOLD','Sold'],['NURTURE','Follow up later'],['LOST','Lost / went elsewhere'],['HUMAN_REQUIRED','Needs a person']];
+  return `<div class="tracker"><div class="bar">${segs}</div><div class="labels">${labs}</div>
+    <div class="status"><span>Stage ${f.current+1} of ${f.stages.length}: <b>${esc(cur)}</b></span>${f.paused?`<span class="paused ${stop?'stop':''}">${esc(f.paused)}</span>`:''}
+    <select id="stage" aria-label="Update stage"><option value="">Update stage…</option>${opts.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div></div>`;
+}
 function humanAction(a){return({answer_availability:'Confirm availability, then ask one useful question',invite_test_drive:'Invite for a test drive',resolve_vehicle_questions:'Answer the vehicle questions',ask_qualifying_question:'Ask one qualifying question',answer_price:'Share the verified listed price',route_financing_to_human:'Hand financing to the finance team',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Hand pricing to the sales manager',offer_alternatives:'Offer matching alternatives',acknowledge_and_close:'Acknowledge and stop selling',escalate_opt_out:'Suppress — customer opted out',human_takeover:'Rep takes over'})[a]||a;}
 
 function renderClaims(dr){

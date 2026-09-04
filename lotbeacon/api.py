@@ -25,6 +25,25 @@ def _startup():
     from . import seed
 
     seed.run()
+    _start_feed_refresher()
+
+
+def _start_feed_refresher():
+    """Simulates the inventory feed polling. Rows the rep deliberately made stale (source '… (paused)') are left alone."""
+    import threading
+
+    from .db import session_scope
+
+    def tick():
+        try:
+            with session_scope() as s:
+                for v in s.scalars(select(Vehicle).where(Vehicle.source == "pilot-feed-sim")):
+                    v.retrieved_at = datetime.now(timezone.utc)
+        except Exception:  # noqa: BLE001
+            pass
+        threading.Timer(60, tick).start()
+
+    threading.Timer(60, tick).start()
 
 
 # ------------------------------------------------------------------ channel (simulated Messenger)
@@ -93,7 +112,8 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
     appt = s.scalar(select(Appointment).where(Appointment.thread_id == t.id).order_by(Appointment.id.desc()))
     return {
         "id": t.id, "customer": {"id": cust.id, "name": cust.display_name, "psid": cust.psid, "opted_out": cust.opted_out},
-        "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "voice": t.voice or "dealer",
+        "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "voice": t.voice or "dealer", "voice_locked": t.voice_locked, "voice_reason": t.voice_reason,
+        "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust),
         "summary": t.summary, "summary_version": t.summary_version,
         "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "text": m.text, "sent_at": m.sent_at.isoformat()} for m in t.messages],
         "facts": facts,
@@ -104,6 +124,53 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
         "appointment": {"id": appt.id, "starts_at": appt.starts_at.isoformat(), "status": appt.status} if appt else None,
         "hours_today": policy.hours_today(dealer.hours, dealer.timezone),
     }
+
+
+# ------------------------------------------------------------------ funnel tracker (Domino's-style)
+FUNNEL = [
+    ("NEW", "Inquiry received"), ("ENGAGED", "Conversation started"), ("DISCOVERY", "Needs understood"), ("VEHICLE_INTEREST", "Vehicle matched"),
+    ("HIGH_INTENT", "Ready to visit"), ("APPOINTMENT_INTENT", "Visit requested"), ("APPOINTMENT_SET", "Appointment set"), ("ARRIVED", "Showed up"), ("SOLD", "Sold"),
+]
+_STAGE_OF = {"NEW": 0, "ENGAGED": 1, "DISCOVERY": 2, "VEHICLE_MATCH": 2, "VEHICLE_INTEREST": 3, "OBJECTION": 3, "HIGH_INTENT": 4, "APPOINTMENT_INTENT": 5, "APPOINTMENT_SET": 6, "ARRIVED": 7, "SOLD": 8, "REVIEW_ELIGIBLE": 8}
+_PAUSED = {"HUMAN_REQUIRED": "Paused — a person needs to take this one", "OBJECTION": "Working through an objection", "LOST": "Closed — customer went elsewhere", "DO_NOT_CONTACT": "Stopped — customer opted out", "NURTURE": "Parked — follow up later, when permitted"}
+
+
+def funnel_view(t: Thread, transitions) -> dict:
+    states = [x.new_state for x in transitions] + [t.lead_state.value, "NEW"]
+    reached = [_STAGE_OF[s] for s in states if s in _STAGE_OF]
+    furthest = max(reached) if reached else 0
+    cur = _STAGE_OF.get(t.lead_state.value, furthest)
+    return {"stages": [{"key": k, "label": l} for k, l in FUNNEL], "current": cur, "furthest": max(cur, furthest), "paused": _PAUSED.get(t.lead_state.value), "state": t.lead_state.value}
+
+
+def your_move(t: Thread, d: Draft | None, cust: Customer) -> dict:
+    """One plain sentence telling the rep exactly what to do next. Stupid simple, on purpose."""
+    if cust.opted_out or t.lead_state == LeadState.DO_NOT_CONTACT:
+        return {"kind": "stop", "text": "Nothing to send. This customer opted out — do not contact them."}
+    if t.lead_state == LeadState.LOST:
+        return {"kind": "done", "text": "Send the thank-you if you like, then close it out. No more selling."}
+    if t.ai_paused:
+        return {"kind": "you", "text": "You have the thread. Type your reply — it still gets claim-checked before it goes out."}
+    if not d:
+        return {"kind": "wait", "text": "Waiting on the customer."}
+    a = d.structured.get("recommended_action", "")
+    if d.status == "sent":
+        return {"kind": "wait", "text": "Sent. Waiting on the customer's reply."}
+    if a == "route_financing_to_human":
+        return {"kind": "you", "text": "Financing question. Approve the hand-off reply, then call or loop in F&I yourself — the AI will not quote payments."}
+    if a == "route_trade_to_human":
+        return {"kind": "you", "text": "They want a trade number. Approve the hand-off reply, then get the appraiser involved — no values over Messenger."}
+    if a == "route_price_objection_to_human":
+        return {"kind": "you", "text": "Price pushback. Approve the hand-off reply and take it to your sales manager."}
+    if a == "human_takeover":
+        return {"kind": "you", "text": "Sensitive conversation. Hit Take over and reply personally."}
+    if d.status == "blocked" or d.risk_level == "red":
+        return {"kind": "fix", "text": "Fix the red sentence(s) in the draft, hit Re-check claims, then Send."}
+    if a == "invite_test_drive":
+        return {"kind": "approve", "text": "Read the draft, hit Send. When they pick a time, book it in your scheduler and click Confirm appointment."}
+    if t.lead_state == LeadState.APPOINTMENT_SET:
+        return {"kind": "approve", "text": "Appointment is set. When they arrive, mark Showed up in the stage menu."}
+    return {"kind": "approve", "text": "Read the draft, edit if you want, hit Send."}
 
 
 def _draft_view(d: Draft) -> dict:
@@ -178,14 +245,22 @@ class VoiceChange(BaseModel):
 @app.post("/api/threads/{thread_id}/voice")
 def set_voice(thread_id: int, body: VoiceChange, s: Session = Depends(get_session)):
     """Rep picks a voice profile for this thread. Tone only — the draft is regenerated and re-validated."""
-    if body.voice not in voices.VOICES:
-        raise HTTPException(400, "unknown voice")
     t = s.get(Thread, thread_id)
-    t.voice = body.voice
-    audit(s, t, f"rep:{body.rep_id}", "voice.changed", {"voice": body.voice})
+    if body.voice == "auto":
+        t.voice_locked = False
+        last = s.scalar(select(Message).where(Message.thread_id == t.id, Message.direction == "in").order_by(Message.id.desc()))
+        vh, vconf, vsig = voices.detect(last.text) if last else (None, 0, [])
+        t.voice = vh if (vh and vconf >= voices.AUTO_THRESHOLD) else "dealer"
+        t.voice_reason = ("auto · matched customer tone (" + ", ".join(vsig[:3]) + ")") if t.voice != "dealer" else "auto · dealership default"
+        audit(s, t, f"rep:{body.rep_id}", "voice.auto_enabled", {"voice": t.voice})
+    else:
+        if body.voice not in voices.VOICES:
+            raise HTTPException(400, "unknown voice")
+        t.voice, t.voice_locked, t.voice_reason = body.voice, True, "rep picked this voice"
+        audit(s, t, f"rep:{body.rep_id}", "voice.changed", {"voice": body.voice})
     d = s.scalar(select(Draft).where(Draft.thread_id == t.id).order_by(Draft.id.desc()))
     new = regenerate(s, d) if d and d.trigger_message_id else None
-    return {"voice": t.voice, "draft": _draft_view(new) if new else None}
+    return {"voice": t.voice, "voice_locked": t.voice_locked, "voice_reason": t.voice_reason, "draft": _draft_view(new) if new else None}
 
 
 class FactCorrection(BaseModel):
@@ -265,7 +340,12 @@ def update_inventory(stock_number: str, body: InventoryUpdate, s: Session = Depe
         v.price = body.price
     from datetime import timedelta
 
-    v.retrieved_at = datetime.now(timezone.utc) - (timedelta(hours=3) if body.stale else timedelta(seconds=0))
+    if body.stale:
+        v.retrieved_at = datetime.now(timezone.utc) - timedelta(hours=3)
+        v.source = "pilot-feed-sim (paused)"
+    else:
+        v.retrieved_at = datetime.now(timezone.utc)
+        v.source = "pilot-feed-sim"
     return inventory.vehicle_card(v)
 
 

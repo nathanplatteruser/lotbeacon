@@ -203,3 +203,20 @@ def test_voice_profiles_change_tone_not_facts(s):
         assert any(c["kind"] == "availability" for c in nd.validation["claims"]), (vid, nd.text)
         seen.add(nd.text)
     assert len(seen) >= 6  # six distinct voices actually read differently
+
+
+def test_auto_voice_matches_customer_tone_until_rep_pins_one(s):
+    # Gen Z tells → Zee, automatically, with a reason a rep can read
+    thread, d = run(s, "yo is the yukon still there?? lowkey been looking for a 3rd row fr, could swing by this weekend", psid="z1", name="Tyler Brooks")
+    assert thread.voice == "zee" and not thread.voice_locked and "matched customer tone" in thread.voice_reason
+    assert "Yukon" in d.text
+    # neutral message → stays dealership default
+    t2, _ = run(s, "Is the Explorer still available?", psid="z2", name="Ann Lee")
+    assert t2.voice == "dealer"
+    # rep pins Frank → later Gen Z message must NOT flip it
+    t2.voice, t2.voice_locked = "frank", True
+    t2, d2 = run(s, "ngl lowkey want it fr, bet", psid="z2", name="Ann Lee", mid="z2b")
+    assert t2.voice == "frank"
+    # one weak tell is not enough to override the default
+    t3, _ = run(s, "Look at the mileage on that F-150 please", psid="z3", name="Sam Roe")
+    assert t3.voice == "dealer"

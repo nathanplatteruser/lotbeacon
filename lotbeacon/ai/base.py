@@ -14,6 +14,8 @@ class Classification:
     objection: str | None = None  # price | payment | trade | trust | timing | None
     confidence: float = 0.0
     signals: list[str] = field(default_factory=list)
+    voice_hint: str | None = None  # dealer|frank|celeste|jon|dogg|zee — the customer's own tone, if strong
+    voice_confidence: float = 0.0
 
 
 @dataclass
