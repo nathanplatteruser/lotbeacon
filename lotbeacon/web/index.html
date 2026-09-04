@@ -3,195 +3,173 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LotBeacon · Messenger Copilot</title>
+<title>LotBeacon</title>
 <style>
-/* ---- Design tokens: Ford chrome (deep Ford Blue, white surfaces, pill controls) + Messenger conversation (grey/blue bubbles) ---- */
+/* Ford chrome + Messenger conversation. Color is reserved for two things: needs attention (blue), blocked/error (red). */
 :root{
-  --ford:#00095B; --ford-2:#0A1E8C; --ford-ink:#ffffff;
-  --msgr:#0084FF; --msgr-2:#00B2FF; --msgr-soft:#E7F0FF;
+  --ford:#00095B; --ford-2:#0A1E8C; --msgr:#0084FF; --msgr-soft:#E7F0FF;
   --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#F0F2F5; --line:#E4E6EB; --line-strong:#CED0D4;
   --ink:#050505; --ink-2:#45474D; --ink-3:#65676B;
-  --green:#31A24C; --green-soft:#E6F4EA; --yellow:#C77700; --yellow-soft:#FFF3DF; --orange:#D84A10; --orange-soft:#FDE8DF; --red:#D93025; --red-soft:#FCE8E6;
-  --in:#E4E6EB; --in-ink:#050505; --out:linear-gradient(135deg,#0084FF 0%,#00B2FF 100%); --out-ink:#fff;
+  --ok:#1E7A3C; --ok-soft:#E6F4EA; --warn:#B45309; --warn-soft:#FFF3DF; --bad:#C62828; --bad-soft:#FCE8E6;
+  --in:#E4E6EB; --in-ink:#050505; --out:linear-gradient(135deg,#0084FF 0%,#00B2FF 100%);
   --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#18191A; --surface:#242526; --surface-2:#3A3B3C; --line:#3E4042; --line-strong:#4E4F50;
-  --ink:#E4E6EB; --ink-2:#B0B3B8; --ink-3:#8A8D91;
-  --ford:#0B1470; --msgr-soft:#1B2A44;
-  --green:#45BD62; --green-soft:#1E3A26; --yellow:#F0A742; --yellow-soft:#3D2F14; --orange:#F0764A; --orange-soft:#42261A; --red:#F28B82; --red-soft:#44201F;
-  --in:#3A3B3C; --in-ink:#E4E6EB;
-  --shadow:0 1px 2px rgba(0,0,0,.5);
+  --ink:#E4E6EB; --ink-2:#B0B3B8; --ink-3:#8A8D91; --ford:#0B1470; --msgr-soft:#1B2A44;
+  --ok:#5CC48A; --ok-soft:#1E3A26; --warn:#F0A742; --warn-soft:#3D2F14; --bad:#F28B82; --bad-soft:#44201F;
+  --in:#3A3B3C; --in-ink:#E4E6EB; --shadow:0 1px 2px rgba(0,0,0,.5);
 }}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--msgr);outline-offset:2px}
+button:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--msgr);outline-offset:2px}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
-.cond{font-weight:700;letter-spacing:.04em}
+kbd{font:11px ui-monospace,Menlo,monospace;background:var(--surface-2);border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--ink-2)}
 
-/* ---- Header: Ford Blue bar ---- */
-header{display:flex;align-items:center;gap:18px;padding:0 20px;height:56px;background:var(--ford);color:var(--ford-ink)}
-header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
-header h1 .mark{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--ford);display:grid;place-items:center;font-size:15px;font-weight:800}
-header h1 b{font-weight:400;opacity:.85}
+header{display:flex;align-items:center;gap:18px;padding:0 20px;height:52px;background:var(--ford);color:#fff}
+header h1{margin:0;font-size:19px;font-weight:700;display:flex;align-items:center;gap:10px}
+header h1 .mark{width:26px;height:26px;border-radius:50%;background:#fff;color:var(--ford);display:grid;place-items:center;font-size:14px;font-weight:800}
 header .sub{font-size:13px;opacity:.8}
-header .right{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:12px;opacity:.9}
+header .right{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:12px;opacity:.95}
 header select{font:inherit;font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 12px}
 header select option{color:#000}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em}
-.pill.green{background:var(--green-soft);color:var(--green)} .pill.yellow{background:var(--yellow-soft);color:var(--yellow)} .pill.orange{background:var(--orange-soft);color:var(--orange)} .pill.red{background:var(--red-soft);color:var(--red)} .pill.grey{background:var(--surface-2);color:var(--ink-3)}
+header .keys{opacity:.75}
+header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}
 
-/* ---- App grid ---- */
-.app{display:grid;grid-template-columns:320px 1fr 360px;height:calc(100vh - 56px);gap:0}
-@media (max-width:1100px){.app{grid-template-columns:280px 1fr}.side{display:none}}
+.app{display:grid;grid-template-columns:340px 1fr 300px;height:calc(100vh - 52px)}
+@media (max-width:1180px){.app{grid-template-columns:300px 1fr}.side{display:none}}
 
-/* ---- Inbox: Messenger list ---- */
-.inbox{background:var(--surface);border-right:1px solid var(--line);overflow-y:auto}
-.inbox h2{margin:0;padding:16px 16px 10px;font-size:22px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
-.inbox h2 span:last-child{font-size:13px;color:var(--ink-3);font-weight:500}
-.lead{display:grid;grid-template-columns:48px 1fr auto;grid-template-rows:auto auto auto;gap:1px 12px;width:100%;text-align:left;padding:10px 12px;border-radius:var(--radius);margin:0 8px 2px;width:calc(100% - 16px);align-items:center}
-.lead:hover{background:var(--surface-2)} .lead[aria-current="true"]{background:var(--msgr-soft)}
-.avatar{grid-row:1/4;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px;position:relative}
-.avatar .dot{position:absolute;right:0;bottom:0;width:13px;height:13px;border-radius:50%;background:var(--green);border:2px solid var(--surface)}
-.lead .n{font-weight:600;font-size:15px}
-.lead .score{grid-column:3;grid-row:1;font-size:13px;font-weight:700;color:var(--ford);font-variant-numeric:tabular-nums;background:var(--msgr-soft);padding:2px 8px;border-radius:999px}
-.lead .v{grid-column:2;color:var(--ink-3);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lead .ago{grid-column:3;grid-row:2;font-size:12px;color:var(--ink-3);justify-self:end}
-.lead .st{grid-column:2/4;font-size:11px;color:var(--ink-3);display:flex;gap:6px;align-items:center;text-transform:capitalize}
+/* ---- Action queue ---- */
+.queue{background:var(--surface);border-right:1px solid var(--line);overflow-y:auto}
+.qhead{padding:12px 14px 6px;display:flex;justify-content:space-between;align-items:baseline}
+.qhead h2{margin:0;font-size:18px;font-weight:700}
+.qhead span{font-size:12px;color:var(--ink-3)}
+.bucket{position:sticky;top:0;z-index:2;background:var(--surface);padding:10px 14px 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700;display:flex;justify-content:space-between;border-top:1px solid var(--line)}
+.bucket.hot{color:var(--msgr)}
+.bucket .n{font-weight:600;letter-spacing:0}
+.row{display:grid;grid-template-columns:1fr auto;gap:0 10px;width:100%;text-align:left;padding:8px 14px;border-left:3px solid transparent}
+.row:hover{background:var(--surface-2)}
+.row[aria-current="true"]{background:var(--msgr-soft);border-left-color:var(--msgr)}
+.row .who{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
+.row .who .dot{width:8px;height:8px;border-radius:50%;background:var(--msgr)}
+.row .wait{font-size:12px;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.row .wait.hot{color:var(--msgr);font-weight:700}
+.row .what{grid-column:1/-1;font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .next{grid-column:1/-1;font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .next.bad{color:var(--bad)} .row .next.person{color:var(--warn)}
+.row.closed .who,.row.closed .next{color:var(--ink-3);font-weight:500}
+.row .win{font-size:11px;color:var(--ink-3)} .row .win.hot{color:var(--bad);font-weight:700}
 
 /* ---- Thread ---- */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--surface)}
-.thread-head{padding:10px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 1px 0 var(--line)}
-.thread-head .avatar{grid-row:auto;width:40px;height:40px;font-size:15px}
-.thread-head .who{display:flex;flex-direction:column}
-.thread-head h2{margin:0;font-size:17px;font-weight:700}
-.thread-head .state{font-size:12px;color:var(--ink-3);text-transform:capitalize}
-.thread-head .tools{margin-left:auto;display:flex;gap:8px}
-.btn{white-space:nowrap;border:1.5px solid var(--ford);border-radius:999px;padding:8px 18px;font-weight:600;font-size:14px;background:var(--surface);color:var(--ford)}
+.thead{padding:10px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.thead h2{margin:0;font-size:17px;font-weight:700}
+.thead .meta{font-size:12.5px;color:var(--ink-3);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.thead .meta b{color:var(--ink-2);font-weight:600}
+.thead .win.hot,.thead .win.closed{color:var(--bad);font-weight:700}
+.thead .tools{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{white-space:nowrap;border:1.5px solid var(--ford);border-radius:999px;padding:7px 16px;font-weight:600;font-size:14px;background:var(--surface);color:var(--ford)}
 .btn.primary{background:var(--ford);border-color:var(--ford);color:#fff}
 .btn.primary:hover{background:var(--ford-2)}
-.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.book{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.quiet{border-color:var(--line-strong);color:var(--ink-2);font-weight:500}
+.btn.sm{padding:5px 12px;font-size:13px}
 .btn[disabled]{opacity:.4;cursor:not-allowed}
-.btn.on{background:var(--red-soft);border-color:var(--red);color:var(--red)}
-.convo{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
-.msg{max-width:62%;padding:9px 13px;border-radius:18px;position:relative;font-size:15px;line-height:1.35}
+.btn.on{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.more{border:1.5px solid var(--line-strong);border-radius:999px;width:34px;height:34px;display:grid;place-items:center;color:var(--ink-2);font-weight:700}
+.menu{position:absolute;right:0;top:40px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:240px;z-index:5;padding:6px;display:none;text-align:left}
+.menu.open{display:block}
+.menu button,.menu label{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:6px;font-size:13px}
+.menu button:hover{background:var(--surface-2)}
+.menu .lab{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:8px 10px 2px}
+.menu select{width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink)}
+
+.stages{display:flex;gap:6px;padding:8px 20px;border-bottom:1px solid var(--line);align-items:center;font-size:12px;color:var(--ink-3)}
+.stages .st{padding:3px 10px;border-radius:999px;background:var(--surface-2)}
+.stages .st.done{background:var(--ford);color:#fff}
+.stages .st.cur{background:var(--msgr-soft);color:var(--ford);font-weight:700;outline:1.5px solid var(--msgr)}
+.stages .sub{margin-left:6px;color:var(--ink-2)}
+.stages .paused{margin-left:auto;color:var(--warn);font-weight:600}
+.stages .paused.stop{color:var(--bad)}
+
+.convo{flex:1;overflow-y:auto;padding:14px 20px 6px;display:flex;flex-direction:column;gap:6px}
+.msg{max-width:64%;padding:8px 13px;border-radius:18px;position:relative;font-size:15px;line-height:1.35}
 .msg.in{background:var(--in);color:var(--in-ink);align-self:flex-start;border-bottom-left-radius:6px}
-.msg.out{background:var(--out);color:var(--out-ink);align-self:flex-end;border-bottom-right-radius:6px}
-.msg .t{display:block;font-size:10px;opacity:.65;margin-top:4px}
+.msg.out{background:var(--out);color:#fff;align-self:flex-end;border-bottom-right-radius:6px}
+.msg .t{display:block;font-size:10.5px;opacity:.65;margin-top:3px}
+.msg.note{align-self:center;background:transparent;color:var(--ink-3);font-size:12px;padding:2px 10px;text-align:center}
 .msg.hl{box-shadow:0 0 0 3px var(--msgr)}
-
-/* ---- Funnel tracker (pizza-tracker style) ---- */
-.tracker{padding:14px 20px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
-.tracker .bar{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
-.tracker .seg{height:10px;border-radius:999px;background:var(--surface-2);position:relative;overflow:hidden}
-.tracker .seg.done{background:var(--ford)}
-.tracker .seg.cur{background:var(--msgr)}
-.tracker .seg.cur::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:sweep 1.6s linear infinite}
-.tracker .seg.reached{background:var(--line-strong)}
-@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
-.tracker .labels{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:6px}
-.tracker .labels span{font-size:10.5px;line-height:1.2;color:var(--ink-3);text-align:center;letter-spacing:.01em}
-.tracker .labels span.done{color:var(--ford);font-weight:600}
-.tracker .labels span.cur{color:var(--msgr);font-weight:700}
-.tracker .status{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:13px}
-.tracker .status b{color:var(--ford)}
-.tracker .paused{background:var(--yellow-soft);color:var(--yellow);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
-.tracker .paused.stop{background:var(--red-soft);color:var(--red)}
-.tracker select{margin-left:auto;font:inherit;font-size:12px;padding:5px 10px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
-.move{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:12px 16px;border-radius:var(--radius);font-size:15px;font-weight:600}
-.move .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ford)}
-.move.approve{background:var(--green-soft);color:var(--green)} .move.you{background:var(--orange-soft);color:var(--orange)} .move.fix{background:var(--red-soft);color:var(--red)} .move.stop{background:var(--red-soft);color:var(--red)} .move.wait,.move.done{background:var(--surface-2);color:var(--ink-2)}
-.voice .why{font-size:11px;color:var(--ink-3);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* ---- Momentum sparkline (status colors: good / warning / critical) ---- */
-.spark{display:inline-block;vertical-align:middle}
-.spark .base{stroke:var(--line);stroke-width:1}
-.spark .ln{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.spark .ar{opacity:.18}
-.spark .pt{stroke:var(--surface);stroke-width:1.5}
-.spark.up .ln,.spark.up .pt{stroke:var(--green)} .spark.up .ar,.spark.up .pt{fill:var(--green)}
-.spark.flat .ln,.spark.flat .pt{stroke:var(--yellow)} .spark.flat .ar,.spark.flat .pt{fill:var(--yellow)}
-.spark.down .ln,.spark.down .pt{stroke:var(--red)} .spark.down .ar,.spark.down .pt{fill:var(--red)}
-.mom{display:flex;align-items:center;gap:10px;margin-left:auto;font-size:12px;color:var(--ink-2)}
-.mom b{font-weight:700}
-.mom.up b{color:var(--green)} .mom.flat b{color:var(--yellow)} .mom.down b{color:var(--red)}
-.lead .mom-mini{grid-column:3;grid-row:3;justify-self:end;display:flex;align-items:center;gap:4px;font-size:10px}
-.lead .mom-mini .arrow{font-weight:800}
-.lead .mom-mini.up .arrow{color:var(--green)} .lead .mom-mini.flat .arrow{color:var(--yellow)} .lead .mom-mini.down .arrow{color:var(--red)}
-/* ---- Ghost / silence + notes ---- */
-.msg.note{align-self:center;background:transparent;color:var(--ink-3);font-size:12px;padding:2px 10px;max-width:90%;text-align:center}
-.ghost{align-self:center;max-width:90%;text-align:center;color:var(--ink-3);font-size:13px;padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:var(--radius);background:var(--surface-2)}
-.ghost b{color:var(--ink-2)}
-.ghost .row{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
-.ghost .btn{padding:6px 14px;font-size:13px}
+.divider{align-self:stretch;display:flex;align-items:center;gap:10px;color:var(--msgr);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--msgr);opacity:.5}
+.ghost{align-self:center;max-width:92%;text-align:center;color:var(--ink-3);font-size:13px;padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:var(--radius);background:var(--surface-2)}
+.ghost b{color:var(--ink-2)} .ghost .r{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
 .ghost select{font:inherit;font-size:13px;padding:6px 12px;border:1.5px solid var(--ford);border-radius:999px;background:var(--surface);color:var(--ford);font-weight:600}
-.ghost .demo{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:8px}
-/* ---- Composer ---- */
-.compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px 14px;display:flex;flex-direction:column;gap:10px}
-.nba{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 14px;background:var(--msgr-soft);border-radius:var(--radius)}
-.nba .lab{font-size:11px;color:var(--ford);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
-.nba .act{font-weight:700} .nba .why{font-size:12px;color:var(--ink-2)}
-.warn{display:flex;flex-direction:column;gap:4px}
-.claim{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;padding:6px 12px;border-radius:10px;font-size:12px}
-.claim.supported{background:var(--green-soft)} .claim.unsupported,.claim.prohibited{background:var(--red-soft)} .claim.orange{background:var(--orange-soft)}
-.claim b{font-weight:600} .claim .q{color:var(--ink-2);font-style:italic}
-textarea#draft{width:100%;min-height:80px;border:1.5px solid var(--line-strong);border-radius:20px;padding:12px 16px;background:var(--surface-2);color:var(--ink);font:inherit;resize:vertical}
-textarea#draft:focus{background:var(--surface);border-color:var(--msgr)}
-textarea#draft.blocked{border-color:var(--red);background:var(--red-soft)}
-.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.actions .meta{margin-left:auto;font-size:12px;color:var(--ink-3)}
-.blockmsg{font-size:12px;color:var(--red);font-weight:600}
-.voice{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-3)}
-.voice select{font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
 
-/* ---- Side: context cards ---- */
-.side{border-left:1px solid var(--line);background:var(--bg);overflow-y:auto;padding:14px}
-.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
-.side h3{margin:0 0 8px;font-size:11px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
-.summary{font-size:14px;color:var(--ink-2)}
-.fact{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:9px 12px;border-radius:10px;margin-bottom:6px;width:100%;text-align:left;background:var(--surface-2)}
-.fact:hover{background:var(--msgr-soft)}
-.fact .k{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
-.fact .val{font-weight:600;grid-column:1}
-.fact .conf{font-size:11px;color:var(--ink-3);grid-row:1/3;align-self:center}
-.fact .ev{grid-column:1/-1;font-size:11px;color:var(--ford)}
-.fact .ev:empty{display:none}
-.vcard .name{font-weight:700;font-size:16px;color:var(--ford)}
-.vcard .row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid var(--line)}
-.vcard .row:last-of-type{border-bottom:0}
-.vcard .fresh{margin-top:8px;font-size:11px}
-.vcard .fresh.ok{color:var(--green)} .vcard .fresh.bad{color:var(--red)}
-.trans{font-size:12px;color:var(--ink-2);padding:5px 0;border-bottom:1px solid var(--line)}
-.trans:last-child{border-bottom:0}
-.trans b{color:var(--ink)}
-.sim{border:1.5px dashed var(--line-strong);box-shadow:none;background:transparent}
-.sim textarea{width:100%;min-height:56px;border:1.5px solid var(--line-strong);border-radius:16px;padding:10px 12px;background:var(--surface);color:var(--ink);font:inherit}
-.sim .row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.sim select{font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
-.small{font-size:11px;color:var(--ink-3)}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ford);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;box-shadow:var(--shadow)}
+/* ---- The one action card ---- */
+.card{margin:8px 20px 14px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.card.book{border-color:var(--ok)} .card.blocked{border-color:var(--bad)} .card.person{border-color:var(--warn)}
+.card .top{display:grid;grid-template-columns:1fr auto;gap:6px 16px;padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+.card .goal{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.card .goal b{color:var(--ford);text-transform:none;letter-spacing:0;font-size:16px;display:block;margin-top:2px}
+.card .missing{font-size:13px;font-weight:700;color:var(--bad);align-self:end;text-align:right}
+.card .missing.ok{color:var(--ok)}
+.card .facts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2)}
+.card .facts b{color:var(--ink);font-weight:600}
+.card .facts .q{color:var(--ink-3)}
+.card .facts button{text-decoration:underline dotted;text-underline-offset:3px;color:inherit}
+.card .veri{grid-column:1/-1;font-size:12.5px;color:var(--ok);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.card .veri.bad{color:var(--bad)} .card .veri.stale{color:var(--warn)}
+.card .veri .chip{background:var(--surface-2);color:var(--ink-2);padding:2px 8px;border-radius:999px;font-size:12px}
+.card .clar{grid-column:1/-1;font-size:12.5px;color:var(--warn);font-weight:600}
+textarea#draft{display:block;width:100%;min-height:78px;border:0;padding:12px 16px;background:var(--surface);color:var(--ink);font:inherit;font-size:15px;line-height:1.4;resize:vertical}
+textarea#draft:focus{outline:none;background:var(--surface-2)}
+.flag{padding:6px 16px;background:var(--bad-soft);color:var(--bad);font-size:12.5px;display:flex;gap:8px;align-items:start}
+.flag.person{background:var(--warn-soft);color:var(--warn)}
+.flag .q{font-style:italic;color:var(--ink-2)}
+.actions{display:flex;gap:8px;align-items:center;padding:10px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+.actions .hint{margin-left:auto;font-size:12px;color:var(--ink-3);display:flex;gap:10px;align-items:center}
+.bookline{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 16px;background:var(--ok-soft)}
+.bookline .when{font-size:17px;font-weight:800;color:var(--ok)}
+.bookline .det{font-size:13px;color:var(--ink-2)}
+.slotpick{display:flex;gap:6px;padding:8px 16px 0;font-size:12.5px;color:var(--ink-3);align-items:center;flex-wrap:wrap}
+.slotpick button{border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;font-size:12.5px;color:var(--ink-2)}
+.slotpick button.on{border-color:var(--ford);color:var(--ford);font-weight:600}
+
+/* ---- Side ---- */
+.side{border-left:1px solid var(--line);background:var(--bg);overflow-y:auto;padding:12px}
+.panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px}
+.panel h3{margin:0 0 8px;font-size:11px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.vname{font-weight:700;font-size:15px;color:var(--ford)}
+.vrow{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid var(--line)}
+.vrow:last-of-type{border-bottom:0}
+.vfresh{margin-top:8px;font-size:12px;color:var(--ok)} .vfresh.bad{color:var(--bad)}
+details{border-top:1px solid var(--line);padding-top:6px;margin-top:6px}
+summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;padding:4px 0}
+.ev{font-size:12px;color:var(--ink-2);padding:6px 8px;border-radius:8px;background:var(--surface-2);margin:6px 0;cursor:pointer}
+.ev .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)} .ev .v{font-weight:600;color:var(--ink)}
+.ev .q{font-style:italic;color:var(--ink-3)}
+.trans{font-size:12px;color:var(--ink-2);padding:4px 0;border-bottom:1px solid var(--line)}
+.diag{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.sim textarea{width:100%;min-height:52px;border:1.5px solid var(--line-strong);border-radius:12px;padding:8px 10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
+.sim .r{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.sim select{font:inherit;font-size:12.5px;padding:6px 10px;border:1.5px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink)}
+.small{font-size:11.5px;color:var(--ink-3)}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ford);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;box-shadow:var(--shadow);z-index:9}
 .toast.show{opacity:1}
 .empty{padding:40px;text-align:center;color:var(--ink-3)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <header>
-  <h1><span class="mark">L</span>LotBeacon <b>· Messenger Copilot</b></h1>
+  <h1><span class="mark">L</span>LotBeacon</h1>
   <span class="sub" id="dealer">—</span>
-  <div class="right"><span id="provider"></span><label>Signed in as <select id="rep"></select></label></div>
+  <div class="right"><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
 </header>
 
 <div class="app">
-  <aside class="inbox">
-    <h2><span>Priority leads</span><span id="inboxCount"></span></h2>
-    <div id="leads"></div>
-  </aside>
-
-  <main class="main" id="main">
-    <div class="empty">Pick a lead.</div>
-  </main>
-
+  <aside class="queue" id="queue"><div class="qhead"><h2>Queue</h2><span id="qcount"></span></div><div id="qrows"></div></aside>
+  <main class="main" id="main"><div class="empty">Pick a lead.</div></main>
   <aside class="side" id="side"></aside>
 </div>
 <div class="toast" id="toast"></div>
@@ -199,167 +177,238 @@ textarea#draft.blocked{border-color:var(--red);background:var(--red-soft)}
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let META=null, current=null, detail=null, editing=false;
+let META=null,current=null,detail=null,Q=null,editTimer=null,slotVariant=0;
 
 async function api(path,opts={}){
   const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});
   if(!r.ok){let e={};try{e=await r.json();}catch(_){ } throw Object.assign(new Error(e.detail?.message||e.detail||r.statusText),{detail:e.detail});}
   return r.json();
 }
-function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2400);}
-function human(sec){let s=Math.max(0,Math.round(sec));const d=Math.floor(s/86400);s-=d*86400;const h=Math.floor(s/3600);s-=h*3600;const m=Math.floor(s/60);s-=m*60;if(d)return `${d}d ${h}h`;if(h)return `${h}h ${m}m`;if(m)return `${m}m ${s}s`;return `${s}s`;}
-function ago(iso){if(!iso)return'';return human((Date.now()-new Date(iso))/1000);}
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600);}
 function repId(){return +$('#rep').value;}
-const STATE_LABEL=s=>s.replace(/_/g,' ').toLowerCase();
-const AV=['#00095B','#0084FF','#7A3E9D','#C2410C','#0F766E','#B91C1C','#4338CA','#A16207'];
-function avatar(name,extra=''){const n=(name||'?').trim();const ini=n.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return `<span class="avatar" style="background:${AV[h%AV.length]}">${esc(ini)}${extra}</span>`;}
+function repName(){return $('#rep').selectedOptions[0]?.dataset.name||'';}
 
 async function loadMeta(){
   META=await api('/api/meta');
-  $('#dealer').textContent=META.dealership.name+(META.dealership.hours_today?' · open '+META.dealership.hours_today:'');
-  $('#provider').textContent='AI: '+META.provider+' · '+META.rules_version;
-  $('#rep').innerHTML=META.reps.map(r=>`<option value="${r.id}">${esc(r.name)} (${r.role})</option>`).join('');
+  $('#dealer').textContent=META.dealership.name;
+  $('#rep').innerHTML=META.reps.map(r=>`<option value="${r.id}" data-name="${esc(r.name)}">${esc(r.name)}</option>`).join('');
 }
-async function loadInbox(){
-  const list=await api('/api/threads');
-  $('#inboxCount').textContent=list.length;
-  $('#leads').innerHTML=list.map(t=>`<button class="lead" data-id="${t.id}" aria-current="${t.id===current}">
-    ${avatar(t.customer,(Date.now()-new Date(t.last_customer_message_at))<600000?'<i class="dot"></i>':'')}
-    <span class="n">${esc(t.customer)}</span><span class="score">${t.priority}</span>
-    <span class="v">${esc(t.vehicle||'—')}</span><span class="ago" title="waiting on a reply">${ago(t.last_customer_message_at)}</span>
-    <span class="st">${STATE_LABEL(t.lead_state)}${t.risk?` <span class="pill ${t.risk}">${t.risk}</span>`:''}${t.ai_paused?' <span class="pill grey">AI paused</span>':''}${t.ghost?` <span class="pill grey" title="no reply since our last message">quiet ${esc(t.ghost)}</span>`:''}</span>
-    ${t.momentum&&t.momentum.series.length?`<span class="mom-mini ${t.momentum.trend}" title="${esc(t.momentum.label)}">${spark(t.momentum,44,16)}<span class="arrow">${ARROW[t.momentum.trend]}</span></span>`:''}
-  </button>`).join('');
-  if(!current&&list.length){open(list[0].id);}
-}
-async function open(id){current=id;editing=false;detail=await api('/api/threads/'+id);renderThread();renderSide();document.querySelectorAll('.lead').forEach(l=>l.setAttribute('aria-current',+l.dataset.id===id));}
 
+/* ---------------- queue ---------------- */
+async function loadQueue(){
+  Q=await api('/api/queue');
+  const active=Q.rows.filter(r=>!['closed','waiting'].includes(r.bucket)).length;
+  $('#qcount').textContent=`${active} need you · ${Q.rows.length} total`;
+  let html='';
+  for(const b of Q.buckets){
+    const rows=Q.rows.filter(r=>r.bucket===b.key); if(!rows.length) continue;
+    const hot=['reply_now','book_now','window_closing','appointment_changes'].includes(b.key);
+    html+=`<div class="bucket ${hot?'hot':''}" title="${esc(b.hint)}"><span>${esc(b.label)}</span><span class="n">${rows.length}</span></div>`;
+    html+=rows.map(r=>`<button class="row ${r.bucket==='closed'?'closed':''}" data-id="${r.id}" aria-current="${r.id===current}">
+      <span class="who">${r.unread?'<i class="dot"></i>':''}${esc(r.customer)}</span>
+      <span class="wait ${r.waiting_seconds>600?'hot':''}">${r.waiting?'waiting '+esc(r.waiting):(r.window_left&&r.bucket!=='closed'?`<span class="win ${r.window_hours_left<4?'hot':''}">${esc(r.window_left)} left</span>`:'')}</span>
+      <span class="what">${esc(r.summary)}</span>
+      <span class="next ${r.blocked?'bad':r.needs_person?'person':''}">→ ${esc(r.next_action)}</span>
+    </button>`).join('');
+  }
+  $('#qrows').innerHTML=html;
+  if(!current){const first=Q.rows.find(r=>!['closed','waiting'].includes(r.bucket))||Q.rows[0];if(first)open(first.id);}
+}
+function visibleOrder(){return Q?Q.rows.filter(r=>r.bucket!=='closed').map(r=>r.id):[];}
+function step(dir){const ids=visibleOrder();if(!ids.length)return;let i=ids.indexOf(current);i=(i+dir+ids.length)%ids.length;open(ids[i]);}
+
+async function open(id){
+  current=id;detail=await api('/api/threads/'+id);slotVariant=0;renderThread();renderSide();
+  document.querySelectorAll('.row').forEach(l=>l.setAttribute('aria-current',+l.dataset.id===id));
+  if(!detail.ownership.rep_id&&!['LOST','DO_NOT_CONTACT'].includes(detail.funnel.state)){api(`/api/threads/${id}/assign`,{method:'POST',body:{rep_id:repId()}}).catch(()=>{});}
+}
+
+/* ---------------- thread ---------------- */
 function renderThread(){
-  const d=detail,dr=d.draft;
-  const blocked=dr&&(dr.status==='blocked'||dr.risk_level==='red');
-  const sent=dr&&dr.status==='sent';
-  const elig=d.messaging.eligible;
+  const d=detail,f=d.funnel,w=d.window;
+  let lastIn=-1,lastOut=-1;d.messages.forEach((m,k)=>{if(m.direction==='in')lastIn=k;if(m.direction==='out')lastOut=k;});
+  const firstUnread=lastIn>lastOut?d.messages.findIndex((m,k)=>k>lastOut&&m.direction==='in'):-1;
+  const closed=['LOST','DO_NOT_CONTACT'].includes(f.state);
   $('#main').innerHTML=`
-    <div class="thread-head">
-      ${avatar(d.customer.name||d.customer.psid)}
-      <div class="who"><h2>${esc(d.customer.name||d.customer.psid)}</h2>
-      <span class="state"><b>${STATE_LABEL(d.lead_state)}</b> · ${esc(d.priority_reason)}</span></div>
-      ${d.customer.opted_out?'<span class="pill red">Do not contact</span>':''}
-      ${!elig?`<span class="pill red" title="${esc(d.messaging.reason)}">Send blocked: ${esc(d.messaging.reason)}</span>`:`<span class="pill green">Messaging window open</span>`}
+    <div class="thead">
+      <h2>${esc(d.customer.name||d.customer.psid)}</h2>
+      <div class="meta">
+        <span>${esc(w.channel)} · <span class="win ${w.open?(w.closing_soon?'hot':''):'closed'}">${w.open?esc(w.remaining)+' left to reply':'reply window closed — call or text'}</span></span>
+        <span title="Who controls this conversation"><b>${esc(d.ownership.line)}</b></span>
+      </div>
       <div class="tools">
-        <button class="btn ${d.ai_paused?'on':''}" id="takeover">${d.ai_paused?'Resume AI':'Take over'}</button>
-        <button class="btn" id="confirmAppt" ${d.lead_state==='DO_NOT_CONTACT'?'disabled':''}>Confirm appointment…</button>
+        <button class="btn quiet sm ${d.ai_paused?'on':''}" id="manual">${d.ai_paused?'Resume AI drafting':'Switch to manual'}</button>
+        <div style="position:relative"><button class="more" id="moreBtn" aria-label="More">⋯</button>
+          <div class="menu" id="menu">
+            <div class="lab">Correct stage</div>
+            ${[['APPOINTMENT_SET','Appointment booked'],['ARRIVED','Showed up'],['SOLD','Sold'],['NURTURE','Follow up later'],['LOST','Lost / went elsewhere'],['HUMAN_REQUIRED','Needs a person']].map(([k,l])=>`<button data-stage="${k}">${l}</button>`).join('')}
+            <div class="lab">Reply style</div>
+            <label><select id="voice"><option value="auto" ${!d.voice_locked?'selected':''}>Auto (${esc((META.voices.find(v=>v.id===(d.voice||'dealer'))||{}).label||'Dealership default')})</option>${META.voices.map(v=>`<option value="${v.id}" ${d.voice_locked&&v.id===d.voice?'selected':''}>${esc(v.label)}</option>`).join('')}</select></label>
+          </div></div>
       </div>
     </div>
-    ${renderTracker(d)}
-    <div class="convo" id="convo">${d.messages.map(m=>m.direction==='note'?`<div class="msg note" data-mid="${m.id}">${esc(m.text)} · ${new Date(m.sent_at).toLocaleString()}</div>`:`<div class="msg ${m.direction}" data-mid="${m.id}">${esc(m.text)}<span class="t">${m.author} · ${new Date(m.sent_at).toLocaleString()}</span></div>`).join('')}${renderGhost(d)}</div>
-    <div class="compose">
-      ${d.your_move?`<div class="move ${d.your_move.kind}"><span class="tag">Your move</span><span>${esc(d.your_move.text)}</span></div>`:''}
-      ${dr?`<div class="nba"><span class="lab">Next best action</span><div><div class="act">${esc(humanAction(dr.structured.recommended_action))}</div><div class="why">${esc(dr.structured.nba_reason)}${dr.structured.missing_information?.length?' · still unknown: '+dr.structured.missing_information.join(', '):''}</div></div><span class="pill ${dr.risk_level}">${dr.risk_level}</span></div>`:''}
-      ${dr?renderClaims(dr):''}
-      ${d.ai_paused?'<div class="small">AI drafting is paused for this thread. Type your own reply — it still goes through the claim check.</div>':''}
-      <textarea id="draft" class="${blocked?'blocked':''}" ${sent?'disabled':''} placeholder="${dr&&!dr.text?'No AI draft for this action — write your reply, or hand off.':'Draft…'}">${esc(dr?dr.text:'')}</textarea>
-      <div class="actions">
-        <button class="btn primary" id="send" ${(!dr||sent||!elig||blocked)?'disabled':''}>${sent?'Sent':'Send'}</button>
-        <button class="btn" id="recheck" ${(!dr||sent)?'disabled':''}>Re-check claims</button>
-        <label class="voice">Voice <select id="voice" ${sent?'disabled':''}><option value="auto" ${!d.voice_locked?'selected':''}>Auto · ${esc((META.voices.find(v=>v.id===(d.voice||'dealer'))||{}).label||'Dealership default')}</option>${META.voices.map(v=>`<option value="${v.id}" ${d.voice_locked&&v.id===(d.voice||'dealer')?'selected':''} title="${esc(v.tagline)}">${esc(v.label)}</option>`).join('')}</select><span class="why" title="${esc(d.voice_reason||'')}">${esc(d.voice_reason||'')}</span></label>
-        ${blocked?'<span class="blockmsg">Blocked — fix the red sentences before sending.</span>':''}
-        <span class="meta">${dr?`draft #${dr.id} · ${dr.provider} · ${dr.approval_required?'rep approval required':'auto-eligible'}`:'no draft yet'}</span>
-      </div>
-    </div>`;
+    <div class="stages">${f.stages.map((s,i)=>`<span class="st ${i<f.current?'done':i===f.current?'cur':''}">${esc(s.label)}</span>`).join('')}<span class="sub">${esc(f.substate)}</span>${f.paused?`<span class="paused ${closed?'stop':''}">${esc(f.paused)}</span>`:''}</div>
+    <div class="convo" id="convo">${d.messages.map((m,k)=>(k===firstUnread?'<div class="divider">New</div>':'')+(m.direction==='note'?`<div class="msg note" data-mid="${m.id}">${esc(m.text)} · ${esc(m.ago)} ago</div>`:`<div class="msg ${m.direction}" data-mid="${m.id}" title="${new Date(m.sent_at).toLocaleString()}">${esc(m.text)}<span class="t">${m.direction==='in'?'Customer':esc(m.sender)} · ${esc(m.ago)} ago</span></div>`)).join('')}${renderGhost(d)}</div>
+    ${renderCard(d)}`;
   const convo=$('#convo');convo.scrollTop=convo.scrollHeight;
-  $('#takeover').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});toast(d.ai_paused?'AI resumed':'You have the thread');await open(d.id);loadInbox();};
-  $('#confirmAppt').onclick=async()=>{const when=prompt('Appointment date/time (e.g. 2026-09-06 14:00). Only confirm what you actually booked in the scheduler.');if(!when)return;try{await api(`/api/threads/${d.id}/appointment`,{method:'POST',body:{rep_id:repId(),starts_at:new Date(when.replace(' ','T')).toISOString()}});toast('Appointment confirmed — "booked" language is now allowed');await open(d.id);loadInbox();}catch(e){toast(e.message);}};
-  const fn=$('#fuNext'); if(fn) fn.onclick=async()=>{const r=await api(`/api/threads/${d.id}/followup`,{method:'POST',body:{rep_id:repId(),action:'next'}});toast(r.blocked&&!r.draft?r.message:`Follow-up ${r.stage} drafted — review and send`);await open(d.id);loadInbox();};
-  const fs=$('#fuStop'); if(fs) fs.onclick=async()=>{await api(`/api/threads/${d.id}/followup`,{method:'POST',body:{rep_id:repId(),action:'stop'}});toast('Sequence stopped');await open(d.id);};
-  const off=$('#offline'); if(off) off.onchange=async e=>{const ch=e.target.value;if(!ch)return;const note=prompt('Quick note (optional):','')??'';await api(`/api/threads/${d.id}/offline`,{method:'POST',body:{rep_id:repId(),channel:ch,note}});toast('Logged — thread no longer reads as ghosted');await open(d.id);loadInbox();};
-  const st=$('#stage'); if(st) st.onchange=async e=>{const v=e.target.value;if(!v)return;await api(`/api/threads/${d.id}/state`,{method:'POST',body:{rep_id:repId(),state:v,reason:'rep updated stage'}});toast('Stage updated');await open(d.id);loadInbox();};
-  $('#voice').onchange=async e=>{toast('Redrafting in '+e.target.selectedOptions[0].text+'…');await api(`/api/threads/${d.id}/voice`,{method:'POST',body:{rep_id:repId(),voice:e.target.value}});await open(d.id);loadInbox();};
-  if(dr){
-    $('#recheck').onclick=()=>recheck();
-    $('#draft').addEventListener('input',()=>{editing=true;});
-    $('#send').onclick=async()=>{
-      try{const r=await api(`/api/drafts/${dr.id}/send`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});toast(r.demo?.replied?'Sent — customer replied':r.demo?.ghost_hours?`Sent — customer went quiet (${r.demo.ghost_hours}h)`:'Sent (simulated Messenger)');await open(d.id);loadInbox();}
-      catch(e){toast(e.message||'Blocked');await open(d.id);if(e.detail?.reason)$('#draft').value=$('#draft').value;}
-    };
-  }
+  bindThread();
 }
-async function recheck(){const dr=detail.draft;const v=await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:$('#draft').value}});detail.draft=v;renderThread();toast(v.status==='blocked'?'Still blocked':'Claims re-checked: '+v.risk_level);}
 
-function spark(m,w,h){
-  if(!m||!m.series||!m.series.length) return '';
-  let s=m.series.slice(-8); if(s.length===1) s=[s[0],s[0]];
-  const pad=3, W=w-pad*2, H=h-pad*2, n=s.length;
-  const x=i=>pad+(n===1?W/2:i*W/(n-1)), y=v=>pad+H-(Math.max(0,Math.min(100,v))/100)*H;
-  const pts=s.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const area=`M${x(0).toFixed(1)},${(pad+H).toFixed(1)} L${pts.replace(/ /g,' L')} L${x(n-1).toFixed(1)},${(pad+H).toFixed(1)} Z`;
-  const arrow={up:'↗',flat:'→',down:'↘'}[m.trend];
-  return `<svg class="spark ${m.trend}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${m.label}, score ${m.score}"><title>${m.label} · ${s.join(' → ')}</title><path class="ar" d="${area}"></path><line class="base" x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}"></line><polyline class="ln" points="${pts}"></polyline><circle class="pt" cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3"></circle></svg>`;
+function renderCard(d){
+  const dr=d.draft,bk=d.booking||{},v=d.vehicle;
+  if(d.customer.opted_out||d.funnel.state==='DO_NOT_CONTACT') return `<div class="card blocked"><div class="top"><div class="goal">Goal<b>Nothing to send</b></div><div class="missing">Opted out — do not contact</div></div></div>`;
+  const veri=v?`<span class="veri ${v.fresh?(v.status==='available'?'':'bad'):'stale'}">${v.fresh?(v.status==='available'?'✓ Available':'✕ '+esc(v.status)):'⚠ Inventory stale'} · ${esc(v.year+' '+v.make+' '+v.model+' '+v.trim)} <span class="chip mono">${esc(v.stock_number)}</span>${v.drivetrain?` <span class="chip">${esc(v.drivetrain)}</span>`:''} <span class="chip">${v.mileage.toLocaleString()} mi</span> <span class="chip">$${v.price.toLocaleString()}</span> <span class="small">verified ${esc(v.age)} ago</span></span>`:'';
+  const stage=bk.stage||'', a=dr?.structured?.recommended_action||'';
+  let goal='Keep the conversation moving', missing='', missOk=false, cls='';
+  if(stage==='booked'){goal=`Booked · ${bk.date_label} · ${bk.time_label}`;missing='✓ Nothing missing';missOk=true;cls='book';}
+  else if(stage==='time_selected'){goal=`Book ${bk.selected.day_label.split(',')[0]} test drive`;missing='✓ Time selected';missOk=true;cls='book';}
+  else if(['time_proposed','visit_interest','visit_interest_tentative'].includes(stage)){goal=`Book ${bk.date_label?bk.date_label.split(',')[0]:'a'} test drive`;missing=`Missing: ${bk.missing.join(', ')}`+(bk.timing_certainty==='tentative'?' <span class="small">· visit interest is tentative</span>':'');}
+  else if(a.startsWith('route_')||a==='human_takeover'){goal={route_financing_to_human:'Hand financing to F&I',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Take pricing to the sales manager',route_hold_to_human:'Ask manager about a hold',route_warranty_to_human:'Pull real warranty details',route_delivery_to_human:'Check delivery policy',human_takeover:'Reply personally'}[a];missing='A person decides this';cls='person';}
+  else if(a==='offer_reschedule'){goal='Rebook the visit';missing='Missing: new day';}
+  else if(a==='acknowledge_and_close'){goal='Close out kindly';}
+  else if(a==='pre_visit_help'){goal='Keep the booked visit warm';missing='✓ Appointment booked';missOk=true;}
+  else if(a==='offer_alternatives'){goal='Get them onto a vehicle we have';missing='Missing: a specific vehicle';}
+  else if(a==='answer_price'){goal='Answer price, move to a visit';missing='Missing: a day';}
+  else if(a){goal='Get to a vehicle and a day';missing='Missing: '+((dr?.structured?.missing_information||[]).join(', ')||'a day');}
+  if(dr&&(dr.status==='blocked'||dr.risk_level==='red')) cls='blocked';
+  const clarify=d.clarify?`<div class="clar">↳ ${esc(d.clarify)}</div>`:'';
+  const trade=d.facts.find(f=>f.key==='trade_vehicle');
+  let body='';
+  if(stage==='booked'){
+    body=`<div class="bookline"><div><div class="when">${esc(bk.date_label)} · ${esc(bk.time_label)}</div><div class="det">${v?esc(v.year+' '+v.make+' '+v.model+' '+v.trim):''}${trade?' · trade appraisal: '+esc(trade.value):''} · owner: ${esc(d.ownership.rep_name||repName())}</div></div><span class="small">Confirmation sent</span></div>`;
+    if(dr&&dr.status!=='sent'&&dr.text){body+=`<textarea id="draft">${esc(dr.text)}</textarea>`;}
+  } else if(stage==='time_selected'){
+    body=`<div class="bookline"><div><div class="when">${esc(bk.selected.day_label)} · ${esc(bk.selected.label)}</div><div class="det">${v?esc(v.year+' '+v.make+' '+v.model+' '+v.trim):''}${trade?' · trade appraisal: '+esc(trade.value):''} · you: ${esc(repName())}</div></div><button class="btn book" id="book">Book ${esc(bk.selected.label)} + send confirmation</button></div>`;
+  } else if(dr){
+    const flags=(dr.validation?.claims||[]).filter(c=>c.verdict!=='supported');
+    body=`${flags.map(c=>`<div class="flag ${c.risk==='orange'?'person':''}">⚠ <span><b>${esc(c.kind.replace(/_/g,' '))}</b> — <span class="q">“${esc(c.text)}”</span> · ${esc(c.note||'')}</span></div>`).join('')}
+      ${bk.slots&&bk.slots.length>=2?`<div class="slotpick">Offering <button class="${slotVariant===0?'on':''}" data-var="0"><kbd>1</kbd> ${esc(bk.slots[0].label)} + ${esc(bk.slots[1].label)}</button><button class="${slotVariant===1?'on':''}" data-var="1"><kbd>2</kbd> both morning</button><button class="${slotVariant===2?'on':''}" data-var="2">both afternoon</button><span class="small">verified open · ${esc(bk.date_label||'')}</span></div>`:''}
+      <textarea id="draft" ${dr.status==='sent'?'disabled':''} placeholder="${dr.text?'':'No AI draft for this — type your reply.'}">${esc(dr.text)}</textarea>`;
+  } else {
+    body=`<textarea id="draft" placeholder="Type a reply…"></textarea>`;
+  }
+  const sent=dr&&dr.status==='sent', blocked=dr&&(dr.status==='blocked'||dr.risk_level==='red');
+  const actions=(stage==='booked'&&!(dr&&dr.status!=='sent'&&dr.text))?'':`<div class="actions">
+      ${stage==='time_selected'?`<button class="btn quiet sm" id="sendAnyway">Reply instead</button>`:`<button class="btn primary" id="send" ${(!dr||sent||blocked||!d.window.open)?'disabled':''}>${sent?'Sent':'Send & next'}</button>`}
+      <span class="hint" id="valstate">${blocked?'<span style="color:var(--bad);font-weight:700">Blocked — fix the flagged sentence</span>':(sent?'':'claims re-checked at send')} · <kbd>⌘↵</kbd></span></div>`;
+  return `<div class="card ${cls}" id="card"><div class="top"><div class="goal">Goal<b>${esc(goal)}</b></div><div class="missing ${missOk?'ok':''}">${missing}</div>${renderKnown(d)}${veri}${clarify}</div>${body}${actions}</div>`;
 }
-const ARROW={up:'↗',flat:'→',down:'↘'};
+
+function renderKnown(d){
+  const CW={asked_about:'asked about',preferred:'prefers',required:'needs',tentative:'tentative',confirmed:'confirmed',stated:''};
+  const parts=[];
+  for(const f of d.facts){
+    if(['financing_sensitive','objection'].includes(f.key)) continue;
+    const label={trade_vehicle:'Trade',preferred_vehicle:'Vehicle',timing:'Visit',need:'',asked_about:'Asked',budget:'Budget',payment_target:'Payment target'}[f.key]??f.key;
+    const cw=CW[f.certainty]||'';
+    parts.push(`<button data-mid="${f.evidence?.message_id||''}" title="click → source message">${label?`<span class="q">${esc(label)}:</span> `:''}<b>${esc(f.value)}</b>${cw?` <span class="q">(${cw})</span>`:''}</button>`);
+  }
+  return `<div class="facts">${parts.length?'<span class="q">Known:</span> '+parts.join(''):'<span class="q">Known: nothing yet — unknown stays unknown</span>'}</div>`;
+}
+
 function renderGhost(d){
   const g=d.ghost; if(!g) return '';
   const stage=g.followup_stage||0;
-  const nextLabel=stage>=3?'All 3 nudges sent':stage?`Send nudge ${stage+1} of 3`:'Start follow-up sequence';
-  return `<div class="ghost">[ <b>${esc(d.customer.name||'Customer')}</b> has not responded in <b>${esc(g.label)}</b> ]
-    <div class="row">
-      <button class="btn primary" id="fuNext" ${stage>=3?'disabled':''}>${nextLabel}</button>
-      ${stage?'<button class="btn" id="fuStop">Stop sequence</button>':''}
-      <select id="offline"><option value="">I reached them offline…</option><option value="call">📞 Called them</option><option value="text">💬 Texted them</option><option value="email">✉️ Emailed them</option><option value="visit">🚗 They came in</option></select>
-    </div>
-    <div class="demo">${g.simulated?'demo · simulated silence':'real elapsed time'} · follow-ups are never automatic — your call</div></div>`;
-}
-function renderTracker(d){
-  const f=d.funnel; if(!f) return '';
-  const segs=f.stages.map((s,i)=>`<div class="seg ${i<f.current?'done':i===f.current?'cur':i<=f.furthest?'reached':''}"></div>`).join('');
-  const labs=f.stages.map((s,i)=>`<span class="${i<f.current?'done':i===f.current?'cur':''}">${esc(s.label)}</span>`).join('');
-  const cur=f.stages[f.current]?.label||'';
-  const stop=['LOST','DO_NOT_CONTACT'].includes(f.state);
-  const opts=[['APPOINTMENT_SET','Appointment set'],['ARRIVED','Showed up'],['SOLD','Sold'],['NURTURE','Follow up later'],['LOST','Lost / went elsewhere'],['HUMAN_REQUIRED','Needs a person']];
-  return `<div class="tracker"><div class="bar">${segs}</div><div class="labels">${labs}</div>
-    <div class="status"><span>Stage ${f.current+1} of ${f.stages.length}: <b>${esc(cur)}</b></span>${f.paused&&f.paused!=='null'?`<span class="paused ${stop?'stop':''}">${esc(f.paused)}</span>`:''}
-    ${d.momentum&&d.momentum.series.length?`<span class="mom ${d.momentum.trend}" title="Propensity to show for the visit, one point per customer message">${spark(d.momentum,120,30)}<span><b>${ARROW[d.momentum.trend]} ${esc(d.momentum.label)}</b><br><span class="small">${d.momentum.series.length} message${d.momentum.series.length>1?'s':''} · score ${d.momentum.score}${d.momentum.delta?` (${d.momentum.delta>0?'+':''}${d.momentum.delta})`:''}</span></span></span>`:''}
-    <select id="stage" aria-label="Update stage"><option value="">Update stage…</option>${opts.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div></div>`;
-}
-function humanAction(a){return({answer_availability:'Confirm availability, then ask one useful question',invite_test_drive:'Invite for a test drive',resolve_vehicle_questions:'Answer the vehicle questions',ask_qualifying_question:'Ask one qualifying question',answer_price:'Share the verified listed price',route_financing_to_human:'Hand financing to the finance team',route_trade_to_human:'Hand trade value to the appraiser',route_price_objection_to_human:'Hand pricing to the sales manager',offer_alternatives:'Offer matching alternatives',acknowledge_and_close:'Acknowledge and stop selling',offer_reschedule:'Offer a new day — keep the visit alive',route_hold_to_human:'Hand the hold request to the sales manager',route_warranty_to_human:'Pull real warranty details, then answer',route_delivery_to_human:'Check delivery policy, then answer',follow_up_1:'Follow-up nudge 1 of 3',follow_up_2:'Follow-up nudge 2 of 3',follow_up_3:'Follow-up nudge 3 of 3 (last)',escalate_opt_out:'Suppress — customer opted out',human_takeover:'Rep takes over'})[a]||a;}
-
-function renderClaims(dr){
-  const cs=dr.validation?.claims||[];
-  if(!cs.length&&dr.text)return'<div class="small">No factual claims detected in this draft.</div>';
-  return `<div class="warn">${cs.map(c=>`<div class="claim ${c.verdict}${c.risk==='orange'?' orange':''}"><b>${c.verdict==='supported'?'✓':'⚠'} ${esc(c.kind.replace(/_/g,' '))}</b><span><span class="q">“${esc(c.text)}”</span>${c.source?` — <span class="mono">${esc(c.source)}</span>`:''}${c.note?` — ${esc(c.note)}`:''}</span></div>`).join('')}</div>`;
+  return `<div class="ghost">[ <b>${esc(d.customer.name||'Customer')}</b> hasn't replied in <b>${esc(g.label)}</b> ]
+    <div class="r"><button class="btn primary sm" id="fuNext" ${stage>=3?'disabled':''}>${stage>=3?'All 3 nudges sent':stage?`Send nudge ${stage+1} of 3`:'Start follow-up sequence'}</button>
+    ${stage?'<button class="btn quiet sm" id="fuStop">Stop</button>':''}
+    <select id="offline"><option value="">I reached them offline…</option><option value="call">📞 Called</option><option value="text">💬 Texted</option><option value="email">✉️ Emailed</option><option value="visit">🚗 Came in</option></select></div></div>`;
 }
 
+function bindThread(){
+  const d=detail,dr=d.draft;
+  $('#manual').onclick=async()=>{await api(`/api/threads/${d.id}/takeover`,{method:'POST',body:{rep_id:repId(),paused:!d.ai_paused}});await open(d.id);loadQueue();};
+  const mb=$('#moreBtn'),menu=$('#menu');
+  mb.onclick=e=>{e.stopPropagation();menu.classList.toggle('open');};
+  menu.onclick=e=>e.stopPropagation();
+  document.addEventListener('click',()=>menu.classList.remove('open'));
+  menu.querySelectorAll('[data-stage]').forEach(b=>b.onclick=async()=>{await api(`/api/threads/${d.id}/state`,{method:'POST',body:{rep_id:repId(),state:b.dataset.stage,reason:'rep corrected stage'}});toast('Stage corrected');menu.classList.remove('open');await open(d.id);loadQueue();});
+  const vs=$('#voice');if(vs)vs.onchange=async e=>{await api(`/api/threads/${d.id}/voice`,{method:'POST',body:{rep_id:repId(),voice:e.target.value}});toast('Reply style updated — redrafted');await open(d.id);};
+  document.querySelectorAll('.facts button').forEach(b=>b.onclick=()=>hl(b.dataset.mid));
+  const fn=$('#fuNext');if(fn)fn.onclick=async()=>{const r=await api(`/api/threads/${d.id}/followup`,{method:'POST',body:{rep_id:repId(),action:'next'}});toast(r.blocked&&!r.draft?r.message:`Follow-up ${r.stage} drafted`);await open(d.id);loadQueue();};
+  const fs=$('#fuStop');if(fs)fs.onclick=async()=>{await api(`/api/threads/${d.id}/followup`,{method:'POST',body:{rep_id:repId(),action:'stop'}});await open(d.id);};
+  const off=$('#offline');if(off)off.onchange=async e=>{const ch=e.target.value;if(!ch)return;const note=prompt('Quick note (optional):','')??'';await api(`/api/threads/${d.id}/offline`,{method:'POST',body:{rep_id:repId(),channel:ch,note}});toast('Logged');await open(d.id);loadQueue();};
+  const bookBtn=$('#book');if(bookBtn)bookBtn.onclick=doBook;
+  const sa=$('#sendAnyway');if(sa)sa.onclick=()=>{detail.booking={...detail.booking,stage:'time_proposed'};renderThread();};
+  document.querySelectorAll('.slotpick button').forEach(b=>b.onclick=()=>pickVariant(+b.dataset.var));
+  const ta=$('#draft');
+  if(ta&&dr){
+    ta.addEventListener('input',()=>{clearTimeout(editTimer);editTimer=setTimeout(async()=>{
+      const v=await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:ta.value}});detail.draft=v;
+      const flags=(v.validation?.claims||[]).filter(c=>c.verdict!=='supported');const vs2=$('#valstate');const send=$('#send');
+      if(v.status==='blocked'){vs2.innerHTML='<span style="color:var(--bad);font-weight:700">Blocked — '+esc(flags[0]?.note||'unsupported claim')+'</span>';if(send)send.disabled=true;$('#card').classList.add('blocked');}
+      else{vs2.innerHTML='✓ checked · <kbd>⌘↵</kbd>';if(send)send.disabled=!d.window.open;$('#card').classList.remove('blocked');}
+    },500);});
+  }
+  const send=$('#send');if(send)send.onclick=doSend;
+}
+function hl(mid){document.querySelectorAll('.msg').forEach(m=>m.classList.toggle('hl',m.dataset.mid===mid));const el=document.querySelector(`.msg[data-mid="${mid}"]`);if(el)el.scrollIntoView({block:'center'});}
+
+async function pickVariant(vn){
+  const d=detail;slotVariant=vn;
+  const prefer=vn===1?'morning':vn===2?'afternoon':'';
+  const r=await api(`/api/threads/${d.id}/slots`,{method:'POST',body:{rep_id:repId(),prefer}});
+  if(r.draft){detail.draft=r.draft;detail.booking=r.draft.structured.booking;detail.clarify=r.draft.structured.clarify;renderThread();toast('Offering '+r.draft.structured.booking.slots.map(s=>s.label).join(' or '));}
+}
+async function doSend(){
+  const d=detail,dr=d.draft;if(!dr||$('#send')?.disabled)return;
+  try{const r=await api(`/api/drafts/${dr.id}/send`,{method:'POST',body:{rep_id:repId(),text:$('#draft')?.value??dr.text}});
+    toast(r.demo?.replied?'Sent — customer replied':r.demo?.ghost_hours?`Sent — customer went quiet (${r.demo.ghost_hours}h)`:'Sent');
+    await loadQueue();
+    if(r.demo?.replied){open(d.id);} else if(r.next_thread_id&&r.next_thread_id!==d.id){open(r.next_thread_id);} else {open(d.id);}
+  }catch(e){toast(e.message||'Blocked');await open(d.id);}
+}
+async function doBook(){
+  const d=detail;
+  try{const r=await api(`/api/threads/${d.id}/book`,{method:'POST',body:{rep_id:repId()}});toast('Booked '+r.label+' · confirmation sent');await loadQueue();open(d.id);}
+  catch(e){toast(e.message||'Could not book');}
+}
+
+/* ---------------- side ---------------- */
 function renderSide(){
-  const d=detail,v=d.vehicle;
+  const d=detail,v=d.vehicle,m=d.momentum;
   $('#side').innerHTML=`
-    <div class="card"><h3>AI summary</h3><div class="summary">${esc(d.summary||'—')}</div><div class="small">${esc(d.summary_version)}</div></div>
-    <div class="card"><h3>What we know <span class="small">(tap a fact → source message)</span></h3>
-    ${d.facts.length?d.facts.map(f=>`<button class="fact" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="Click to see evidence · right-click to correct"><span class="k">${esc(f.key.replace(/_/g,' '))}</span><span class="conf">${f.corrected?'rep':Math.round(f.confidence*100)+'%'}</span><span class="val">${esc(f.value)}</span><span class="ev">${f.evidence?'“'+esc(f.evidence.text.slice(0,70))+(f.evidence.text.length>70?'…':'')+'”':'rep-entered'}</span></button>`).join(''):'<div class="small">Nothing extracted yet. Unknown stays unknown.</div>'}</div>
-    <div class="card vcard"><h3>Vehicle</h3>
-    ${v?`<div><div class="name">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
-      <div class="row"><span>Stock / VIN</span><span class="mono">${esc(v.stock_number)} · …${esc(v.vin.slice(-6))}</span></div>
-      <div class="row"><span>Color</span><span>${esc(v.color)}</span></div>
-      <div class="row"><span>Mileage</span><span class="mono">${v.mileage.toLocaleString()}</span></div>
-      <div class="row"><span>Price</span><span class="mono">$${v.price.toLocaleString()}</span></div>
-      <div class="row"><span>Status</span><span class="pill ${v.status==='available'?'green':'red'}">${v.status}</span></div>
-      <div class="fresh ${v.fresh?'ok':'bad'}">${v.fresh?'✓':'⚠'} ${esc(v.source)} · verified ${ago(v.retrieved_at)} ago${v.fresh?'':' — STALE, availability/price claims blocked'}</div></div>`:'<div class="small">No specific unit resolved yet.</div>'}</div>
-    <div class="card"><h3>State history</h3>
-    ${d.transitions.map(t=>`<div class="trans"><b>${STATE_LABEL(t.from)} → ${STATE_LABEL(t.to)}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">—</div>'}</div>
-    <div class="card sim"><h3>Simulate customer message</h3>
-      <textarea id="simText" placeholder="Type what ${esc(d.customer.name||'the customer')} says next…"></textarea>
-      <div class="row"><button class="btn" id="simSend">Receive message</button>
-        <select id="simInv"><option value="">Inventory event…</option>${v?`<option value="sold">Mark ${esc(v.model)} sold</option><option value="pending">Mark ${esc(v.model)} pending</option><option value="available">Mark ${esc(v.model)} available</option><option value="stale">Make feed stale (3h old)</option>`:''}</select></div>
-      <div class="small">Air-gapped demo controls. In production these come from Messenger and the inventory feed.</div></div>`;
-  document.querySelectorAll('.fact').forEach(b=>{
-    b.onclick=()=>{const mid=b.dataset.mid;document.querySelectorAll('.msg').forEach(m=>m.classList.toggle('hl',m.dataset.mid===mid));const el=document.querySelector(`.msg[data-mid="${mid}"]`);if(el)el.scrollIntoView({block:'center'});};
-    b.oncontextmenu=async e=>{e.preventDefault();const nv=prompt('Correct this fact (empty = remove):',b.querySelector('.val').textContent);if(nv===null)return;await api(`/api/facts/${b.dataset.fid}/correct`,{method:'POST',body:{rep_id:repId(),value:nv||null}});toast('Memory corrected');open(d.id);};
-  });
-  $('#simSend').onclick=async()=>{const t=$('#simText').value.trim();if(!t)return;await api('/webhook/messenger',{method:'POST',body:{page_id:META.dealership.page_id,psid:d.customer.psid,text:t,display_name:d.customer.name}});toast('Message received → pipeline ran');await open(d.id);loadInbox();};
-  $('#simInv').onchange=async e=>{const val=e.target.value;if(!val||!v)return;await api('/api/inventory/'+v.stock_number,{method:'POST',body:val==='stale'?{stale:true}:{status:val}});toast('Inventory updated — re-check the draft');e.target.value='';await open(d.id);};
+    ${v?`<div class="panel"><h3>Vehicle</h3><div class="vname">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
+      <div class="vrow"><span>Stock</span><span class="mono">${esc(v.stock_number)}</span></div>
+      <div class="vrow"><span>Drivetrain</span><span>${esc(v.drivetrain||'—')}</span></div>
+      <div class="vrow"><span>Color</span><span>${esc(v.color)}</span></div>
+      <div class="vrow"><span>Mileage</span><span class="mono">${v.mileage.toLocaleString()}</span></div>
+      <div class="vrow"><span>Price</span><span class="mono">$${v.price.toLocaleString()}</span></div>
+      <div class="vrow"><span>Status</span><span>${esc(v.status)}</span></div>
+      <div class="vfresh ${v.fresh?'':'bad'}">${v.fresh?'✓':'⚠'} verified ${esc(v.age)} ago${v.fresh?'':' — stale'}</div></div>`:'<div class="panel"><h3>Vehicle</h3><div class="small">No specific unit yet.</div></div>'}
+    <div class="panel"><h3>Details</h3>
+      <details><summary>Evidence for each fact (${d.facts.length})</summary>${d.facts.map(f=>`<div class="ev" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="click → source · right-click → correct"><div class="k">${esc(f.key.replace(/_/g,' '))} · ${esc(f.certainty)}</div><div class="v">${esc(f.value)}</div><div class="q">${f.evidence?'“'+esc(f.evidence.text.slice(0,90))+(f.evidence.text.length>90?'…':'')+'”':'rep-entered'}</div></div>`).join('')||'<div class="small">—</div>'}</details>
+      <details><summary>Momentum${m&&m.series.length?` · ${esc(m.label)}`:''}</summary>${m&&m.series.length?spark(m,200,40)+`<div class="small">One point per customer communication (last 8). Score ${m.score}${m.delta?` (${m.delta>0?'+':''}${m.delta})`:''}.</div>`:'<div class="small">—</div>'}</details>
+      <details><summary>Stage history (${d.transitions.length})</summary>${d.transitions.map(t=>`<div class="trans"><b>${esc(t.from.toLowerCase().replace(/_/g,' '))} → ${esc(t.to.toLowerCase().replace(/_/g,' '))}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">—</div>'}</details>
+      <details><summary>Diagnostics</summary><div class="diag">AI: ${esc(META.provider)} · ${esc(META.rules_version)}<br>draft #${d.draft?.id??'—'} · ${esc(d.draft?.provider||'')} · state ${esc(d.funnel.state)}<br>reply style: ${esc(d.voice)} (${esc(d.voice_reason||'')})<br>demo script remaining: ${d.demo_remaining??0}</div></details>
+    </div>
+    <div class="panel sim"><h3>Demo: simulate customer</h3><textarea id="simText" placeholder="What ${esc(d.customer.name||'the customer')} says next…"></textarea>
+      <div class="r"><button class="btn sm" id="simSend">Receive</button>${v?`<select id="simInv"><option value="">Inventory event…</option><option value="sold">Mark ${esc(v.model)} sold</option><option value="pending">Mark pending</option><option value="available">Mark available</option><option value="stale">Make feed stale</option></select>`:''}</div></div>`;
+  document.querySelectorAll('.ev').forEach(b=>{b.onclick=()=>hl(b.dataset.mid);
+    b.oncontextmenu=async e=>{e.preventDefault();const nv=prompt('Correct this fact (empty = remove):',b.querySelector('.v').textContent);if(nv===null)return;await api(`/api/facts/${b.dataset.fid}/correct`,{method:'POST',body:{rep_id:repId(),value:nv||null}});toast('Corrected');open(d.id);};});
+  $('#simSend').onclick=async()=>{const t=$('#simText').value.trim();if(!t)return;await api('/webhook/messenger',{method:'POST',body:{page_id:META.dealership.page_id,psid:d.customer.psid,text:t,display_name:d.customer.name}});await open(d.id);loadQueue();};
+  const si=$('#simInv');if(si)si.onchange=async e=>{const val=e.target.value;if(!val||!v)return;await api('/api/inventory/'+v.stock_number,{method:'POST',body:val==='stale'?{stale:true}:{status:val}});e.target.value='';const dr=detail.draft;if(dr&&!['sent','discarded'].includes(dr.status)){await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:dr.text}});}toast('Inventory changed — draft re-checked');await open(d.id);};
+}
+function spark(m,w,h){
+  let s=m.series.slice(-8); if(s.length===1) s=[s[0],s[0]];
+  const pad=4,W=w-pad*2,H=h-pad*2,n=s.length,x=i=>pad+i*W/(n-1),y=v=>pad+H-(Math.max(0,Math.min(100,v))/100)*H;
+  const col={up:'var(--ok)',flat:'var(--warn)',down:'var(--bad)'}[m.trend];
+  const pts=s.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${m.label}"><title>${s.join(' → ')}</title><line x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}" stroke="var(--line)"></line><polyline fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${pts}"></polyline><circle cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3" fill="${col}"></circle></svg>`;
 }
 
-document.addEventListener('click',e=>{const l=e.target.closest('.lead');if(l)open(+l.dataset.id);});
-(async()=>{await loadMeta();await loadInbox();setInterval(loadInbox,15000);})();
+/* ---------------- keyboard ---------------- */
+document.addEventListener('keydown',e=>{
+  const inField=['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName);
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();if($('#book'))doBook();else doSend();return;}
+  if(inField) return;
+  if(e.key==='j'||e.key==='J'){step(1);} else if(e.key==='k'||e.key==='K'){step(-1);}
+  else if(e.key==='e'||e.key==='E'){const ta=$('#draft');if(ta){e.preventDefault();ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}}
+  else if(e.key==='1'){if(detail?.booking?.slots?.length)pickVariant(0);}
+  else if(e.key==='2'){if(detail?.booking?.slots?.length)pickVariant(slotVariant===1?2:1);}
+});
+document.addEventListener('click',e=>{const l=e.target.closest('.row');if(l)open(+l.dataset.id);});
+(async()=>{await loadMeta();await loadQueue();setInterval(loadQueue,20000);})();
 </script>
 </body>
 </html>

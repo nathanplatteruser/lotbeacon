@@ -6,7 +6,7 @@ from .ai.base import ExtractedFact
 from .models import MemoryFact, Message, Thread
 
 EXTRACTION_VERSION = "extract-v1"
-MULTI_VALUE_KEYS = {"need", "objection"}
+MULTI_VALUE_KEYS = {"need", "objection", "asked_about"}
 
 
 def active_facts(s: Session, thread_id: int) -> list[MemoryFact]:
@@ -37,13 +37,13 @@ def apply_extracted(s: Session, thread: Thread, msg: Message, extracted: list[Ex
             prior = [x for x in existing if x.key == ef.key]
             if any(x.corrected_by_rep_id for x in prior):
                 continue  # rep's correction stands
-            if prior and prior[-1].value == ef.value:
+            if prior and prior[-1].value == ef.value and (prior[-1].certainty == getattr(ef, "certainty", "stated") or getattr(ef, "certainty", "stated") == "stated"):
                 continue
             for x in prior:
                 x.active = False  # customer changed their mind → supersede, keep history
         f = MemoryFact(
             tenant_id=thread.tenant_id, thread_id=thread.id, key=ef.key, value=ef.value,
-            evidence_message_id=msg.id, confidence=ef.confidence, extraction_version=f"{EXTRACTION_VERSION}:{provider}",
+            evidence_message_id=msg.id, confidence=ef.confidence, certainty=getattr(ef, "certainty", "stated") or "stated", extraction_version=f"{EXTRACTION_VERSION}:{provider}",
         )
         s.add(f)
         written.append(f)
@@ -69,7 +69,14 @@ def correct_fact(s: Session, fact: MemoryFact, new_value: str | None, rep_id: in
 def fact_view(f: MemoryFact, s: Session) -> dict:
     ev = s.get(Message, f.evidence_message_id) if f.evidence_message_id else None
     return {
-        "id": f.id, "key": f.key, "value": f.value, "confidence": f.confidence, "extraction_version": f.extraction_version,
+        "id": f.id, "key": f.key, "value": f.value, "confidence": f.confidence, "certainty": f.certainty or "stated", "extraction_version": f.extraction_version,
         "corrected": bool(f.corrected_by_rep_id),
         "evidence": {"message_id": ev.id, "text": ev.text, "sent_at": ev.sent_at.isoformat()} if ev else None,
     }
+
+
+def certainty_dict(facts: list[MemoryFact]) -> dict:
+    return {f.key: (f.certainty or "stated") for f in facts if f.key not in MULTI_VALUE_KEYS}
+
+
+CERTAINTY_WORDS = {"asked_about": "asked about", "preferred": "prefers", "required": "needs", "tentative": "tentative", "confirmed": "confirmed", "stated": ""}

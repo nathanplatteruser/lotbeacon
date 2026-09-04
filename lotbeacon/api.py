@@ -8,11 +8,12 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import __version__, inventory, memory, momentum, policy, timefmt, voices
+from . import __version__, booking, inventory, memory, momentum, policy, queue, timefmt, voices
 from .ai.base import resolve_provider_name
 from .config import RULES_VERSION
 from .db import get_session, init_db
 from .models import Appointment, AuditEvent, Customer, Dealership, Draft, LeadState, MemoryFact, Message, Rep, StateTransition, Thread, Vehicle
+from .validator import validate
 from .pipeline import audit, ingest_inbound, process_message, regenerate, revalidate
 
 app = FastAPI(title="LotBeacon", version=__version__)
@@ -80,6 +81,12 @@ def meta(s: Session = Depends(get_session)):
     return {"version": __version__, "provider": resolve_provider_name(), "rules_version": RULES_VERSION, "dealership": {"id": d.id, "name": d.name, "page_id": d.page_id, "hours_today": policy.hours_today(d.hours, d.timezone)}, "reps": [{"id": r.id, "name": r.name, "role": r.role} for r in reps], "voices": voices.as_list()}
 
 
+@app.get("/api/queue")
+def action_queue(s: Session = Depends(get_session)):
+    """The rep's work list. Buckets + one-line next action per row. No scores."""
+    return queue.build(s, ghost_view)
+
+
 @app.get("/api/threads")
 def threads(s: Session = Depends(get_session)):
     out = []
@@ -117,7 +124,11 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
         "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust), "momentum": momentum.view(s, t), "ghost": ghost_view(t),
         "demo_remaining": max(0, len(t.demo_script or []) - t.demo_cursor),
         "summary": t.summary, "summary_version": t.summary_version,
-        "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "text": m.text, "sent_at": m.sent_at.isoformat()} for m in t.messages],
+        "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "sender": m.sender or ("customer" if m.direction == "in" else "rep"), "text": m.text, "sent_at": m.sent_at.isoformat(), "ago": timefmt.since(m.sent_at)} for m in t.messages],
+        "booking": ((draft.structured or {}).get("booking") if draft else None) or booking.booking_view(s, t, dealer, memory.facts_dict(memory.active_facts(s, t.id)), {}, [], inventory.vehicle_card(v) if v else None),
+        "ownership": ownership_view(s, t),
+        "window": window_view(t, cust),
+        "clarify": (draft.structured or {}).get("clarify") if draft else None,
         "facts": facts,
         "vehicle": inventory.vehicle_card(v) if v else None,
         "draft": _draft_view(draft) if draft else None,
@@ -128,12 +139,21 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
     }
 
 
+def ownership_view(s: Session, t: Thread) -> dict:
+    rep = s.get(Rep, t.assigned_rep_id) if t.assigned_rep_id else None
+    return {"rep_id": t.assigned_rep_id, "rep_name": rep.name if rep else None, "ai_drafting": not t.ai_paused,
+            "line": (("AI drafting · " if not t.ai_paused else "Manual · ") + (f"{rep.name} sends" if rep else "unassigned — you send") + " · no autonomous sends")}
+
+
+def window_view(t: Thread, cust: Customer) -> dict:
+    e = policy.messaging_eligibility(t, cust)
+    left = queue._hours_left(e) if e.get("eligible") else 0.0
+    return {"channel": "Facebook Messenger", "open": bool(e.get("eligible")), "reason": e.get("reason"), "remaining": timefmt.humanize(left * 3600) if left is not None else None, "hours_left": left, "closing_soon": bool(left is not None and e.get("eligible") and left < 4)}
+
+
 # ------------------------------------------------------------------ funnel tracker (Domino's-style)
-FUNNEL = [
-    ("NEW", "Inquiry received"), ("ENGAGED", "Conversation started"), ("DISCOVERY", "Needs understood"), ("VEHICLE_INTEREST", "Vehicle matched"),
-    ("HIGH_INTENT", "Ready to visit"), ("APPOINTMENT_INTENT", "Visit requested"), ("APPOINTMENT_SET", "Appointment set"), ("ARRIVED", "Showed up"), ("SOLD", "Sold"),
-]
-_STAGE_OF = {"NEW": 0, "ENGAGED": 1, "DISCOVERY": 2, "VEHICLE_MATCH": 2, "VEHICLE_INTEREST": 3, "OBJECTION": 3, "HIGH_INTENT": 4, "APPOINTMENT_INTENT": 5, "APPOINTMENT_SET": 6, "ARRIVED": 7, "SOLD": 8, "REVIEW_ELIGIBLE": 8}
+FUNNEL = [("ENGAGE", "Engage"), ("QUALIFY", "Qualify"), ("BOOK", "Book"), ("VISIT", "Visit outcome")]
+_STAGE_OF = {"NEW": 0, "ENGAGED": 0, "DISCOVERY": 1, "VEHICLE_MATCH": 1, "VEHICLE_INTEREST": 1, "OBJECTION": 1, "HIGH_INTENT": 2, "APPOINTMENT_INTENT": 2, "APPOINTMENT_SET": 2, "ARRIVED": 3, "SOLD": 3, "REVIEW_ELIGIBLE": 3, "HUMAN_REQUIRED": 1, "NURTURE": 1}
 _PAUSED = {"HIGH_INTENT": None, "HUMAN_REQUIRED": "Paused — a person needs to take this one", "OBJECTION": "Working through an objection", "LOST": "Closed — customer went elsewhere", "DO_NOT_CONTACT": "Stopped — customer opted out", "NURTURE": "Parked — follow up later, when permitted"}
 
 
@@ -142,7 +162,8 @@ def funnel_view(t: Thread, transitions) -> dict:
     reached = [_STAGE_OF[s] for s in states if s in _STAGE_OF]
     furthest = max(reached) if reached else 0
     cur = _STAGE_OF.get(t.lead_state.value, furthest)
-    return {"stages": [{"key": k, "label": l} for k, l in FUNNEL], "current": cur, "furthest": max(cur, furthest), "paused": _PAUSED.get(t.lead_state.value), "state": t.lead_state.value}
+    sub = {"NEW": "New inquiry", "ENGAGED": "In conversation", "DISCOVERY": "Learning needs", "VEHICLE_MATCH": "Matching vehicles", "VEHICLE_INTEREST": "Specific vehicle", "OBJECTION": "Working an objection", "HIGH_INTENT": "Ready to visit", "APPOINTMENT_INTENT": "Visit interest", "APPOINTMENT_SET": "Appointment booked", "ARRIVED": "Showed up", "SOLD": "Sold", "LOST": "Lost", "DO_NOT_CONTACT": "Opted out", "HUMAN_REQUIRED": "Needs a person", "NURTURE": "Follow up later"}.get(t.lead_state.value, t.lead_state.value)
+    return {"stages": [{"key": k, "label": l} for k, l in FUNNEL], "current": cur, "furthest": max(cur, furthest), "paused": _PAUSED.get(t.lead_state.value), "state": t.lead_state.value, "substate": sub}
 
 
 def your_move(t: Thread, d: Draft | None, cust: Customer) -> dict:
@@ -179,6 +200,11 @@ def your_move(t: Thread, d: Draft | None, cust: Customer) -> dict:
         return {"kind": "you", "text": "Warranty question. Approve the reply, then pull the real coverage sheet for that VIN and send it yourself."}
     if a == "route_delivery_to_human":
         return {"kind": "you", "text": "Delivery request. Approve the reply, then check the store's delivery policy before promising anything."}
+    if a == "book_selected_slot" or (d.status == "ready_to_book"):
+        sel = (d.structured.get("booking") or {}).get("selected") or {}
+        return {"kind": "book", "text": f"Book {sel.get('label', 'the slot')} {sel.get('day_label', '')} + send confirmation. One click does both."}
+    if a == "pre_visit_help":
+        return {"kind": "approve", "text": "Appointment is booked. Answer their question and send — the time is restated for them."}
     if a.startswith("follow_up_"):
         return {"kind": "approve", "text": f"Follow-up {a[-1]} of 3 is drafted. Read it, hit Send — or skip it if you've already reached them another way."}
     if a == "offer_reschedule":
@@ -186,7 +212,7 @@ def your_move(t: Thread, d: Draft | None, cust: Customer) -> dict:
     if d.status == "blocked" or d.risk_level == "red":
         return {"kind": "fix", "text": "Fix the red sentence(s) in the draft, hit Re-check claims, then Send."}
     if a == "invite_test_drive":
-        return {"kind": "approve", "text": "Read the draft, hit Send. When they pick a time, book it in your scheduler and click Confirm appointment."}
+        return {"kind": "approve", "text": "Send the two times. When they pick one, the Book button lights up."}
     if t.lead_state == LeadState.APPOINTMENT_SET:
         return {"kind": "approve", "text": "Appointment is set. When they arrive, mark Showed up in the stage menu."}
     return {"kind": "approve", "text": "Read the draft, edit if you want, hit Send."}
@@ -233,14 +259,113 @@ def send_draft(draft_id: int, body: DraftSend, s: Session = Depends(get_session)
     if not d.text.strip():
         raise HTTPException(422, {"blocked": True, "message": "Nothing to send."})
     # → Messenger Send API goes here. Simulated: persist the outbound message.
-    msg = Message(tenant_id=t.tenant_id, thread_id=t.id, external_id=f"out_{d.id}", direction="out", author="rep", text=d.text)
+    rep = s.get(Rep, body.rep_id)
+    msg = Message(tenant_id=t.tenant_id, thread_id=t.id, external_id=f"out_{d.id}", direction="out", author="rep", sender=rep.name if rep else "rep", text=d.text)
     s.add(msg)
     d.status = "sent"
     t.last_activity_at = datetime.now(timezone.utc)
+    if not t.assigned_rep_id:
+        t.assigned_rep_id = body.rep_id
     audit(s, t, f"rep:{body.rep_id}", "message.sent", {"draft_id": d.id, "risk": d.risk_level, "channel": "messenger-sim"})
     s.flush()
     demo = _demo_advance(s, t)
-    return {"sent": True, "message_id": msg.id, "demo": demo}
+    return {"sent": True, "message_id": msg.id, "demo": demo, "next_thread_id": _next_reply_now(s, t.id)}
+
+
+def _next_reply_now(s: Session, exclude: int) -> int | None:
+    q = queue.build(s, ghost_view)
+    for r in q["rows"]:
+        if r["bucket"] in ("book_now", "reply_now", "window_closing") and r["id"] != exclude:
+            return r["id"]
+    return None
+
+
+class Book(BaseModel):
+    rep_id: int
+    slot_iso: str | None = None  # defaults to the customer's selected slot
+
+
+@app.post("/api/threads/{thread_id}/book")
+def book(thread_id: int, body: Book, s: Session = Depends(get_session)):
+    """ONE action: save the appointment (confirmed), send the confirmation, assign the owner, advance the funnel.
+    The rep clicking this button IS the approval; the confirmation text still passes the claim check."""
+    t = s.get(Thread, thread_id)
+    cust = s.get(Customer, t.customer_id)
+    dealer = s.get(Dealership, t.dealership_id)
+    d = s.scalar(select(Draft).where(Draft.thread_id == t.id).order_by(Draft.id.desc()))
+    bk = (d.structured.get("booking") if d else {}) or {}
+    sel = bk.get("selected")
+    iso = body.slot_iso or (sel or {}).get("iso")
+    if not iso:
+        raise HTTPException(422, {"message": "No time selected yet. Send the two options first, or pick a slot."})
+    starts = datetime.fromisoformat(iso)
+    elig = policy.messaging_eligibility(t, cust)
+    if not elig["eligible"]:
+        raise HTTPException(403, {"message": "Messaging window closed — book it, then call to confirm."})
+    vid = (d.structured.get("vehicle_ids") if d else None) or []
+    v = s.get(Vehicle, vid[0]) if vid else None
+    # 1. appointment (confirmed — this is the only path that creates one)
+    for old in s.scalars(select(Appointment).where(Appointment.thread_id == t.id, Appointment.status.in_(["requested", "confirmed"]))):
+        old.status = "cancelled"
+    a = Appointment(tenant_id=t.tenant_id, thread_id=t.id, vehicle_id=v.id if v else None, starts_at=starts, status="confirmed", confirmed_by_rep_id=body.rep_id, owner_rep_id=body.rep_id)
+    s.add(a)
+    s.flush()
+    # 2. confirmation text in the thread's voice, then the claim check (appointment now exists, so "you're set" is allowed)
+    slot = booking.Slot(starts.astimezone(booking.tz_of(dealer)))
+    first = (cust.display_name or "").split(" ")[0]
+    vtxt = f" for the {v.year} {v.make} {v.model}" if v else ""
+    facts = memory.facts_dict(memory.active_facts(s, t.id))
+    trade = f" We'll have the appraiser ready for your {facts['trade_vehicle']}." if facts.get("trade_vehicle") else ""
+    rep_name = (s.get(Rep, body.rep_id).name if s.get(Rep, body.rep_id) else "me")
+    text = f"You're set, {first} — {slot.day_label} at {slot.label}{vtxt}.{trade} Ask for {rep_name} when you arrive" + (f" — {dealer.address}." if dealer.address else ".")
+    vcard = inventory.vehicle_card(v) if v else None
+    res = validate(text, vehicle=vcard, vehicle_fresh=bool(v and inventory.is_fresh(v)), alternatives=[], hours_today=None, appointment_confirmed=True, messaging=elig)
+    if res.blocked:
+        raise HTTPException(422, {"message": "Confirmation text failed the claim check.", "claims": res.to_dict()["claims"]})
+    rep = s.get(Rep, body.rep_id)
+    m = Message(tenant_id=t.tenant_id, thread_id=t.id, external_id=f"out_book_{a.id}", direction="out", author="rep", sender=rep.name if rep else "rep", text=text)
+    s.add(m)
+    if d and d.status in ("pending", "ready_to_book", "escalated"):
+        d.status = "sent"
+    # 3. owner + funnel
+    t.assigned_rep_id = body.rep_id
+    s.add(StateTransition(tenant_id=t.tenant_id, thread_id=t.id, old_state=t.lead_state.value, new_state="APPOINTMENT_SET", reason=f"booked {slot.day_label} {slot.label}", actor=f"rep:{body.rep_id}", rules_version=RULES_VERSION))
+    t.lead_state = LeadState.APPOINTMENT_SET
+    t.last_activity_at = datetime.now(timezone.utc)
+    audit(s, t, f"rep:{body.rep_id}", "appointment.booked", {"appointment_id": a.id, "starts_at": iso, "vehicle_id": v.id if v else None, "confirmation_message_id": None})
+    s.flush()
+    demo = _demo_advance(s, t)
+    return {"appointment_id": a.id, "starts_at": iso, "label": f"{slot.day_label} · {slot.label}", "confirmation": text, "demo": demo, "next_thread_id": _next_reply_now(s, t.id)}
+
+
+class SlotPrefer(BaseModel):
+    rep_id: int
+    prefer: str = ""  # "" | morning | afternoon
+
+
+@app.post("/api/threads/{thread_id}/slots")
+def reslot(thread_id: int, body: SlotPrefer, s: Session = Depends(get_session)):
+    """Rep wants a different verified pair (both morning / both afternoon). Redrafts with those slots."""
+    t = s.get(Thread, thread_id)
+    d = s.scalar(select(Draft).where(Draft.thread_id == t.id).order_by(Draft.id.desc()))
+    if not d or not d.trigger_message_id:
+        raise HTTPException(409, "nothing to redraft")
+    new = regenerate(s, d, slot_prefer=body.prefer or None)
+    audit(s, t, f"rep:{body.rep_id}", "slots.repicked", {"prefer": body.prefer})
+    return {"draft": _draft_view(new)}
+
+
+class Assign(BaseModel):
+    rep_id: int
+
+
+@app.post("/api/threads/{thread_id}/assign")
+def assign(thread_id: int, body: Assign, s: Session = Depends(get_session)):
+    t = s.get(Thread, thread_id)
+    if t.assigned_rep_id != body.rep_id:
+        t.assigned_rep_id = body.rep_id
+        audit(s, t, f"rep:{body.rep_id}", "thread.assigned", {})
+    return ownership_view(s, t)
 
 
 def _demo_advance(s: Session, t: Thread) -> dict | None:

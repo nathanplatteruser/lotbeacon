@@ -104,8 +104,8 @@ def test_validator_catches_a_hallucinating_model(monkeypatch):
     t = Tenant(name="T"); s.add(t); s.flush()
     d = Dealership(tenant_id=t.id, name="P", page_id="pg", hours=HOURS); s.add(d); s.flush()
     s.add(Rep(tenant_id=t.id, dealership_id=d.id, name="R"))
-    for st, vin, y, mk, md, tr, col, body, mi, pr, status in VEHICLES:
-        s.add(Vehicle(tenant_id=t.id, dealership_id=d.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, mileage=mi, price=pr, status=status, retrieved_at=datetime.now(timezone.utc)))
+    for st, vin, y, mk, md, tr, col, body, mi, pr, status, drv in VEHICLES:
+        s.add(Vehicle(tenant_id=t.id, dealership_id=d.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, drivetrain=drv, mileage=mi, price=pr, status=status, retrieved_at=datetime.now(timezone.utc)))
     s.flush()
     stub = SimpleNamespace(messages=StubMessages([
         tool_response("record_classification", {"intent": "price", "sentiment": "neutral", "objection": None, "confidence": 0.9, "signals": []}),

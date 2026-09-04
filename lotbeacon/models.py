@@ -126,6 +126,7 @@ class Message(Base):
     external_id: Mapped[str] = mapped_column(String(128))  # Messenger mid — idempotency key
     direction: Mapped[str] = mapped_column(String(3))  # "in" (customer) | "out" (dealership)
     author: Mapped[str] = mapped_column(String(20))  # customer | rep | ai
+    sender: Mapped[str] = mapped_column(String(120), default="")  # who actually sent it (rep name) — attribution, not "rep"
     text: Mapped[str] = mapped_column(Text)
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     thread: Mapped[Thread] = relationship(back_populates="messages")
@@ -142,6 +143,7 @@ class MemoryFact(Base):
     value: Mapped[str] = mapped_column(String(300))
     evidence_message_id: Mapped[int | None] = mapped_column(ForeignKey("messages.id"), nullable=True)
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    certainty: Mapped[str] = mapped_column(String(16), default="stated")  # asked_about | preferred | required | tentative | confirmed | stated
     extraction_version: Mapped[str] = mapped_column(String(64))
     corrected_by_rep_id: Mapped[int | None] = mapped_column(ForeignKey("reps.id"), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -165,6 +167,7 @@ class Vehicle(Base):
     trim: Mapped[str] = mapped_column(String(60), default="")
     color: Mapped[str] = mapped_column(String(40), default="")
     body: Mapped[str] = mapped_column(String(40), default="")  # SUV | truck | sedan
+    drivetrain: Mapped[str] = mapped_column(String(8), default="")  # 4WD | AWD | RWD | FWD — AWD and 4WD are NOT interchangeable
     mileage: Mapped[int] = mapped_column(Integer, default=0)
     price: Mapped[int] = mapped_column(Integer)  # whole dollars, internet price
     status: Mapped[str] = mapped_column(String(20), default="available")  # available | pending | sold
@@ -179,8 +182,10 @@ class Appointment(Base):
     thread_id: Mapped[int] = mapped_column(ForeignKey("threads.id"), index=True)
     vehicle_id: Mapped[int | None] = mapped_column(ForeignKey("vehicles.id"), nullable=True)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    status: Mapped[str] = mapped_column(String(20), default="requested")  # requested | confirmed | cancelled
+    status: Mapped[str] = mapped_column(String(20), default="requested")  # requested | confirmed | cancelled | showed | no_show
     confirmed_by_rep_id: Mapped[int | None] = mapped_column(ForeignKey("reps.id"), nullable=True)
+    owner_rep_id: Mapped[int | None] = mapped_column(ForeignKey("reps.id"), nullable=True)
+    kind: Mapped[str] = mapped_column(String(20), default="test_drive")
 
 
 class StateTransition(Base):

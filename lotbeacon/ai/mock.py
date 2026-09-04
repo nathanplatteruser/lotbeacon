@@ -5,6 +5,7 @@ Good enough to run the whole pipeline honestly, and it makes every test reproduc
 import re
 
 from .. import voices
+from ..booking import COMMITTED, TENTATIVE
 from .base import Classification, DraftContext, ExtractedFact
 
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -81,14 +82,15 @@ class MockProvider:
 
         # Timing: day of week / this week / soon
         low = t.lower()
+        timing_cert = "confirmed" if COMMITTED.search(t) else ("tentative" if TENTATIVE.search(t) else "stated")
         for d in DAYS:
             if re.search(r"\b" + d + r"\b", low):
-                facts.append(ExtractedFact("timing", d.capitalize(), 0.9, _window(t, d)))
+                facts.append(ExtractedFact("timing", d.capitalize(), 0.9, _window(t, d), timing_cert))
                 break
         else:
-            for phrase, val in [("this week", "This week"), ("this weekend", "This weekend"), ("next week", "Next week"), ("today", "Today"), ("tomorrow", "Tomorrow"), ("asap", "ASAP")]:
+            for phrase, val in [("this week", "This week"), ("this weekend", "This weekend"), ("next week", "Next week"), ("today", "Today"), ("tomorrow", "Tomorrow"), ("asap", "ASAP"), ("in an hour", "Today")]:
                 if phrase in low:
-                    facts.append(ExtractedFact("timing", val, 0.85, _window(t, phrase)))
+                    facts.append(ExtractedFact("timing", val, 0.85, _window(t, phrase), timing_cert if val != "Today" else "confirmed"))
                     break
 
         # Preferred vehicle: match against the inventory hint (stock the dealership actually has)
@@ -105,10 +107,15 @@ class MockProvider:
             label = f"{best['year']} {best['make']} {best['model']}" + (f" ({best['color']})" if color_hit else "")
             facts.append(ExtractedFact("preferred_vehicle", label, min(0.6 + 0.15 * best_score, 0.95), _window(t, best["model"].lower())))
 
-        # Needs
-        for phrase, val in [("3 row", "3-row seating"), ("3rd row", "3-row seating"), ("third row", "3-row seating"), ("3-row", "3-row seating"), ("tow", "Towing"), ("awd", "AWD"), ("4x4", "4x4"), ("leather", "Leather")]:
-            if phrase in low:
-                facts.append(ExtractedFact("need", val, 0.85, _window(t, phrase)))
+        # Needs vs questions: "is it AWD?" is a QUESTION about drivetrain, not a requirement.
+        is_question = "?" in t or re.search(r"\b(is it|does it|do you|can it|has it|is that)\b", low) is not None
+        for phrase, val in [("3 row", "3-row seating"), ("3rd row", "3-row seating"), ("third row", "3-row seating"), ("3-row", "3-row seating"), ("tow", "Towing"), ("awd", "AWD"), ("4x4", "4x4"), ("4wd", "4WD"), ("leather", "Leather")]:
+            if re.search(r"(?<![a-z])" + re.escape(phrase) + r"(?![a-z])", low):
+                if val in ("AWD", "4WD", "4x4", "Towing") and is_question and not re.search(r"\b(need|must|has to|have to|require|want)\b", low):
+                    facts.append(ExtractedFact("asked_about", val if val != "4x4" else "4WD", 0.9, _window(t, phrase), "asked_about"))
+                else:
+                    cert = "required" if re.search(r"\b(need|must|has to|have to|require)\b", low) else "preferred"
+                    facts.append(ExtractedFact("need", val, 0.85, _window(t, phrase), cert))
 
         # Budget: ONLY when a number is stated. "not crazy expensive" stays UNKNOWN.
         m = re.search(r"(?:under|below|less than|max|budget(?: is| of)?|around|up to)\s*(?:\$\s*(\d{1,3})(?:,(\d{3}))?\s*(k)?|(\d{1,3})\s*k\b)", low)
@@ -153,14 +160,21 @@ class MockProvider:
             else:
                 parts.append("Let me confirm which unit you're looking at so I can check it for you.")
 
-        if "trade_vehicle" in ctx.facts:
+        if "trade_vehicle" in ctx.facts and action in ("answer_availability", "invite_test_drive", "resolve_vehicle_questions") and not ctx.appointment:
             parts.append(f"And good news on the {ctx.facts['trade_vehicle']} — we take trades; our appraiser will put real numbers on it when you're here.")
 
+        if ctx.clarify:
+            parts.append(ctx.clarify)
         if action == "invite_test_drive":
             when = ctx.facts.get("timing")
-            if when:
+            if ctx.slots and len(ctx.slots) >= 2:
+                day = ctx.slots[0]["day_label"].split(",")[0]
+                parts.append(f"Would {ctx.slots[0]['label']} or {ctx.slots[1]['label']} work better {day}? I'll have it pulled up front.")
+            elif ctx.slots:
+                parts.append(f"Does {ctx.slots[0]['label']} {ctx.slots[0]['day_label'].split(',')[0]} work? I'll have it pulled up front.")
+            elif when:
                 when = when if when.lower() in DAYS or when.isupper() else when[0].lower() + when[1:]
-                parts.append(f"Want to come drive it {when}? " + ("Morning or afternoon work better for you?" if "time" in ctx.missing_information else ""))
+                parts.append(f"Want to come drive it {when}? Morning or afternoon easier for you?")
             else:
                 parts.append("Want to come take it for a spin this week? Tell me a day and I'll get it pulled up front.")
         elif action == "ask_qualifying_question":
@@ -187,6 +201,14 @@ class MockProvider:
                 parts.append(f"A few that fit what you described: {names}. Want details on any of them?")
             else:
                 parts.append("Nothing on the lot matches that exactly right now — want me to watch for one and let you know?")
+        elif action == "pre_visit_help":
+            ap = ctx.appointment or {}
+            if "title" in " ".join(m.get("text", "") for m in ctx.recent_messages[-1:]).lower() or "bring" in " ".join(m.get("text", "") for m in ctx.recent_messages[-1:]).lower():
+                parts.append("Yes — bring your license, and for the trade the title (or payoff info) and registration.")
+            else:
+                parts.append("Happy to help with that when you're here.")
+            if ap:
+                parts.append(f"See you {ap['day_label'].split(',')[0]} at {ap['label']}!")
         elif action == "offer_reschedule":
             parts.append("No problem at all — life happens. What day works better for you? I'll get it set up.")
         elif action == "route_hold_to_human":
@@ -198,7 +220,7 @@ class MockProvider:
         elif action == "acknowledge_and_close":
             parts.append("Understood — thanks for letting me know, and congrats on the new ride. If anything changes down the road, we're here.")
 
-        if ctx.hours_today and action in ("invite_test_drive", "answer_availability"):
+        if ctx.hours_today and action in ("invite_test_drive", "answer_availability") and not ctx.slots:
             parts.append(f"We're open until {ctx.hours_today.split('-')[-1].strip()} today.")
         text = (hi + " ".join(parts)).strip()
         v = next((x for x in voices.VOICES.values() if x.style_guide == ctx.voice), voices.get(None))

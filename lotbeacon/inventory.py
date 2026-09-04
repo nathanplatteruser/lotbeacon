@@ -13,7 +13,7 @@ from .models import Vehicle
 def vehicle_card(v: Vehicle) -> dict:
     return {
         "id": v.id, "stock_number": v.stock_number, "vin": v.vin, "year": v.year, "make": v.make, "model": v.model,
-        "trim": v.trim, "color": v.color, "body": v.body, "mileage": v.mileage, "price": v.price, "status": v.status,
+        "trim": v.trim, "color": v.color, "body": v.body, "drivetrain": v.drivetrain, "mileage": v.mileage, "price": v.price, "status": v.status,
         "source": v.source, "retrieved_at": v.retrieved_at.isoformat(), "fresh": is_fresh(v), "age_seconds": age_seconds(v), "age": humanize(age_seconds(v)),
     }
 
@@ -31,12 +31,19 @@ def list_inventory(s: Session, dealership_id: int) -> list[Vehicle]:
     return list(s.scalars(select(Vehicle).where(Vehicle.dealership_id == dealership_id)))
 
 
-def resolve_vehicle(s: Session, dealership_id: int, text: str, prior_vehicle_id: int | None = None) -> Vehicle | None:
-    """Map free text ('that black Tahoe you posted') to ONE stock unit. Returns None when ambiguous or absent."""
+def resolve_vehicle(s: Session, dealership_id: int, text: str, prior_vehicle_id: int | None = None, exclude_words: list[str] | None = None) -> Vehicle | None:
+    """Map free text ('that black Tahoe you posted') to ONE stock unit. Returns None when ambiguous or absent.
+
+    `exclude_words`: model words that belong to the CUSTOMER'S vehicle (their trade) — "bring the Accord title" must never
+    flip the thread onto our Accord. A bare model mention never displaces an established prior unit either; it takes
+    year/color/trim/stock evidence to switch."""
     low = text.lower()
+    excl = {w.lower() for w in (exclude_words or [])}
     candidates = list_inventory(s, dealership_id)
     scored: list[tuple[int, Vehicle]] = []
     for v in candidates:
+        if v.model.lower() in excl:
+            continue
         score = 0
         if re.search(r"\b" + re.escape(v.model.lower()) + r"\b", low):
             score += 5
@@ -61,7 +68,12 @@ def resolve_vehicle(s: Session, dealership_id: int, text: str, prior_vehicle_id:
         a, b = scored[0][1], scored[1][1]
         if prior_vehicle_id not in (a.id, b.id) and a.status == b.status and a.year == b.year:
             return None
-    return scored[0][1]
+    best_score, best = scored[0]
+    switching = re.search(r"\b(instead|forget|rather|actually|switch|not the|other one|different)\b", low) is not None
+    if prior_vehicle_id and best.id != prior_vehicle_id and best_score <= 5 and not switching:
+        # only a bare model word — not enough to abandon the unit this thread is already about
+        return s.get(Vehicle, prior_vehicle_id)
+    return best
 
 
 def parse_budget(value: str | None) -> int | None:

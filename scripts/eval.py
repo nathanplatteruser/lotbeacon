@@ -56,8 +56,8 @@ def fresh_db():
     d = Dealership(tenant_id=t.id, name="Prairie Chevrolet", page_id="page_eval", hours=HOURS)
     s.add(d); s.flush()
     s.add(Rep(tenant_id=t.id, dealership_id=d.id, name="Eval Rep"))
-    for st, vin, y, mk, md, tr, col, body, mi, pr, status in VEHICLES:
-        s.add(Vehicle(tenant_id=t.id, dealership_id=d.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, mileage=mi, price=pr, status=status, retrieved_at=datetime.now(timezone.utc)))
+    for st, vin, y, mk, md, tr, col, body, mi, pr, status, drv in VEHICLES:
+        s.add(Vehicle(tenant_id=t.id, dealership_id=d.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, drivetrain=drv, mileage=mi, price=pr, status=status, retrieved_at=datetime.now(timezone.utc)))
     s.flush()
     return s, d
 

@@ -1,4 +1,4 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.6)
+# LotBeacon — Messenger Copilot for dealership reps (MVP v0.7 — appointment cockpit)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -42,6 +42,28 @@ pytest -q                                            # 24 tests, all offline
 python -m scripts.eval                               # 12 golden scenarios through the mock
 python -m scripts.eval --providers mock anthropic    # side by side; exits non-zero if any critical claim reaches a rep unblocked
 ```
+
+## v0.7 — what the senior rep's audit changed
+
+| Audit item | What changed |
+|---|---|
+| Queue was scores + colors, not actions | **Action queue**: Reply now · Time selected—book now · Window closing · Appointment changes · Follow-up due · Waiting · Closed. Every row: name, *waiting 2m 6s*, one-line what-happened, one-line **next action**. No scores, no sparklines, no temperature colors on the surface. |
+| "Confirm appointment" shown before a time existed | **State-aware booking**: draft offers **two verified slots** (hours + no double-booking). When the customer picks one, the card flips to **Book 1:45 PM + send confirmation** — one click saves the appointment, sends the confirmation, assigns the owner, advances the funnel. |
+| Missing time buried | **Goal / Missing** line at the top of the one action card: *Book Saturday test drive — Missing: exact time · visit interest is tentative*. |
+| "Visit requested" overstated "could probably" | Fact **certainty**: asked_about / preferred / required / tentative / confirmed. Booking sub-states: visit interest (tentative) → time proposed → time selected → booked. |
+| "AWD" as a 100% need; AWD ≠ 4WD | "Is it AWD?" is *asked about*, not a need. Vehicles carry drivetrain; the draft raises the 4WD-vs-AWD clarification once. Confidence % hidden. |
+| Open-ended "what time works?" | Two real options; daypart only as fallback. Rep can flip to both-morning / both-afternoon pairs (`1`/`2`). |
+| Five panels saying the same thing | **One action card**: Goal · Missing · Known (click → evidence) · Verified vehicle chip · draft · Send & next. Summary/facts/state history/momentum/diagnostics live behind *Details*. |
+| "Re-check claims" button | Removed. Claims validate as you type (500 ms) and again at send; you're interrupted only on a change. |
+| Who owns the thread? | Header line: *AI drafting · Alex Reyes sends · no autonomous sends*. Outbound bubbles attributed to the actual sender. Opening a lead assigns it to you. |
+| "Messaging window open" | *Facebook Messenger · 23h 57m left to reply*; **Window closing** queue when < 4h. |
+| Nine-stage rail | Four macro states (Engage · Qualify · Book · Visit outcome), auto-derived; manual correction under ⋯. |
+| Full timestamps, no unread state | Relative times (*2m ago*, hover for exact), **New** divider, waiting timer per row. |
+| Mouse-heavy | `J`/`K` next lead · `E` edit · `⌘↵` Send & next (or Book) · `1`/`2` slot pair. Send & next opens the next lead that needs you. |
+| Developer metadata on the surface | Moved to *Details → Diagnostics*. |
+| "Voice" ambiguous | Renamed **Reply style**, lives under ⋯. |
+
+Two bugs the new seed exposed and fixed: "Should I bring the **Accord** title?" no longer flips the thread onto *our* Accord (the customer's trade model is excluded from vehicle resolution and extraction), and a question after booking no longer regresses a booked appointment back to "visit interest".
 
 ## The demo
 
@@ -135,11 +157,13 @@ lotbeacon/
   ai/anthropic_provider.py  Claude via forced tool-use; ResilientProvider falls back to mock
   scripts/eval.py  Provider scorecard (mock vs Claude) with the critical-error override
   voices.py        Six voice profiles (style guide for Claude + deterministic rewrites for the mock)
+  booking.py       Resolve 'Saturday' to a date · propose two verified slots · read the customer's pick · one-click book
+  queue.py         Action queue: buckets, waiting timers, next-action text
   momentum.py      Propensity-to-show score per message + trend (the sparkline)
   timefmt.py       Two-level human durations (2d 4h · 3h 5m · 6m 22s)
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
   web/index.html   Rep workspace
-tests/                     31 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
+tests/                     33 tests: golden scenarios + Claude provider contract (stubbed SDK, no network)
 ```
 
 ## Next tickets this unlocks

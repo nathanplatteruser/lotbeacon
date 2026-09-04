@@ -24,6 +24,7 @@ class ExtractedFact:
     value: str
     confidence: float
     quote: str  # the exact customer words that justify the value
+    certainty: str = "stated"  # asked_about | preferred | required | tentative | confirmed | stated
 
 
 @dataclass
@@ -43,6 +44,9 @@ class DraftContext:
     missing_information: list[str]
     must_not_claim: list[str]  # explicit prohibitions for this turn
     voice_name: str = "Dealership default"
+    slots: list[dict] | None = None  # verified appointment slots to offer: [{label, day_label, iso}]
+    clarify: str | None = None  # one clarification the draft should raise (e.g., AWD vs 4WD)
+    appointment: dict | None = None  # CONFIRMED appointment {day_label, label} — only then may the draft say "see you"
 
 
 class AIProvider(Protocol):

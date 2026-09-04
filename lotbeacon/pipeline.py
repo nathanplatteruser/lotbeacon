@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import inventory, memory, policy, voices
+from . import booking, inventory, memory, policy, voices
 from .ai.base import AIProvider, Classification, DraftContext, ExtractedFact, get_provider
 from .config import RULES_VERSION
 from .models import (
@@ -75,6 +75,8 @@ def next_state(current: LeadState, cls: Classification, facts: dict, vehicle_res
         return LeadState.HUMAN_REQUIRED, "financing discussion requires a human"
     if cls.intent == "reschedule":
         return LeadState.HIGH_INTENT, "appointment cancelled / reschedule requested — still interested"
+    if current in (LeadState.APPOINTMENT_SET, LeadState.ARRIVED) and cls.intent not in ("financing",):
+        return current, "appointment stands"
     if cls.intent in ("hold", "warranty", "delivery"):
         return LeadState.HUMAN_REQUIRED, f"{cls.intent} question needs an authoritative answer"
     if cls.intent == "schedule":
@@ -118,13 +120,15 @@ def next_best_action(state: LeadState, cls: Classification, facts: dict, vehicle
         if cls.objection == "price":
             return "route_price_objection_to_human", [], "discounts need manager authorization"
         return "human_takeover", [], "objection needs a person"
+    if state == LeadState.APPOINTMENT_SET:
+        return "pre_visit_help", [], "appointment is booked — answer, reiterate the time, keep it warm"
     if state == LeadState.APPOINTMENT_INTENT:
         if "timing" not in facts:
             missing.append("day")
-        missing.append("time")
+        missing.append("exact time")
         if vehicle and fresh and vehicle["status"] != "available":
             return "offer_alternatives", missing, "requested unit no longer available"
-        return "invite_test_drive", missing, "customer signalled a visit — propose the test drive, confirm slot manually"
+        return "invite_test_drive", missing, "offer two verified slots — one message cycle to a booking"
     if state == LeadState.VEHICLE_INTEREST:
         if cls.intent == "price":
             return "answer_price", missing, "verified price lookup"
@@ -141,7 +145,7 @@ def next_best_action(state: LeadState, cls: Classification, facts: dict, vehicle
 
 
 # ---------------------------------------------------------------- run
-def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvider | None = None) -> Draft:
+def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvider | None = None, slot_prefer: str | None = None) -> Draft:
     provider = provider or get_provider()
     dealership = s.get(Dealership, thread.dealership_id)
     customer = s.get(Customer, thread.customer_id)
@@ -160,17 +164,25 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
 
     # 2. memory
     inv = inventory.list_inventory(s, dealership.id)
-    hint = [{"year": v.year, "make": v.make, "model": v.model, "color": v.color, "stock_number": v.stock_number} for v in inv]
+    pre_facts = memory.facts_dict(memory.active_facts(s, thread.id))
+    trade_lower = {w.lower() for w in (pre_facts.get("trade_vehicle") or "").split() if not w.isdigit()}
+    hint = [{"year": v.year, "make": v.make, "model": v.model, "color": v.color, "stock_number": v.stock_number} for v in inv if v.model.lower() not in trade_lower]
     extracted = provider.extract_facts(msg.text, hint)
+    # the customer's own car is never our "preferred vehicle"
+    extracted = [e for e in extracted if not (e.key == "preferred_vehicle" and trade_lower and any(w in e.value.lower().split() for w in trade_lower))]
     memory.apply_extracted(s, thread, msg, extracted, provider.name)
     facts = memory.facts_dict(memory.active_facts(s, thread.id))
     if cls.objection and cls.objection not in facts.get("objection", []):
         memory.apply_extracted(s, thread, msg, [ExtractedFact("objection", cls.objection, cls.confidence, msg.text[:80])], provider.name)
         facts = memory.facts_dict(memory.active_facts(s, thread.id))
 
+    all_facts = memory.active_facts(s, thread.id)
+    certainty = memory.certainty_dict(all_facts)
+
     # 3. vehicle (authoritative)
     prior_vid = _prior_vehicle_id(s, thread)
-    vehicle = inventory.resolve_vehicle(s, dealership.id, msg.text, prior_vid)
+    trade_words = [w for w in (facts.get("trade_vehicle") or "").split() if w and not w.isdigit()]
+    vehicle = inventory.resolve_vehicle(s, dealership.id, msg.text, prior_vid, exclude_words=trade_words)
     vcard = inventory.vehicle_card(vehicle) if vehicle else None
     fresh = bool(vehicle and inventory.is_fresh(vehicle))
     needs = facts.get("need", [])
@@ -190,22 +202,60 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
             a.status = "cancelled"
             audit(s, thread, f"ai:{provider.name}", "appointment.cancelled_by_customer", {"appointment_id": a.id, "message_id": msg.id})
 
+    # 4b. booking: resolve the day, read a slot choice, or propose two verified slots
+    prior_draft = s.scalar(select(Draft).where(Draft.thread_id == thread.id, Draft.id != None).order_by(Draft.id.desc()))  # noqa: E711
+    prior_slots = ((prior_draft.structured or {}).get("booking", {}) or {}).get("slots", []) if prior_draft else []
+    prior_selected = ((prior_draft.structured or {}).get("booking", {}) or {}).get("selected") if prior_draft else None
+    day = booking.resolve_date(facts.get("timing"), dealership)
+    selected = booking.parse_time_choice(msg.text, prior_slots) if prior_slots else None
+    if not selected and day and cls.intent in ("schedule", "availability", "general") and new not in TERMINAL:
+        et = booking.parse_explicit_time(msg.text)
+        if et and booking.hours_for(dealership, day):
+            o, c = booking.hours_for(dealership, day)
+            if o <= et < c:
+                from datetime import datetime as _dt
+                sl = booking.Slot(_dt.combine(day, et, booking.tz_of(dealership)))
+                selected = {"label": sl.label, "day_label": sl.day_label, "iso": sl.iso(), "source": "customer_named"}
+    if not selected and prior_selected and cls.intent not in ("reschedule", "opt_out", "sold_elsewhere", "complaint"):
+        selected = prior_selected  # they picked earlier and are now chatting about something else
+    if cls.intent == "reschedule":
+        selected = None
+    slots: list[dict] = []
+    if day and not selected and new == LeadState.APPOINTMENT_INTENT:
+        prefer = slot_prefer or ("morning" if "morning" in msg.text.lower() else ("afternoon" if "afternoon" in msg.text.lower() else None))
+        slots = [{"label": x.label, "day_label": x.day_label, "iso": x.iso()} for x in booking.propose_slots(s, dealership, day, prefer)]
+    clarify = None
+    asked = facts.get("asked_about", [])
+    already_clarified = any(m.direction == "out" and ("not AWD" in m.text or "not 4WD" in m.text or "rather than" in m.text) for m in thread.messages)
+    if vcard and vcard.get("drivetrain") and not already_clarified and any(a in ("AWD", "4WD") and a != vcard["drivetrain"] for a in asked):
+        clarify = f"Quick note: this {vcard['model']} is {vcard['drivetrain']}, not {[a for a in asked if a in ('AWD', '4WD')][0]} — happy to walk you through the difference."
+
     # 5. NBA
     action, missing, nba_reason = next_best_action(new, cls, facts, vcard, fresh)
+    if selected and new == LeadState.APPOINTMENT_INTENT:
+        action, missing, nba_reason = "book_selected_slot", [], f"customer chose {selected['label']} {selected['day_label']} — book it and send the confirmation in one step"
+    if day and new == LeadState.APPOINTMENT_INTENT and not selected:
+        missing = [m for m in missing if m != "day"]
     thread.priority, thread.priority_reason = _priority(new, cls, facts, fresh)
     thread.summary = _summarize(customer, facts, vcard, new, cls)
     thread.summary_version = f"sum-v1:{provider.name}"
 
     # 6. bounded context → draft
-    appt_confirmed = s.scalar(select(Appointment).where(Appointment.thread_id == thread.id, Appointment.status == "confirmed")) is not None
+    appt = s.scalar(select(Appointment).where(Appointment.thread_id == thread.id, Appointment.status == "confirmed").order_by(Appointment.id.desc()))
+    appt_confirmed = appt is not None
+    appt_info = None
+    if appt:
+        _sl = booking.Slot(appt.starts_at.astimezone(booking.tz_of(dealership)))
+        appt_info = {"day_label": _sl.day_label, "label": _sl.label}
     ctx = DraftContext(
         dealership_name=dealership.name, voice=voices.get(thread.voice).style_guide, voice_name=voices.get(thread.voice).label, customer_name=customer.display_name,
         recent_messages=history, facts={k: v for k, v in facts.items() if k != "financing_sensitive"}, vehicle=vcard, vehicle_fresh=fresh,
         alternatives=alternatives, hours_today=policy.hours_today(dealership.hours, dealership.timezone), recommended_action=action,
         missing_information=missing,
         must_not_claim=["availability unless vehicle_fresh", "any price not on the vehicle card", "financing/APR/payments", "trade value", "appointment booked", "discounts", "warranty terms"],
+        slots=slots or None, clarify=clarify, appointment=appt_info,
     )
-    text = "" if thread.ai_paused else provider.draft(ctx)
+    text = "" if (thread.ai_paused or action == "book_selected_slot") else provider.draft(ctx)
 
     # 7. validate + policy + risk
     elig = policy.messaging_eligibility(thread, customer)
@@ -224,10 +274,12 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
         "citations": ([f"inventory:{vcard['stock_number']}@{vcard['retrieved_at']}"] if vcard else []) + [f"message:{msg.id}"],
         "messaging_eligibility": elig, "rules_version": RULES_VERSION, "provider": provider.name,
         "voice": thread.voice, "voice_locked": thread.voice_locked, "voice_reason": thread.voice_reason,
+        "fact_certainty": certainty, "clarify": clarify,
+        "booking": booking.booking_view(s, thread, dealership, facts, certainty, slots, vcard, selected),
     }
     status = "blocked" if result.blocked else ("escalated" if risk == "orange" and not text else "pending")
     if not text and not result.blocked:
-        status = "escalated"
+        status = "ready_to_book" if action == "book_selected_slot" else "escalated"
     draft = Draft(tenant_id=thread.tenant_id, thread_id=thread.id, trigger_message_id=msg.id, text=text, structured=structured, validation=result.to_dict(), risk_level=risk, status=status, approval_required=True, provider=provider.name)
     s.add(draft)
     s.flush()
@@ -235,13 +287,13 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     return draft
 
 
-def regenerate(s: Session, draft: Draft, provider: AIProvider | None = None) -> Draft:
+def regenerate(s: Session, draft: Draft, provider: AIProvider | None = None, slot_prefer: str | None = None) -> Draft:
     """Re-run the pipeline for the same trigger message (e.g. after a voice change). Memory dedups; state is stable."""
     thread = s.get(Thread, draft.thread_id)
     msg = s.get(Message, draft.trigger_message_id)
-    if draft.status in ("pending", "blocked", "escalated"):
+    if draft.status in ("pending", "blocked", "escalated", "ready_to_book"):
         draft.status = "discarded"
-    return process_message(s, thread, msg, provider)
+    return process_message(s, thread, msg, provider, slot_prefer=slot_prefer)
 
 
 def revalidate(s: Session, draft: Draft, new_text: str) -> Draft:

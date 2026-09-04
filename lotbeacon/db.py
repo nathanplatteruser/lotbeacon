@@ -27,6 +27,19 @@ def _migrate():
     from sqlalchemy import inspect, text
 
     insp = inspect(engine)
+    plan = {
+        "memory_facts": {"certainty": "VARCHAR(16) DEFAULT 'stated'"},
+        "vehicles": {"drivetrain": "VARCHAR(8) DEFAULT ''"},
+        "messages": {"sender": "VARCHAR(120) DEFAULT ''"},
+        "appointments": {"owner_rep_id": "INTEGER", "kind": "VARCHAR(20) DEFAULT 'test_drive'"},
+    }
+    for table, adds2 in plan.items():
+        if table in insp.get_table_names():
+            cols2 = {c["name"] for c in insp.get_columns(table)}
+            with engine.begin() as c:
+                for col, ddl in adds2.items():
+                    if col not in cols2:
+                        c.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {ddl}"))
     if "threads" in insp.get_table_names():
         cols = {c["name"] for c in insp.get_columns("threads")}
         adds = {"voice": "VARCHAR(32) DEFAULT 'dealer'", "voice_locked": "BOOLEAN DEFAULT 0", "voice_reason": "VARCHAR(200) DEFAULT ''",

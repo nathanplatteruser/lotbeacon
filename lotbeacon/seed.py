@@ -17,19 +17,19 @@ from .pipeline import audit, ingest_inbound, process_message
 HOURS = {"mon": "9:00-19:00", "tue": "9:00-19:00", "wed": "9:00-19:00", "thu": "9:00-19:00", "fri": "9:00-18:00", "sat": "9:00-17:00", "sun": "Closed"}
 
 VEHICLES = [
-    # stock, vin, year, make, model, trim, color, body, miles, price, status
-    ("T2401", "1GNSKSKD5RR123456", 2024, "Chevrolet", "Tahoe", "Premier", "Black", "SUV", 8412, 68950, "available"),
-    ("T2402", "1GNSKNKD3RR654321", 2024, "Chevrolet", "Tahoe", "LT", "Summit White", "SUV", 12980, 61400, "available"),
-    ("S2301", "1GKS2CKJ7PR112233", 2023, "GMC", "Yukon", "SLT", "Onyx Black", "SUV", 21500, 63200, "available"),
-    ("E2201", "1FMSK8DH2NGA44556", 2022, "Ford", "Explorer", "XLT", "Carbonized Gray", "SUV", 31200, 36900, "available"),
-    ("F2302", "1FTFW1E85PFA77889", 2023, "Ford", "F-150", "Lariat", "Antimatter Blue", "truck", 18900, 52800, "available"),
-    ("F2201", "1FTEW1EP1NKD99001", 2022, "Ford", "F-150", "XLT", "Oxford White", "truck", 40210, 41500, "pending"),
-    ("P2401", "1C6SRFFT8RN220011", 2024, "Ram", "1500", "Big Horn", "Granite Crystal", "truck", 6100, 47900, "available"),
-    ("C2201", "1HGCV1F34NA330022", 2022, "Honda", "Accord", "Sport", "Platinum White", "sedan", 27800, 26400, "available"),
-    ("H2301", "5NMS3DAJ9PH440033", 2023, "Hyundai", "Palisade", "SEL", "Steel Graphite", "SUV", 15300, 39800, "available"),
-    ("X2101", "1GNSKCKD2MR550044", 2021, "Chevrolet", "Tahoe", "RST", "Black", "SUV", 44100, 49900, "sold"),
-    ("B2301", "5UXCR6C09P9A55066", 2023, "BMW", "X5", "xDrive40i", "Alpine White", "SUV", 19800, 58900, "available"),
-    ("K2401", "5XYP3DHC5RG660077", 2024, "Kia", "Telluride", "SX", "Wolf Gray", "SUV", 4300, 46700, "available"),
+    # stock, vin, year, make, model, trim, color, body, miles, price, status, drivetrain
+    ("T2401", "1GNSKSKD5RR123456", 2024, "Chevrolet", "Tahoe", "Premier", "Black", "SUV", 8412, 68950, "available", "4WD"),
+    ("T2402", "1GNSKNKD3RR654321", 2024, "Chevrolet", "Tahoe", "LT", "Summit White", "SUV", 12980, 61400, "available", "4WD"),
+    ("S2301", "1GKS2CKJ7PR112233", 2023, "GMC", "Yukon", "SLT", "Onyx Black", "SUV", 21500, 63200, "available", "4WD"),
+    ("E2201", "1FMSK8DH2NGA44556", 2022, "Ford", "Explorer", "XLT", "Carbonized Gray", "SUV", 31200, 36900, "available", "AWD"),
+    ("F2302", "1FTFW1E85PFA77889", 2023, "Ford", "F-150", "Lariat", "Antimatter Blue", "truck", 18900, 52800, "available", "4WD"),
+    ("F2201", "1FTEW1EP1NKD99001", 2022, "Ford", "F-150", "XLT", "Oxford White", "truck", 40210, 41500, "pending", "4WD"),
+    ("P2401", "1C6SRFFT8RN220011", 2024, "Ram", "1500", "Big Horn", "Granite Crystal", "truck", 6100, 47900, "available", "4WD"),
+    ("C2201", "1HGCV1F34NA330022", 2022, "Honda", "Accord", "Sport", "Platinum White", "sedan", 27800, 26400, "available", "FWD"),
+    ("H2301", "5NMS3DAJ9PH440033", 2023, "Hyundai", "Palisade", "SEL", "Steel Graphite", "SUV", 15300, 39800, "available", "AWD"),
+    ("X2101", "1GNSKCKD2MR550044", 2021, "Chevrolet", "Tahoe", "RST", "Black", "SUV", 44100, 49900, "sold", "4WD"),
+    ("B2301", "5UXCR6C09P9A55066", 2023, "BMW", "X5", "xDrive40i", "Alpine White", "SUV", 19800, 58900, "available", "AWD"),
+    ("K2401", "5XYP3DHC5RG660077", 2024, "Kia", "Telluride", "SX", "Wolf Gray", "SUV", 4300, 46700, "available", "AWD"),
 ]
 
 G = lambda h: {"ghost": h}  # noqa: E731
@@ -140,8 +140,8 @@ def run():
         for n, role in [("Alex Reyes", "rep"), ("Jordan Kim", "rep"), ("Morgan Blake", "manager")]:
             s.add(Rep(tenant_id=tenant.id, dealership_id=dealer.id, name=n, role=role))
         now = datetime.now(timezone.utc)
-        for st, vin, y, mk, md, tr, col, body, mi, pr, status in VEHICLES:
-            s.add(Vehicle(tenant_id=tenant.id, dealership_id=dealer.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, mileage=mi, price=pr, status=status, source="pilot-feed-sim", retrieved_at=now - timedelta(seconds=43)))
+        for st, vin, y, mk, md, tr, col, body, mi, pr, status, drv in VEHICLES:
+            s.add(Vehicle(tenant_id=tenant.id, dealership_id=dealer.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, drivetrain=drv, mileage=mi, price=pr, status=status, source="pilot-feed-sim", retrieved_at=now - timedelta(seconds=43)))
         s.flush()
         for i, (psid, name, msgs, script) in enumerate(CONVERSATIONS):
             thread: Thread | None = None

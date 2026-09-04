@@ -26,8 +26,8 @@ def s():
     d = Dealership(tenant_id=t.id, name="Prairie Chevrolet", page_id="page_1", hours=HOURS)
     s.add(d); s.flush()
     s.add(Rep(tenant_id=t.id, dealership_id=d.id, name="Alex", role="rep"))
-    for st, vin, y, mk, md, tr, col, body, mi, pr, status in VEHICLES:
-        s.add(Vehicle(tenant_id=t.id, dealership_id=d.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, mileage=mi, price=pr, status=status, retrieved_at=datetime.now(timezone.utc)))
+    for st, vin, y, mk, md, tr, col, body, mi, pr, status, drv in VEHICLES:
+        s.add(Vehicle(tenant_id=t.id, dealership_id=d.id, stock_number=st, vin=vin, year=y, make=mk, model=md, trim=tr, color=col, body=body, drivetrain=drv, mileage=mi, price=pr, status=status, retrieved_at=datetime.now(timezone.utc)))
     s.flush()
     s.dealer = d
     yield s
@@ -50,7 +50,10 @@ def test_black_tahoe_vertical_slice(s):
     assert st["customer_facts"]["timing"] == "Saturday"
     assert "budget" not in st["customer_facts"]  # UNKNOWN stays UNKNOWN
     assert st["recommended_action"] == "invite_test_drive"
-    assert "time" in st["missing_information"]
+    assert "exact time" in st["missing_information"]
+    assert st["fact_certainty"]["timing"] == "tentative"  # "could probably" is not a commitment
+    assert len(st["booking"]["slots"]) == 2 and st["booking"]["stage"] == "time_proposed"
+    assert st["booking"]["slots"][0]["label"] in d.text and st["booking"]["slots"][1]["label"] in d.text  # two verified options, not "what time works?"
     assert d.status == "pending" and d.risk_level in ("green", "yellow")
     assert all(c["verdict"] == "supported" for c in d.validation["claims"])
     assert "Saturday" in d.text and "Tahoe" in d.text
@@ -281,3 +284,33 @@ def test_hold_warranty_delivery_route_to_human(s):
         t, d = run(s, msg, psid="h_" + action, name="X")
         assert d.structured["recommended_action"] == action, msg
         assert "$" not in d.text and d.risk_level == "orange"
+
+
+def test_trade_vehicle_mention_never_flips_the_unit(s):
+    """'Should I bring the Accord title?' must not move the thread onto OUR Accord."""
+    thread, d = run(s, "Is the black 2024 Tahoe Premier still available? I've got a 2018 Accord to trade.", psid="tv1", name="Sarah Miller", mid="tv1a")
+    v1 = d.structured["vehicle_ids"][0]
+    rep_reply(s, thread)
+    thread, d2 = run(s, "Great. Should I bring the Accord title?", psid="tv1", name="Sarah Miller", mid="tv1b")
+    assert d2.structured["vehicle_ids"] == [v1]
+
+
+def test_booked_appointment_is_sticky_and_book_endpoint_flow(s):
+    from lotbeacon import booking
+
+    thread, d = run(s, "Is the black 2024 Tahoe Premier still available? Could probably come Saturday.", psid="bk1", name="Ann Ruiz", mid="bk1a")
+    bk = d.structured["booking"]
+    assert bk["stage"] == "time_proposed" and len(bk["slots"]) == 2 and bk["timing_certainty"] == "tentative"
+    rep_reply(s, thread, d.text)
+    thread, d2 = run(s, f"{bk['slots'][1]['label']} works!", psid="bk1", name="Ann Ruiz", mid="bk1b")
+    assert d2.status == "ready_to_book" and d2.structured["booking"]["selected"]["label"] == bk["slots"][1]["label"]
+    # "10am?" is NOT 10:30 — exact matches only; a customer-named time becomes the selection instead
+    assert booking.parse_time_choice("Saturday morning works great. 10am?", bk["slots"]) is None
+    # book via the appointment path, then a follow-up question must not un-book it
+    s.add(Appointment(tenant_id=thread.tenant_id, thread_id=thread.id, starts_at=datetime.fromisoformat(bk["slots"][1]["iso"]), status="confirmed")); s.flush()
+    thread.lead_state = LeadState.APPOINTMENT_SET
+    rep_reply(s, thread, "You're set!")
+    thread, d3 = run(s, "Perfect, see you then! Should I bring the Accord title?", psid="bk1", name="Ann Ruiz", mid="bk1c")
+    assert thread.lead_state == LeadState.APPOINTMENT_SET
+    assert d3.structured["recommended_action"] == "pre_visit_help" and d3.status == "pending"
+    assert "See you Saturday" in d3.text
