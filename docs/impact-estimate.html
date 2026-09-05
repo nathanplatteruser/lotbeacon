@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LotBeacon Before &amp; After</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LotBeacon">
+<meta property="og:title" content="LotBeacon — before & after, one rep, one month">
+<meta property="og:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger. Pessimistic pilot estimate for Zoellner Ford. Tap to try the interactive demo.">
+<meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/impact-estimate.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LotBeacon — before & after, one rep, one month">
+<meta name="twitter:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger.">
+<meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
+<meta name="description" content="LotBeacon: AI copilot for dealership sales reps on Facebook Messenger. It remembers, verifies and drafts; a person sends every message.">
+<style>
+:root{--ford:#00095B;--ford-2:#0A1E8C;--msgr:#0084FF;--msgr-soft:#E7F0FF;--bg:#F4F5F7;--surface:#FFFFFF;--surface-2:#F0F2F5;--line:#E4E6EB;--line-strong:#CED0D4;--ink:#050505;--ink-2:#45474D;--ink-3:#65676B;--ok:#1E7A3C;--ok-soft:#E6F4EA;--warn:#B45309;--warn-soft:#FFF3DF;--bad:#C62828;--bad-soft:#FCE8E6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#18191A;--surface:#242526;--surface-2:#3A3B3C;--line:#3E4042;--line-strong:#4E4F50;--ink:#E4E6EB;--ink-2:#B0B3B8;--ink-3:#8A8D91;--msgr-soft:#1B2A44;--ok:#5CC48A;--ok-soft:#1E3A26;--warn:#F0A742;--warn-soft:#3D2F14;--bad:#F28B82;--bad-soft:#44201F}}
+:root[data-theme="dark"]{--bg:#18191A;--surface:#242526;--surface-2:#3A3B3C;--line:#3E4042;--line-strong:#4E4F50;--ink:#E4E6EB;--ink-2:#B0B3B8;--ink-3:#8A8D91;--msgr-soft:#1B2A44;--ok:#5CC48A;--ok-soft:#1E3A26;--warn:#F0A742;--warn-soft:#3D2F14;--bad:#F28B82;--bad-soft:#44201F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.page{max-width:1080px;margin:0 auto;padding:0 0 32px}
+header{background:var(--ford);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header .mark{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--ford);display:grid;place-items:center;font-weight:800;font-size:15px}
+header h1{margin:0;font-size:20px;font-weight:700}
+header .sub{font-size:12.5px;opacity:.85;margin-left:auto;text-align:right}
+main{padding:20px 28px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.lede{font-size:15.5px;color:var(--ink-2);max-width:72ch;margin:0}
+.lede b{color:var(--ink)}
+.grid{display:grid;gap:14px}
+.g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:1.25fr 1fr}
+@media (max-width:820px){.g3,.g2{grid-template-columns:1fr}}
+.panel{background:var(--surface);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);padding:14px 16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:6px 6px;border-bottom:1px solid var(--line);font-weight:700}
+td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top;font-variant-numeric:tabular-nums}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.total td{font-weight:700;border-top:2px solid var(--line-strong);border-bottom:0}
+.delta{font-weight:700;color:var(--ok)} .delta.flat{color:var(--ink-3)} .delta.bad{color:var(--bad)}
+.note{font-size:11.5px;color:var(--ink-3);margin-top:8px;line-height:1.5}
+.hero{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:820px){.hero{grid-template-columns:1fr}}
+.tile{background:var(--surface);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);border-top:3px solid var(--ford)}
+.tile .lab{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.tile .num{font-size:30px;font-weight:800;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.tile .num.money{color:var(--ok)}
+.tile .why{font-size:12px;color:var(--ink-3);margin-top:4px}
+.persona{border-top:3px solid var(--msgr)}
+.persona h3{margin:0 0 2px;font-size:15px} .persona .cares{font-size:12px;color:var(--ink-3);margin:0 0 8px;font-style:italic}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) auto auto minmax(64px,auto);gap:4px 10px;font-size:13px;align-items:baseline}
+.kv .h{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.kv b{font-variant-numeric:tabular-nums;text-align:right}
+.kv .arrow{color:var(--ink-3)}
+.funnel{display:grid;grid-template-columns:110px 1fr 1fr 60px;gap:6px 10px;align-items:center;font-size:12.5px}
+.funnel .h{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.bar{height:16px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--line-strong)} .bar i.a{background:linear-gradient(90deg,var(--ford),var(--msgr))}
+.funnel b{text-align:right;font-variant-numeric:tabular-nums}
+.src{font-size:11px;color:var(--ink-3);line-height:1.55}
+.src a{color:var(--msgr);text-decoration:none} .src a:hover{text-decoration:underline}
+.pill{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:700;letter-spacing:.03em;vertical-align:middle;margin-left:6px}
+@media print{body{background:#fff}.panel,.tile{box-shadow:none;border:1px solid #ddd}main{padding:12px 0}header{padding:12px 0;background:#00095B!important;-webkit-print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="page">
+<header><span class="mark">L</span><h1>LotBeacon — before &amp; after, one rep, one month</h1><div class="sub">Zoellner Ford pilot estimate · Sept 2026 · deliberately pessimistic<br>Every assumption listed below · <a href="https://nathanplatteruser.github.io/lotbeacon/" style="color:#fff;text-decoration:underline">try the interactive demo</a></div></header>
+<main>
+
+<p class="lede">An average rep spends roughly <b>a third of the selling month</b> posting to Facebook, answering DMs, retyping the same answers, and checking whether they said the right thing. Meanwhile <b>43% of internet leads get mishandled</b> and the typical reply lands after <b>47 minutes</b>, when the customer has already heard from someone else. LotBeacon doesn't make the rep a better closer. It makes sure every lead gets a fast, verified, on-tone reply and a booked slot, so the rep's month converts more of what marketing already paid for.</p>
+
+<section class="hero">
+  <div class="tile"><div class="lab">Rep hours back per month</div><div class="num">15 h</div><div class="why">33 h → 18 h on messaging &amp; prospecting, same lead volume. ~2 selling days.</div></div>
+  <div class="tile"><div class="lab">Units per rep per month, same leads</div><div class="num">1.9 → 2.8</div><div class="why">+0.9 units from response speed, no dropped leads, two-slot booking. Close rate held flat.</div></div>
+  <div class="tile"><div class="lab">Store gross per month, 6 reps</div><div class="num money">+$12.6k – $25.9k</div><div class="why">At $2,400 gross/unit. Low = same volume; high = reps take on 33% more conversations with the hours they got back.</div></div>
+</section>
+
+<div class="grid g2">
+<section class="panel">
+  <h2>Where the rep's time goes · hours per month</h2>
+  <table>
+    <tr><th>Activity</th><th class="n">Before</th><th class="n">After</th><th class="n">Δ</th><th>What changes</th></tr>
+    <tr><td>Posting &amp; refreshing Marketplace listings <span class="pill">out of scope v1</span></td><td class="n">8.7</td><td class="n">8.7</td><td class="n"><span class="delta flat">0</span></td><td>~10 listings/wk × 12 min. Unchanged — LotBeacon starts when the DM arrives.</td></tr>
+    <tr><td>Reading, researching, typing DM replies</td><td class="n">17.5</td><td class="n">6.2</td><td class="n"><span class="delta">−11.3</span></td><td>150 replies/mo. 7 min each (reopen thread, check lot, type) → 2.5 min to read, tweak, approve a verified draft.</td></tr>
+    <tr><td>Double-checking tone, price, availability claims</td><td class="n">1.5</td><td class="n">1.0</td><td class="n"><span class="delta">−0.5</span></td><td>Manager pings for pricing/financing → routed with context, one message instead of a hallway hunt.</td></tr>
+    <tr><td>Follow-ups on quiet leads</td><td class="n">3.8</td><td class="n">1.5</td><td class="n"><span class="delta">−2.3</span></td><td>44% of reps quit after one try. Rep-approved 3-nudge sequence, one click each.</td></tr>
+    <tr><td>CRM / tracking</td><td class="n">1.5</td><td class="n">0.3</td><td class="n"><span class="delta">−1.2</span></td><td>14% of leads never get logged today. Stage, facts, evidence and audit trail write themselves.</td></tr>
+    <tr class="total"><td>Total</td><td class="n">33.0</td><td class="n">17.8</td><td class="n"><span class="delta">−15.2</span></td><td>≈ 2 hours a day → ≈ 1 hour a day, same 30 conversations.</td></tr>
+  </table>
+  <div class="note">Before-hours are forum-style estimates (r/askcarsales threads and dealer trainers put "1–2 hours a day on the CRM and texts" as normal). After-minutes come from LotBeacon's own accept/edit mix in the demo, rounded up. Marketplace posting is left unchanged on purpose.</div>
+</section>
+
+<section class="panel">
+  <h2>The funnel, 30 Messenger leads per rep · pessimistic</h2>
+  <div class="funnel">
+    <span class="h">Stage</span><span class="h">Before</span><span class="h">After</span><span class="h" style="text-align:right">Δ</span>
+    <span>Contacted</span><div class="bar"><i style="width:63%"></i></div><div class="bar"><i class="a" style="width:78%"></i></div><b>18.9 → 23.4</b>
+    <span>Appointment set</span><div class="bar"><i style="width:26%"></i></div><div class="bar"><i class="a" style="width:37%"></i></div><b>7.9 → 11.2</b>
+    <span>Showed</span><div class="bar"><i style="width:15%"></i></div><div class="bar"><i class="a" style="width:22%"></i></div><b>4.6 → 6.7</b>
+    <span>Sold</span><div class="bar"><i style="width:6.3%"></i></div><div class="bar"><i class="a" style="width:9.3%"></i></div><b>1.9 → 2.8</b>
+  </div>
+  <table style="margin-top:10px">
+    <tr><th>Rate</th><th class="n">Before</th><th class="n">After</th><th>Why we moved it (or didn't)</th></tr>
+    <tr><td>Contact rate</td><td class="n">63%</td><td class="n">78%</td><td>No lead sits unanswered; every reply inside the 24-h Messenger window. Still needs the customer to answer.</td></tr>
+    <tr><td>Set rate of contacted</td><td class="n">42%</td><td class="n">48%</td><td>Two verified slots in the first reply, one-click book. Benchmark for phone leads is 75%; we claim far less.</td></tr>
+    <tr><td>Show rate</td><td class="n">58%</td><td class="n">60%</td><td>Confirmation + pre-visit help. Barely moved on purpose.</td></tr>
+    <tr><td>Close rate (showed)</td><td class="n">41%</td><td class="n">41%</td><td>Held flat. Closing happens on the lot; the tool gets no credit for it.</td></tr>
+    <tr class="total"><td>Lead → sold</td><td class="n">6.3%</td><td class="n">9.3%</td><td>Industry internet-lead close is ~6%. We land under the 12–18% that sub-5-minute responders report.</td></tr>
+  </table>
+</section>
+</div>
+
+<section>
+  <h2>Three decision makers, three scorecards</h2>
+  <div class="grid g3">
+    <div class="panel persona"><h3>Owner / GM</h3><p class="cares">Cares about units per month, whichever vehicle sells. Then gross, then risk.</p>
+      <div class="kv"><span class="h">Metric</span><span class="h">Before</span><span class="h"></span><span class="h">After</span>
+        <span>Units / rep / month (Messenger leads)</span><b>1.9</b><span class="arrow">→</span><b class="delta">2.8</b>
+        <span>Units / store / month, 6 reps</span><b>11.4</b><span class="arrow">→</span><b class="delta">16.8</b>
+        <span>…if reps use freed hours for +33% conversations</span><b>11.4</b><span class="arrow">→</span><b class="delta">22.2</b>
+        <span>Gross added / month</span><b>—</b><span class="arrow">→</span><b class="delta">$12.6k–25.9k</b>
+        <span>Unsupported claims sent to customers</span><b>unknown</b><span class="arrow">→</span><b class="delta">0 by design</b>
+        <span>Autonomous sends</span><b>n/a</b><span class="arrow">→</span><b class="delta">0</b>
+      </div><div class="note">Every send is a human decision. Availability, price, financing, trade and hold claims are verified or blocked. That is the risk line an owner signs off on.</div></div>
+    <div class="panel persona"><h3>Sales reps</h3><p class="cares">Care about people showing up, an above-average close rate, and time spent on what pays.</p>
+      <div class="kv"><span class="h">Metric</span><span class="h">Before</span><span class="h"></span><span class="h">After</span>
+        <span>Median first reply</span><b>47 min</b><span class="arrow">→</span><b class="delta">&lt; 5 min</b>
+        <span>Shows / rep / month</span><b>4.6</b><span class="arrow">→</span><b class="delta">6.7</b>
+        <span>Hours on messaging / month</span><b>33</b><span class="arrow">→</span><b class="delta">18</b>
+        <span>Conversations one rep can carry</span><b>30</b><span class="arrow">→</span><b class="delta">40–60</b>
+        <span>Replies per rep-hour</span><b>8.6</b><span class="arrow">→</span><b class="delta">~24</b>
+        <span>Leads dropped / mishandled</span><b>43%</b><span class="arrow">→</span><b class="delta">≈ 0</b>
+      </div><div class="note">The rep keeps the relationship and every consequential promise. LotBeacon remembers, verifies, drafts in the customer's tone, and queues the next action, so the rep's hours shift from typing to showroom.</div></div>
+    <div class="panel persona"><h3>Marketing / BDC</h3><p class="cares">Cares about qualified leads reaching the floor, foot traffic, and brand response on the channel.</p>
+      <div class="kv"><span class="h">Metric</span><span class="h">Before</span><span class="h"></span><span class="h">After</span>
+        <span>Paid leads actually worked</span><b>57%</b><span class="arrow">→</span><b class="delta">~100%</b>
+        <span>After-hours leads (40–50%) in window</span><b>rarely</b><span class="arrow">→</span><b class="delta">drafted by 8 AM</b>
+        <span>Shows / store / month</span><b>28</b><span class="arrow">→</span><b class="delta">40–54</b>
+        <span>"Very responsive" badge (90% &lt; 15 min)</span><b>no</b><span class="arrow">→</span><b class="delta">in reach</b>
+        <span>Cost per <i>worked</i> lead</span><b>1.75×</b><span class="arrow">→</span><b class="delta">≈ 1.0×</b>
+        <span>Opt-outs + audit trail</span><b>manual</b><span class="arrow">→</span><b class="delta">automatic</b>
+      </div><div class="note">Same ad budget, 40–75% more of it turns into a person on the lot. Marketing's number moves without buying one more lead.</div></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Assumptions we chose to be conservative about</h2>
+  <div class="src">
+    <b>Held flat or ignored:</b> close rate on the showroom floor (41%); Marketplace posting time; any lift from the six reply styles; any lift from the momentum tracker or buddy notes; service, referral and repeat-buyer effects. <b>Rounded against us:</b> assisted reply time 2.5 min (demo measures 1.5–3.0); set rate 48% (phone leads hit 75%); show rate +2 pts only. <b>Volume:</b> the high case assumes reps use about half the recovered hours to carry 40 conversations instead of 30, still well under the ~3× capacity the reply-time math allows. <b>Gross:</b> $2,400 per used unit, front + back, editable in the app's Owner dashboard. <b>Store size:</b> 6 reps, ~150 internet/Messenger leads per month (NADA average), 30 per rep.
+  </div>
+  <h2 style="margin-top:12px">Sources</h2>
+  <div class="src">
+    <a href="https://www.demandlocal.com/blog/lead-to-sale-conversion-statistics/">Demand Local, lead-to-sale statistics</a> (Foureyes: 63% contact, 42% set, 58% show, 41% close, 40% internet-lead set vs 75% phone; Urban Science: 6% internet-lead 30-day close; Chili Piper: 42-h average business response, 78% buy from first responder) ·
+    <a href="https://www.ringlead.ca/blog/speed-to-lead/internet-lead-response-statistics-2026/">Ringlead, internet lead response statistics 2026</a> (Pied Piper: 47-min business-hours response, 90+ min all hours; Foureyes: 43% of leads mishandled; 40–50% of leads after hours; ~150 leads/dealer/month; close rate 24% &lt;60 s → 6% &gt;90 min; 1 in 5 dealers never personally respond) ·
+    <a href="https://www.demandlocal.com/blog/appointment-setting-show-rate-statistics/">Demand Local, appointment &amp; show-rate statistics</a> (Cox: 34% of leads missed without a BDC; 74% answered within an hour) ·
+    <a href="https://shiftlyauto.com/blogs/5-minute-rule-dealer-marketplace-leads">Shiftly Auto, the 5-minute rule for Marketplace leads</a> (14.1% of leads never logged; 44% of reps stop after one follow-up; 24-h Messenger window) ·
+    <a href="https://www.autosweet.com/blog/5-ways-dealers-kill-facebook-messaging-leads/">AutoSweet, how dealers kill Messenger leads</a> (15-min expectation; "Very responsive" badge = 90% within 15 min; curt tone, dead-end replies) ·
+    <a href="https://www.dealersunited.com/blog/5-best-practices-for-managing-your-dealerships-facebook-marketplace-leads/">Dealers United, Marketplace lead practices</a> (40% after hours; 120-day follow-up) ·
+    <a href="https://simpsocial.com/blog/car-salesperson-sales-volume/">SimpSocial, salesperson volume bands</a> (8–12 units/mo baseline, 20+ top tier). Rep time-on-task figures are forum consensus (r/askcarsales, dealer trainers), labeled as estimates.
+  </div>
+</section>
+</main>
+</div>
+</body>
+</html>

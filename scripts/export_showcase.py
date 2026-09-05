@@ -73,6 +73,21 @@ def build() -> dict:
     return data
 
 
+OG_TAGS = """<meta property="og:type" content="website">
+<meta property="og:site_name" content="LotBeacon">
+<meta property="og:title" content="LotBeacon — Messenger copilot for dealership reps">
+<meta property="og:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger. Pessimistic pilot estimate for Zoellner Ford. Tap to try the interactive demo.">
+<meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LotBeacon — Messenger copilot for dealership reps">
+<meta name="twitter:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger.">
+<meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
+<meta name="description" content="LotBeacon: AI copilot for dealership sales reps on Facebook Messenger. It remembers, verifies and drafts; a person sends every message.">
+"""
+
+
 SHIM = r"""
 /* ---------------- showcase: recorded API (no server) ---------------- */
 const LB=window.LB_STATIC; const CUR={}; for(const k in LB.threads) CUR[k]=0;
@@ -136,7 +151,7 @@ def render(data: dict, artifact: bool = False) -> str:
     html = html.replace("calc(100vh - 52px)", "calc(100vh - 52px - 31px)")
     html = html.replace("window.open(`/api/audit/export?thread_id=${d.id}`,'_blank');", "needsLive('Audit export');")
     html = html.replace("window.open('/api/audit/export','_blank')", "needsLive('Audit export')")
-    html = html.replace("<title>LotBeacon</title>", "<title>LotBeacon · showcase</title>")
+    html = html.replace("<title>LotBeacon</title>", "<title>LotBeacon · showcase</title>" + ("" if artifact else "\n" + OG_TAGS))
     if artifact:
         html = re.sub(r"^<!doctype html>\s*<html[^>]*>\s*<head>\s*", "", html, flags=re.I)
         html = re.sub(r"<meta charset=\"utf-8\">\s*<meta name=\"viewport\"[^>]*>\s*", "", html)

@@ -221,3 +221,7 @@ Every seeded lead carries a ≤10-word "buddy note" — the two keywords a cowor
 ## Zero-backend showcase (GitHub Pages)
 
 `python -m scripts.export_showcase` plays every seeded conversation forward through the real pipeline and writes `docs/index.html`: the real UI with the API replaced by those recordings. No server, no key, no cost — serve it from GitHub Pages (Settings → Pages → Deploy from a branch → `main` / `/docs`). Send & next and Book play the recording forward; why-this-action, evidence, Impact and the Owner dashboard all work. Free-text edit re-validation, reply styles and the live-inquiry analyzer need the hosted demo (see above). Rebuild after any pipeline change and commit `docs/`.
+
+## Before & after one-pager + link previews
+
+`docs/impact-estimate.html` — a deliberately pessimistic one-page estimate (time, funnel, units, gross) for the three decision makers: owner/GM, sales reps, marketing/BDC. Sources and every assumption are on the page. Live at `/lotbeacon/impact-estimate.html` on GitHub Pages. `docs/og.png` (1200×630) is the link-preview card — one headline metric per persona — referenced by Open Graph/Twitter tags on both the showcase and the one-pager, so a texted or emailed link unfurls with the outcomes instead of a blank compass icon. Regenerate the card from the HTML in `scripts/og_card.html` if the numbers change.
