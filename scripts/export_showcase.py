@@ -148,6 +148,8 @@ def render(data: dict, artifact: bool = False) -> str:
     built = datetime.fromisoformat(data["built_at"]).strftime("%b %d, %Y")
     banner = f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Interactive showcase · recorded {built} · Send &amp; next and Book play the conversation forward</div>'
     html = html.replace("</header>", "</header>" + banner, 1)
+    html = html.replace('<button id="anaBtn"', '<a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn"', 1)
+    html = html.replace("header .nav button[aria-selected=\"true\"]", "header .nav .navlink{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;opacity:.75;text-decoration:none;display:inline-block}header .nav .navlink:hover{opacity:1}\nheader .nav button[aria-selected=\"true\"]", 1)
     html = html.replace("calc(100vh - 52px)", "calc(100vh - 52px - 31px)")
     html = html.replace("window.open(`/api/audit/export?thread_id=${d.id}`,'_blank');", "needsLive('Audit export');")
     html = html.replace("window.open('/api/audit/export','_blank')", "needsLive('Audit export')")

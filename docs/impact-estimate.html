@@ -64,11 +64,15 @@ tr.total td{font-weight:700;border-top:2px solid var(--line-strong);border-botto
 .src a{color:var(--msgr);text-decoration:none} .src a:hover{text-decoration:underline}
 .pill{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:700;letter-spacing:.03em;vertical-align:middle;margin-left:6px}
 @media print{body{background:#fff}.panel,.tile{box-shadow:none;border:1px solid #ddd}main{padding:12px 0}header{padding:12px 0;background:#00095B!important;-webkit-print-color-adjust:exact}}
+.tabs{display:flex;gap:4px;padding:8px 28px;background:var(--ford-2);flex-wrap:wrap}
+.tabs a{color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;opacity:.8}
+.tabs a:hover{opacity:1;background:rgba(255,255,255,.12)} .tabs a[aria-current]{opacity:1;background:rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
 <div class="page">
 <header><span class="mark">L</span><h1>LotBeacon — before &amp; after, one rep, one month</h1><div class="sub">Zoellner Ford pilot estimate · Sept 2026 · deliberately pessimistic<br>Every assumption listed below · <a href="https://nathanplatteruser.github.io/lotbeacon/" style="color:#fff;text-decoration:underline">try the interactive demo</a></div></header>
+<nav class="tabs"><a href="./">Interactive demo</a><a href="impact-estimate.html" aria-current="page">Before &amp; after</a><a href="pricing.html" >Pricing</a><a href="compare.html" >vs the field</a></nav>
 <main>
 
 <p class="lede">An average rep spends roughly <b>a third of the selling month</b> posting to Facebook, answering DMs, retyping the same answers, and checking whether they said the right thing. Meanwhile <b>43% of internet leads get mishandled</b> and the typical reply lands after <b>47 minutes</b>, when the customer has already heard from someone else. LotBeacon doesn't make the rep a better closer. It makes sure every lead gets a fast, verified, on-tone reply and a booked slot, so the rep's month converts more of what marketing already paid for.</p>

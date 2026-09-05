@@ -225,3 +225,7 @@ Every seeded lead carries a ≤10-word "buddy note" — the two keywords a cowor
 ## Before & after one-pager + link previews
 
 `docs/impact-estimate.html` — a deliberately pessimistic one-page estimate (time, funnel, units, gross) for the three decision makers: owner/GM, sales reps, marketing/BDC. Sources and every assumption are on the page. Live at `/lotbeacon/impact-estimate.html` on GitHub Pages. `docs/og.png` (1200×630) is the link-preview card — one headline metric per persona — referenced by Open Graph/Twitter tags on both the showcase and the one-pager, so a texted or emailed link unfurls with the outcomes instead of a blank compass icon. Regenerate the card from the HTML in `scripts/og_card.html` if the numbers change.
+
+## Business case pages (docs/)
+
+`impact-estimate.html` (before/after model), `pricing.html` (Solo $549 · Three Amigos $1,347 · Dealership Umbrella $2,990; founding-dealer beta half price 90 days; every package ≥4× on the pessimistic model), `compare.html` (honest better/worse/same vs Podium, Gubagoo, Impel, Conversica, Fullpath, Tekion, VinSolutions, DriveCentric, CARVID, Meta's own AI). All share a tab bar with the interactive demo. Research notes: Meta removed business-Page vehicle listings Jan 2023, so Marketplace profile threads are not API-reachable — LotBeacon's stance is Page Messenger via official API + paste-in today + a read-only browser companion (v1.1); human-approved sends qualify for Meta's 7-day human-agent window (v1.0).

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LotBeacon vs the Field</title>
+<meta property="og:type" content="website"><meta property="og:site_name" content="LotBeacon">
+<meta property="og:title" content="LotBeacon vs the field — where it's better, where it's worse, where it's the same">
+<meta property="og:description" content="Podium, Gubagoo, Impel, Conversica, Fullpath, Tekion, VinSolutions, DriveCentric, CARVID, Meta's own AI — compared honestly on Messenger, human approval, inventory-verified claims, rep tooling and price.">
+<meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/compare.html">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
+<style>
+:root{--ford:#00095B;--ford-2:#0A1E8C;--msgr:#0084FF;--msgr-soft:#E7F0FF;--bg:#F4F5F7;--surface:#FFFFFF;--surface-2:#F0F2F5;--line:#E4E6EB;--line-strong:#CED0D4;--ink:#050505;--ink-2:#45474D;--ink-3:#65676B;--ok:#1E7A3C;--ok-soft:#E6F4EA;--warn:#B45309;--warn-soft:#FFF3DF;--bad:#C62828;--bad-soft:#FCE8E6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#18191A;--surface:#242526;--surface-2:#3A3B3C;--line:#3E4042;--line-strong:#4E4F50;--ink:#E4E6EB;--ink-2:#B0B3B8;--ink-3:#8A8D91;--msgr-soft:#1B2A44;--ok:#5CC48A;--ok-soft:#1E3A26;--warn:#F0A742;--warn-soft:#3D2F14;--bad:#F28B82;--bad-soft:#44201F}}
+:root[data-theme="dark"]{--bg:#18191A;--surface:#242526;--surface-2:#3A3B3C;--line:#3E4042;--line-strong:#4E4F50;--ink:#E4E6EB;--ink-2:#B0B3B8;--ink-3:#8A8D91;--msgr-soft:#1B2A44;--ok:#5CC48A;--ok-soft:#1E3A26;--warn:#F0A742;--warn-soft:#3D2F14;--bad:#F28B82;--bad-soft:#44201F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.page{max-width:1120px;margin:0 auto;padding:0 0 32px}
+header{background:var(--ford);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header .mark{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--ford);display:grid;place-items:center;font-weight:800;font-size:15px}
+header h1{margin:0;font-size:20px;font-weight:700}
+header .sub{font-size:12.5px;opacity:.85;margin-left:auto;text-align:right} header a{color:#fff}
+main{padding:20px 28px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.lede{font-size:15.5px;color:var(--ink-2);max-width:76ch;margin:0} .lede b{color:var(--ink)}
+.panel{background:var(--surface);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);padding:14px 16px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px}
+th{text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:8px 6px;border-bottom:1px solid var(--line);font-weight:700;vertical-align:bottom}
+th.us{color:var(--ford);background:var(--msgr-soft);border-radius:8px 8px 0 0}
+td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}
+td.us{background:var(--msgr-soft);font-weight:600}
+td.row{font-weight:700;color:var(--ink);white-space:nowrap}
+.y{color:var(--ok);font-weight:800} .n{color:var(--bad);font-weight:800} .p{color:var(--warn);font-weight:800}
+.small{font-size:11px;color:var(--ink-3)}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px} @media (max-width:860px){.cards{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);padding:14px 16px;border-left:4px solid var(--line-strong)}
+.card h3{margin:0 0 2px;font-size:15px} .card .who{font-size:12px;color:var(--ink-3);margin:0 0 8px}
+.card .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-top:8px}
+.card p{margin:2px 0 0;font-size:13px;color:var(--ink-2);line-height:1.45} .card p b{color:var(--ink)}
+.card .say{background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--ink);margin-top:8px;font-style:italic}
+.verdict{display:grid;grid-template-columns:repeat(3,1fr);gap:12px} @media (max-width:860px){.verdict{grid-template-columns:1fr}}
+.v{background:var(--surface);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);border-top:4px solid var(--ok)}
+.v.worse{border-top-color:var(--bad)} .v.same{border-top-color:var(--warn)}
+.v h3{margin:0 0 6px;font-size:14px} .v ul{margin:0;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.5} .v li{margin:3px 0} .v li b{color:var(--ink)}
+.road{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;font-size:13px;color:var(--ink-2)} .road b{color:var(--ford)} .road .why{color:var(--ink-3);font-size:12px}
+.src{font-size:11px;color:var(--ink-3);line-height:1.6} .src a{color:var(--msgr);text-decoration:none} .src a:hover{text-decoration:underline}
+.callout{background:var(--warn-soft);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink-2);border-left:4px solid var(--warn)} .callout b{color:var(--ink)}
+@media print{body{background:#fff}.panel,.card,.v{box-shadow:none;border:1px solid #ddd}header{background:#00095B!important;-webkit-print-color-adjust:exact}}
+.tabs{display:flex;gap:4px;padding:8px 28px;background:var(--ford-2);flex-wrap:wrap}
+.tabs a{color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;opacity:.8}
+.tabs a:hover{opacity:1;background:rgba(255,255,255,.12)} .tabs a[aria-current]{opacity:1;background:rgba(255,255,255,.2)}
+</style>
+</head>
+<body>
+<div class="page">
+<header><span class="mark">L</span><h1>LotBeacon vs the field — better, worse, or the same</h1><div class="sub">Researched Sept 2026 from vendor sites, G2/Capterra, DealerRefresh, Meta developer policy<br>Ranges are public-page figures, not quotes · <a href="./">try the demo</a></div></header>
+<nav class="tabs"><a href="./">Interactive demo</a><a href="impact-estimate.html" >Before &amp; after</a><a href="pricing.html" >Pricing</a><a href="compare.html" aria-current="page">vs the field</a></nav>
+<main>
+
+<p class="lede">Every AI vendor in this market sells one of two things: an <b>autonomous agent that replaces the BDC</b> (Podium, Impel, Conversica, Fullpath, Tekion) or a <b>chat widget for the website</b> (Gubagoo, Swirl, Nobi). Nobody sells the third thing: a <b>copilot for the rep who already owns the Messenger thread</b>, where a person approves every send and every price or availability claim is checked against the lot before it can go out. That is the gap LotBeacon fills, and this page is honest about where the gap cuts the other way.</p>
+
+<section class="verdict">
+  <div class="v"><h3>Where LotBeacon is better</h3><ul>
+    <li><b>Human approves every send.</b> Only VinSolutions and DriveCentric offer a review step, and both also auto-send. Podium markets "100% autonomously"; a G2 reviewer: "the assistant sometimes starts answering conversations when we don't want them to."</li>
+    <li><b>Per-claim verification, not "live inventory" marketing.</b> Fullpath's bot famously "sold" a Tahoe for $1; Gubagoo agents get vehicle location right "about 70%" of the time. LotBeacon blocks the sentence.</li>
+    <li><b>Built for the rep, not the BDC.</b> Queue, buddy notes, momentum, one-click booking, "why this action". Competitors hand reps a lead; we hand them the next move.</li>
+    <li><b>7-day human-agent window.</b> Because a person sends, LotBeacon can legally reply up to 7 days after the customer's last message. Autonomous bots are limited to 24 hours by Meta policy.</li>
+    <li><b>Transparent price, month to month.</b> Most rivals are quote-only with 12-month lock-in (Podium: 65 BBB complaints in 3 years, largely auto-renewal).</li>
+  </ul></div>
+  <div class="v worse"><h3>Where LotBeacon is worse (today)</h3><ul>
+    <li><b>One channel.</b> Messenger only. Podium, Impel, Conversica and the CRMs cover SMS + email; Numa/Toma own the phone. SMS is roadmap, not shipped.</li>
+    <li><b>No live Marketplace thread pickup.</b> Since Jan 2023 dealers list from personal profiles, which Meta's API doesn't expose. Today a rep pastes the inquiry in; the extension-based auto-repliers (CARVID, FB Auto Reply AI) read it live, at policy risk.</li>
+    <li><b>No CRM push yet.</b> ADF lead export to VinSolutions/Elead/CDK/DriveCentric is v1.0, not v0.9.</li>
+    <li><b>No 24/7 human backstop.</b> Gubagoo staffs real chat specialists overnight. LotBeacon drafts overnight; a rep sends at 8 AM.</li>
+    <li><b>Zero case studies.</b> Impel is in 3,000+ Ford stores; we have a pessimistic model and a founding-dealer beta.</li>
+  </ul></div>
+  <div class="v same"><h3>Where it's the same</h3><ul>
+    <li><b>Appointment booking</b> against a calendar: Podium, Impel, Conversica, Tekion all do it. Ours checks hours and double-bookings and proposes two slots; theirs book autonomously.</li>
+    <li><b>Reads live inventory</b> to answer questions: Tekion, Impel, Conversica, CARVID claim it. The difference is what happens when the answer isn't there (we block; they generate).</li>
+    <li><b>Six reply styles</b> vs their "brand voice" settings. Ours auto-match the customer's tone; nobody publishes that, but it's a feature, not a moat.</li>
+    <li><b>Owner dashboards.</b> Everyone has one. Ours shows the assumptions behind every dollar and a Responsible-AI scorecard; theirs show engagement.</li>
+  </ul></div>
+</section>
+
+<section class="panel">
+  <h2>Feature matrix · what each one actually does for a Messenger lead</h2>
+  <div class="scroll"><table>
+    <tr><th>Capability</th><th class="us">LotBeacon</th><th>Podium AI BDC</th><th>Gubagoo</th><th>Impel</th><th>Conversica</th><th>Fullpath</th><th>Tekion ARC</th><th>VinSolutions</th><th>CARVID / FB Auto Reply</th><th>Meta AI reply</th></tr>
+    <tr><td class="row">Facebook Messenger (Page inbox)</td><td class="us"><span class="y">✓</span> official API</td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="n">✕</span> not published</td><td><span class="n">✕</span> not published</td><td><span class="n">✕</span> ads only</td><td><span class="n">✕</span> text/email</td><td><span class="p">~</span> manual reply, no AI</td><td><span class="y">✓</span> via extension</td><td><span class="y">✓</span></td></tr>
+    <tr><td class="row">Marketplace threads (personal profile)</td><td class="us"><span class="p">~</span> paste-in today; companion v1.1</td><td><span class="n">✕</span></td><td><span class="p">~</span> via human agents</td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="y">✓</span> browser session (policy risk)</td><td><span class="y">✓</span> listing-scoped only</td></tr>
+    <tr><td class="row">Human approves every send</td><td class="us"><span class="y">✓</span> always</td><td><span class="n">✕</span> autonomous</td><td><span class="p">~</span> vendor's agents</td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="p">~</span> review mode + auto</td><td><span class="n">✕</span></td><td><span class="p">~</span> seller previews</td></tr>
+    <tr><td class="row">Per-claim price/availability check before send</td><td class="us"><span class="y">✓</span> blocks unsupported</td><td><span class="n">✕</span> not published</td><td><span class="n">✕</span></td><td><span class="p">~</span> "guards against hallucinations"</td><td><span class="p">~</span> "brand-accurate"</td><td><span class="p">~</span> "hallucinations agent" + disclaimer</td><td><span class="p">~</span> reads inventory, auto-sends</td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="p">~</span> listing data</td></tr>
+    <tr><td class="row">Routes financing / trade / hold to a person</td><td class="us"><span class="y">✓</span> by rule</td><td><span class="p">~</span> escalation triggers</td><td><span class="y">✓</span> humans anyway</td><td><span class="p">~</span> alerts</td><td><span class="p">~</span></td><td><span class="p">~</span></td><td><span class="p">~</span></td><td><span class="p">~</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">Per-rep queue with next action</td><td class="us"><span class="y">✓</span></td><td><span class="p">~</span> shared inbox</td><td><span class="n">✕</span> leads pushed out</td><td><span class="p">~</span> rep worklists</td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="p">~</span> CRM tasks</td><td><span class="p">~</span> CRM tasks</td><td><span class="n">✕</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">Two verified slots + one-click book</td><td class="us"><span class="y">✓</span></td><td><span class="y">✓</span> auto</td><td><span class="p">~</span></td><td><span class="y">✓</span> auto</td><td><span class="y">✓</span> auto</td><td><span class="y">✓</span> auto</td><td><span class="y">✓</span> auto</td><td><span class="y">✓</span></td><td><span class="p">~</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">7-day human-agent reply window</td><td class="us"><span class="y">✓</span> v1.0 (eligible by design)</td><td><span class="n">✕</span> 24 h</td><td><span class="p">~</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td>n/a</td><td><span class="p">~</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">Owner ROI with editable assumptions</td><td class="us"><span class="y">✓</span> + AI scorecard</td><td><span class="p">~</span> engagement</td><td><span class="p">~</span></td><td><span class="p">~</span></td><td><span class="p">~</span></td><td><span class="y">✓</span> CDP</td><td><span class="p">~</span></td><td><span class="p">~</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">SMS / email / voice</td><td class="us"><span class="n">✕</span> SMS v1.2</td><td><span class="y">✓</span> all</td><td><span class="y">✓</span> chat/SMS</td><td><span class="y">✓</span> SMS/email/WhatsApp</td><td><span class="y">✓</span> SMS/email</td><td><span class="y">✓</span> SMS/email</td><td><span class="y">✓</span> text/email</td><td><span class="y">✓</span></td><td><span class="n">✕</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">CRM push (ADF)</td><td class="us"><span class="n">✕</span> v1.0</td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td>is the CRM</td><td>is the CRM</td><td><span class="y">✓</span></td><td><span class="n">✕</span></td></tr>
+    <tr><td class="row">Published price</td><td class="us"><span class="y">✓</span> $549 / $1,347 / $2,990</td><td><span class="n">✕</span> quote (~$399–599+/location reported)</td><td><span class="n">✕</span> Reynolds bundle</td><td><span class="n">✕</span> quote, 12-mo</td><td><span class="n">✕</span> ~$2,999/mo + $5–15k setup</td><td><span class="n">✕</span> ~$1–5k+/mo</td><td><span class="n">✕</span></td><td><span class="n">✕</span></td><td><span class="y">✓</span> $249–799 / $0–72</td><td>free</td></tr>
+    <tr><td class="row">Contract</td><td class="us">month to month</td><td>annual, auto-renew</td><td>DMS term</td><td>12 months</td><td>annual</td><td>annual</td><td>DMS term</td><td>term</td><td>monthly</td><td>—</td></tr>
+  </table></div>
+  <div class="small" style="margin-top:8px"><span class="y">✓</span> published and does it · <span class="p">~</span> partial, indirect, or marketing claim without mechanism · <span class="n">✕</span> not offered or not published. "Not published" means we searched and found nothing; vendors may do more than they say.</div>
+</section>
+
+<div class="callout"><b>The Marketplace reality, stated plainly.</b> Meta removed business-Page vehicle listings on Jan 30, 2023. Dealers now post from employees' personal profiles, and Meta does not expose those threads to any API. Every tool that "replies to Marketplace messages automatically" does it by driving the rep's logged-in browser session, which Meta's terms don't sanction. LotBeacon's stance: Page-inbox Messenger through the official API after App Review; Marketplace profile threads through <b>paste-in today</b> ("Try a live inquiry") and a <b>read-only browser companion in v1.1</b> that surfaces the thread in the queue while the rep still presses Send inside Facebook. Slower to build, but it's the version a Ford store's compliance officer signs.</div>
+
+<section>
+  <h2>The players, one at a time</h2>
+  <div class="cards">
+    <div class="card"><h3>Podium — "Jerry" AI BDC</h3><p class="who">Unified inbox for text, calls, webchat, Messenger, email. 10k+ businesses. Quote-only; ~$399–599+/location reported, annual.</p>
+      <div class="k">Good at</div><p>One inbox for everything; Meta lead-ad and Instagram DM intake; sales + service + reviews from one vendor.</p>
+      <div class="k">Falls short</div><p>Sells "100% autonomously. No more human escalations." G2: the assistant "starts answering conversations when we don't want them to, and they're not easily seen." 65 BBB complaints in 3 years, mostly billing and auto-renewal. No published verification of price/availability claims.</p>
+      <div class="say">"Podium answers for you. LotBeacon answers <b>with</b> you — the rep keeps the thread, the promise, and the commission."</div></div>
+    <div class="card"><h3>Gubagoo (Reynolds &amp; Reynolds)</h3><p class="who">Web chat with human chat specialists + AI; Messenger, WhatsApp, Marketplace historically via agents. Bundled with Reynolds DMS.</p>
+      <div class="k">Good at</div><p>24/7 real humans; OEM programs; digital retailing to a funded deal.</p>
+      <div class="k">Falls short</div><p>Someone else talks to your customer, then hands a lead to a rep who "can't see prior Messenger history." G2: vehicle location right "about a 70% chance." Reps report agents "sound awfully like a computer." Hard case for non-Reynolds stores.</p>
+      <div class="say">"Gubagoo outsources the conversation. LotBeacon keeps it with the person who'll shake the hand on Saturday."</div></div>
+    <div class="card"><h3>Impel AI (ex-SpinCar)</h3><p class="who">Autonomous SMS/email/WhatsApp lead follow-up, "rep worklists", CDK-embedded, FordDirect 3,000+ stores. Custom quote, 12-month.</p>
+      <div class="k">Good at</div><p>Distribution and OEM co-op; omnichannel; merchandising heritage.</p>
+      <div class="k">Falls short</div><p>DealerRefresh: "super generic and takes so much labor to get going decently"; "created entirely too many awkward situations." "Guards against hallucinations" with no published mechanism. No Messenger.</p>
+      <div class="say">"If Ford already gives you Impel for email, fine. It isn't in your Messenger inbox, and it never asks before it sends."</div></div>
+    <div class="card"><h3>Conversica</h3><p class="who">Autonomous email/SMS/chat agents; ~$2,999/mo start, $5–15k setup, annual.</p>
+      <div class="k">Good at</div><p>Dormant-lead reactivation; deep CRM sync; "16 hours to under a minute" time-to-lead.</p>
+      <div class="k">Falls short</div><p>Capterra: "templates and word tracks are dated and now irrelevant." G2: "responses can feel off and contextually confusing"; "biggest negative is the overall price." No Messenger, no human approval.</p>
+      <div class="say">"Conversica costs five LotBeacon seats before setup. It emails; your customers are on Messenger."</div></div>
+    <div class="card"><h3>Fullpath (now Cox Automotive)</h3><p class="who">CDP + autonomous SMS/email lead agent + ChatGPT website chat. ~$1k base to $5k+ with add-ons.</p>
+      <div class="k">Good at</div><p>First-party data, equity campaigns, Cox ecosystem.</p>
+      <div class="k">Falls short</div><p>The $1 Tahoe: its ChatGPT bot agreed to sell a 2024 Tahoe for one dollar and recommended Fords at a Chevy store; Fullpath now ships a "hallucinations agent" and a disclaimer. Dealers on DealerRefresh worry about first-party data after the Cox sale.</p>
+      <div class="say">"Fullpath added a hallucination checker after the $1 Tahoe. LotBeacon was built as one."</div></div>
+    <div class="card"><h3>Tekion ARC · VinSolutions Vinessa · DriveCentric Genie · CDK AIVA</h3><p class="who">CRM-native AI. Tekion auto-sends inventory-grounded texts; VinSolutions has a review-then-send mode plus an autonomous assistant; DriveCentric polishes a rep's draft ("Genius Reply").</p>
+      <div class="k">Good at</div><p>Already in the store; the record of truth; Tekion's inventory grounding is the closest thing to our firewall.</p>
+      <div class="k">Falls short</div><p>Text and email only; no Messenger AI. VinSolutions dealer: "no sales we could attribute to Vinessa… a limited decision tree." Tekion CRM "super far from being ready." $500–10,000/mo per rooftop as part of a suite you can't buy à la carte.</p>
+      <div class="say">"Your CRM is where the deal gets logged. LotBeacon is where the Messenger deal gets <b>made</b> — and v1.0 pushes it into your CRM as an ADF lead."</div></div>
+    <div class="card"><h3>CARVID · FB Auto Reply AI · Owini</h3><p class="who">Browser-extension auto-repliers for Marketplace/Messenger. CARVID $249/$499/$799 for 1/5/10 users; FB Auto Reply $0–72/mo.</p>
+      <div class="k">Good at</div><p>Cheap, live in the Marketplace thread today, inventory sync from HomeNet/vAuto, ADF to CRMs.</p>
+      <div class="k">Falls short</div><p>They send without asking, from inside the rep's personal Facebook session, which Meta's terms don't sanction — one policy sweep and the rep's profile (and every listing on it) is gone. No claim verification, no queue, no owner view.</p>
+      <div class="say">"Same price range, opposite risk profile. They're fast and unsanctioned; we're approved-send and inventory-checked."</div></div>
+    <div class="card"><h3>Meta's own tools</h3><p class="who">Business Suite Instant Replies (keyword rules); since March 2026 Meta AI can draft/auto-reply from a listing's own price and availability.</p>
+      <div class="k">Good at</div><p>Free, built in, listing-scoped facts are correct by construction.</p>
+      <div class="k">Falls short</div><p>Knows one listing, not the lot; can't offer alternatives, book, route financing, or remember the customer across threads. No rep queue, no owner metrics.</p>
+      <div class="say">"Meta answers 'is it available.' LotBeacon answers 'then come Saturday at 10:30 — and here's the AWD one if you'd rather.'"</div></div>
+    <div class="card"><h3>Numa · Toma · Swirl · Nobi</h3><p class="who">Adjacent, not overlapping. Numa/Toma: voice AI for the service drive and phones. Swirl: autonomous website agent for OEMs. Nobi: $25/mo web-chat with citations.</p>
+      <div class="k">Where they matter</div><p>Nobi's "numbered citations + second-pass review" is the only other published verification approach, and it's website-only. Numa/Toma are the phone answer a store might buy alongside LotBeacon.</p>
+      <div class="say">"Different rooms of the store. Nothing here touches a Messenger thread."</div></div>
+  </div>
+</section>
+
+<div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<section class="panel">
+  <h2>What this research changed · roadmap adjustments</h2>
+  <div class="road">
+    <b>v1.0</b><span>Meta App Review for Page Messenger + <b>human-agent 7-day window</b> (we qualify because a rep sends). <span class="why">Turns the 24-h countdown into a 7-day one for every follow-up a rep approves.</span></span>
+    <b>v1.0</b><span><b>ADF/XML lead push</b> to VinSolutions, Elead/CDK, DriveCentric, DealerSocket. <span class="why">Closes the "not in my CRM" objection every CRM vendor will raise.</span></span>
+    <b>v1.0</b><span><b>Inventory feed connectors</b>: HomeNet, vAuto, DealerCenter CSV. <span class="why">The firewall is only as good as the feed; CARVID already syncs these.</span></span>
+    <b>v1.0</b><span><b>Spanish reply style</b> with the same claim checks. <span class="why">Buddy-note request from the field; no rival publishes bilingual approval flow.</span></span>
+    <b>v1.1</b><span><b>Marketplace browser companion</b>, read-only: shows profile threads in the queue with a verified draft; rep copies and sends in Facebook. <span class="why">Live Marketplace coverage without driving the rep's session.</span></span>
+    <b>v1.2</b><span><b>SMS via the store's 10DLC number</b>, same approval flow. <span class="why">Removes "one channel" from the worse column.</span></span>
+    <b>Dropped</b><span>Autonomous follow-up sequences. <span class="why">Every rival sells it; every complaint is about it. Staying human-approved is the product.</span></span>
+  </div>
+</section>
+<section class="panel">
+  <h2>What this research changed · pricing</h2>
+  <p style="margin:0 0 8px;font-size:13.5px;color:var(--ink-2);line-height:1.5">LotBeacon now sits deliberately <b>between</b> the $249–799 extension auto-repliers and the $2,000–5,000 autonomous platforms: <b>Solo $549</b> · <b>Three Amigos $1,347</b> ($449/seat) · <b>Dealership Umbrella $2,990</b> (up to 8 seats, $374/seat). Low-case ROI on the pessimistic model: 5.0× · 6.1× · 5.5–7.3×. Month to month, no setup fee, founding dealers half price for 90 days.</p>
+  <p style="margin:0;font-size:13px;color:var(--ink-3);line-height:1.5">Why not cheaper: a CARVID seat and a LotBeacon seat are not the same product — one is an unsanctioned auto-sender, the other an approved-send copilot with a claim firewall and an owner scorecard. Why not more: until three dealerships have before/after numbers, price is a beta-recruiting tool, not a margin tool. Full math on the <a href="pricing.html" style="color:var(--msgr)">pricing page</a>.</p>
+</section>
+</div>
+
+<section class="panel">
+  <h2>Sources</h2>
+  <div class="src">
+    Podium: <a href="https://automotive.podium.com/">automotive.podium.com</a> · <a href="https://www.podium.com/marketplace/meta-2">Meta integration</a> · <a href="https://www.g2.com/products/podium/reviews?qs=pros-and-cons">G2 reviews</a> · <a href="https://www.bbb.org/us/ut/lehi/profile/computer-software-developers/podium-1166-90023083/complaints">BBB complaints</a> · <a href="https://wiserreview.com/blog/podium-pricing/">reported pricing</a> ·
+    Gubagoo: <a href="https://www.gubagoo.com/chatsmart">ChatSmart</a> · <a href="https://www.g2.com/products/gubagoo/reviews">G2</a> · <a href="https://www.capterra.com/p/178750/ChatSmart/reviews/">Capterra</a> · <a href="https://www.autoremarketing.com/ar/technology/gubagoo-launches-ai-enhancement-to-its-chatsmart-tool/">Auto Remarketing</a> ·
+    Impel: <a href="https://impel.ai/sales-ai/">impel.ai</a> · <a href="https://forum.dealerrefresh.com/threads/using-impel-a-i-for-help-in-lead-management-follow-up.10549/">DealerRefresh thread</a> · <a href="https://www.ringlead.ca/blog/dealership-ai/impel-review-2026/">Ringlead review</a> ·
+    Conversica: <a href="https://www.conversica.com/industries/automotive">conversica.com</a> · <a href="https://www.businesswire.com/news/home/20250121606219/en/">Jan 2025 launch</a> · <a href="https://www.g2.com/products/conversica/reviews">G2</a> · <a href="https://www.capterra.com/p/156614/AI-Automated-Sales-Assistant/reviews/">Capterra</a> · <a href="https://marketbetter.ai/blog/conversica-review-2026/">pricing report</a> ·
+    Fullpath: <a href="https://www.fullpath.com/chatgpt-4-for-car-dealers/">ChatGPT-4 for dealers</a> · <a href="https://www.theautopian.com/chevy-dealers-ai-chatbot-allegedly-recommended-fords-gave-free-access-to-chatgpt/">the $1 Tahoe</a> · <a href="https://forum.dealerrefresh.com/threads/fullpath-acquired-by-cox.11625/">Cox acquisition thread</a> ·
+    CRMs: <a href="https://tekion.com/crm-ai">Tekion ARC AI</a> · <a href="https://www.vinsolutions.com/dealership-software/virtual-assistant/">VinSolutions virtual assistant</a> · <a href="https://forum.dealerrefresh.com/threads/has-anyone-here-used-vinsolutions-vinessa-virtual-assistant.9967/">Vinessa thread</a> · <a href="https://drivecentric.com/">DriveCentric</a> · <a href="https://www.cdkglobal.com/product-updates/crm/ai-virtual-assistant-aiva-crm">CDK AIVA</a> ·
+    Marketplace tools: <a href="https://www.carvidapp.com/">CARVID</a> · <a href="https://www.fbautoreplyai.com/integrations/vinsolutions">FB Auto Reply AI</a> · <a href="https://www.carscoops.com/2022/09/facebook-goes-after-dealer-business-pages-banning-free-marketplace-car-listings-from-january-2023/">Jan 2023 Page listing removal</a> · <a href="https://about.fb.com/news/2026/03/facebook-marketplace-new-meta-ai-tools-make-selling-faster-and-easier/">Meta AI seller replies, Mar 2026</a> ·
+    Meta policy: <a href="https://developers.facebook.com/docs/messenger-platform/policy/policy-overview/">Messenger platform policy (24-h window, human-agent 7-day)</a> · <a href="https://developers.facebook.com/docs/marketplace/vehicles/faq">Marketplace vehicles FAQ</a> ·
+    Adjacent: <a href="https://numa.com">Numa</a> · <a href="https://techcrunch.com/?p=3015492">Toma (TechCrunch)</a> · <a href="https://goswirl.ai/blogs/comparison-salesagent-2026/">Swirl's 2026 comparison</a> (self-published) · <a href="https://nobi.ai/pricing">Nobi pricing</a> ·
+    Response rates: <a href="https://www.fi-magazine.com/323688/study-dealerships-missing-out-with-facebook-messenger-after-hour-leads">Digital Air Strike: 64% of dealers didn't respond on Messenger</a>.
+  </div>
+</section>
+</main>
+</div>
+</body>
+</html>
