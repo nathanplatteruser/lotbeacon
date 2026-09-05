@@ -43,7 +43,7 @@ def _migrate():
     if "threads" in insp.get_table_names():
         cols = {c["name"] for c in insp.get_columns("threads")}
         adds = {"voice": "VARCHAR(32) DEFAULT 'dealer'", "voice_locked": "BOOLEAN DEFAULT 0", "voice_reason": "VARCHAR(200) DEFAULT ''",
-                "followup_stage": "INTEGER DEFAULT 0", "ghost_hours_sim": "FLOAT", "demo_script": "JSON", "demo_cursor": "INTEGER DEFAULT 0"}
+                "followup_stage": "INTEGER DEFAULT 0", "ghost_hours_sim": "FLOAT", "demo_script": "JSON", "demo_cursor": "INTEGER DEFAULT 0", "demo_hint": "VARCHAR(120) DEFAULT ''"}
         with engine.begin() as c:
             for col, ddl in adds.items():
                 if col not in cols:

@@ -122,7 +122,7 @@ def row_for(s: Session, t: Thread, ghost: dict | None) -> dict:
     return {
         "id": t.id, "customer": cust.display_name or cust.psid, "channel": "Facebook Messenger", "bucket": bucket,
         "waiting": timefmt.since(waiting_since) if customer_waiting else "", "waiting_seconds": int((datetime.now(timezone.utc) - (waiting_since if waiting_since.tzinfo else waiting_since.replace(tzinfo=timezone.utc))).total_seconds()) if (customer_waiting and waiting_since) else 0,
-        "summary": " · ".join(bits), "next_action": next_action, "vehicle": f"{v.year} {v.model}" if v else None,
+        "summary": " · ".join(bits), "hint": t.demo_hint or "", "next_action": next_action, "vehicle": f"{v.year} {v.model}" if v else None,
         "window_left": timefmt.humanize(hours_left * 3600) if hours_left is not None else None, "window_hours_left": hours_left,
         "unread": customer_waiting, "owner": t.assigned_rep_id, "blocked": bool(d and d.status == "blocked"),
         "needs_person": action.startswith("route_") or action == "human_takeover",

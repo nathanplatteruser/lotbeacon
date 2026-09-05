@@ -71,6 +71,11 @@ header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);co
 .row .what{grid-column:1/-1;font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .next{grid-column:1/-1;font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .next.bad{color:var(--bad)} .row .next.person{color:var(--warn)}
+.buddy{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#6B4E00;background:#FFF3DF;border-radius:999px;padding:1px 9px 1px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-style:italic}
+.buddy::before{content:"💬";font-style:normal;font-size:10px}
+@media (prefers-color-scheme:dark){.buddy{color:#F0C36A;background:#3D2F14}}
+.row .buddy{grid-column:1/-1;justify-self:start}
+.thead .buddy{font-size:12.5px}
 .row.closed .who,.row.closed .next{color:var(--ink-3);font-weight:500}
 .row .win{font-size:11px;color:var(--ink-3)} .row .win.hot{color:var(--bad);font-weight:700}
 
@@ -335,6 +340,7 @@ async function loadQueue(){
       <span class="who">${r.unread?'<i class="dot"></i>':''}${esc(r.customer)}</span>
       <span class="wait ${r.waiting_seconds>600?'hot':''}">${r.waiting?'waiting '+esc(r.waiting):(r.window_left&&r.bucket!=='closed'?`<span class="win ${r.window_hours_left<4?'hot':''}">${esc(r.window_left)} left</span>`:'')}</span>
       <span class="what">${esc(r.summary)}</span>
+      ${r.hint?`<span class="buddy" title="Buddy note (demo): how this lead has behaved so far">${esc(r.hint)}</span>`:''}
       <span class="next ${r.blocked?'bad':r.needs_person?'person':''}">→ ${esc(r.next_action)}</span>
     </button>`).join('');
   }
@@ -359,6 +365,7 @@ function renderThread(){
   $('#main').innerHTML=`
     <div class="thead">
       <h2>${esc(d.customer.name||d.customer.psid)}</h2>
+      ${d.hint?`<span class="buddy" title="Buddy note (demo): the two-second briefing a coworker would text you about this lead">${esc(d.hint)}</span>`:''}
       <div class="meta">
         <span>${esc(w.channel)} · <span class="win ${w.open?(w.closing_soon?'hot':''):'closed'}">${w.open?esc(w.remaining)+' left to reply':'reply window closed — call or text'}</span></span>
         <span title="Who controls this conversation"><b>${esc(d.ownership.line)}</b></span>
@@ -647,6 +654,7 @@ document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.onclick=
 /* ---------------- guided tour ---------------- */
 const TOUR=[
   {sel:'.queue',title:'The queue',text:'Not a leaderboard — a work list. Each row: who, how long they have waited, what happened, and the exact next action. Buckets are ordered by urgency; scores and colors are gone.'},
+  {sel:'.row .buddy',title:'Buddy notes (demo)',text:'The amber line is the two-second briefing a coworker would text you: "price grinder", "serial ghoster", "angry be-back". It tells you which situation you are about to watch LotBeacon handle. Demo-only for now — beta testers decide if it ships.'},
   {sel:'.thead .meta',title:'Channel, window, ownership',text:'Facebook Messenger with a live countdown on the 24-hour reply window, and one plain line saying who drafts and who sends. No autonomous sends, ever.'},
   {sel:'.stages',title:'Four stages, auto-derived',text:'Engage → Qualify → Book → Visit outcome. The sub-state is precise: "visit interest (tentative)" is not "appointment requested."'},
   {sel:'#card',title:'One action card',text:'Goal · Missing · Known (click a fact to see the customer\'s own words) · Verified vehicle · the draft. Two real appointment slots, verified against hours and existing bookings. When the customer picks one, this becomes a one-click Book + confirm.'},

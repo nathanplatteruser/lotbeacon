@@ -214,6 +214,10 @@ What visitors see: a LotBeacon-branded gate asking for the access code, then the
 
 Cost: Render Starter is ~$7/month always-on. The free plan also works but sleeps after 15 idle minutes (first click takes ~40 s to wake). Claude usage in a typical 20-minute demo is well under $1.
 
+## Buddy notes (demo only)
+
+Every seeded lead carries a ≤10-word "buddy note" — the two keywords a coworker would text you about a prospect ("price grinder · ghosts waiting on manager", "angry be-back · manager de-escalates"). It shows as an amber line in the queue row and under the name in the thread. The vocabulary is what reps actually complain about: grinders, payment shoppers, serial ghosters, cancel/reschedulers, tire kickers, price-match shoppers, hold/deposit askers, mid-thread vehicle switchers, angry be-backs, out-of-towners wanting delivery. Purpose: a demo viewer sees which situation they're about to watch get handled. Stored in `Thread.demo_hint`, seeded from `seed.HINTS`. Not a product feature yet — if beta testers want it, it becomes an AI-written summary of observed behavior.
+
 ## Zero-backend showcase (GitHub Pages)
 
 `python -m scripts.export_showcase` plays every seeded conversation forward through the real pipeline and writes `docs/index.html`: the real UI with the API replaced by those recordings. No server, no key, no cost — serve it from GitHub Pages (Settings → Pages → Deploy from a branch → `main` / `/docs`). Send & next and Book play the recording forward; why-this-action, evidence, Impact and the Owner dashboard all work. Free-text edit re-validation, reply styles and the live-inquiry analyzer need the hosted demo (see above). Rebuild after any pipeline change and commit `docs/`.

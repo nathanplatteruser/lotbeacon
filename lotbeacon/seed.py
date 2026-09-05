@@ -102,6 +102,33 @@ CONVERSATIONS = [
         ["Will do. My brother-in-law is actually looking for a truck, I'll send him your way."]),
 ]
 
+# DEMO ONLY — "buddy notes": ≤10 words a coworker would text you about this lead. Shown as a second subtitle in the queue
+# and under the name in the thread, so a demo viewer knows what scenario they're about to watch get handled.
+# Vocabulary comes from what reps actually complain about: grinders, payment shoppers, ghosters, no-shows/cancellers,
+# tire kickers, price-match shoppers, hold/deposit askers, "just looking", mid-stream vehicle switchers, angry be-backs.
+HINTS = {
+    "Sarah Miller": "Textbook buyer · trade-in · Saturday · will book",
+    "Mike Torres": "Warm, then price grinder · ghosts waiting on manager",
+    "Jen Alvarez": "Budget shopper · vague needs · asks specs before visit",
+    "Dan Whitfield": "Payment shopper · credit-first · financing to F&I",
+    "Pat O'Neil": "Wants a sold unit · lukewarm on alternatives · fades",
+    "Lee Nakamura": "Opted out · do not contact · ever",
+    "Tyler Brooks": "Gen Z texter · casual · books fast",
+    "Karen Doyle": "Booked, cancelled · reschedules · then ghosts 3 days",
+    "Harold Finch": "Rapid-fire texter · checkbook ready · coming now",
+    "Priya Raman": "Fee interrogator · price-match shopper · three asks, same question",
+    "Craig Bauer": "Negotiates before visiting · $3k-off ultimatum · pushy",
+    "Denise Okafor": "Serial ghoster · comes back hot · still real",
+    "Marcus Bell": "Wants a hold until payday · then a deposit",
+    "Linda Schwartz": "Switched vehicles mid-thread · husband decides · tow question",
+    "Omar Haddad": "Out of town · wants delivery · then goes quiet",
+    "Rachel Kim": "Angry be-back · wasted trip last week · manager de-escalates",
+    "Frankie Russo": "New York blunt · yes-or-no guy · shows up at 4",
+    "Skyler Nguyen": "Ultra polite · warranty question · totally flexible",
+    "Gene Lindqvist": "Midwest nice · zero urgency · brings the wife",
+    "Victor Alvarez": "Bought elsewhere · lost · sends a referral",
+}
+
 # Presenter cheat-sheet — never shown in the app.
 PERSONAS = {
     "Sarah Miller": "Textbook climb: needs → specific unit → trade + Saturday. Green sparkline. Replies confirm 10am.",
@@ -168,6 +195,7 @@ def run():
             if thread is not None:
                 thread.demo_script = script
                 thread.demo_cursor = 0
+                thread.demo_hint = HINTS.get(name, "")
         return {"seeded": True, "dealership_id": dealer.id, "conversations": len(CONVERSATIONS)}
 
 

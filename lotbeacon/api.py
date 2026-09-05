@@ -212,7 +212,7 @@ def thread_detail(thread_id: int, s: Session = Depends(get_session)):
         "lead_state": t.lead_state.value, "priority": t.priority, "priority_reason": t.priority_reason, "ai_paused": t.ai_paused, "voice": t.voice or "dealer", "voice_locked": t.voice_locked, "voice_reason": t.voice_reason,
         "funnel": funnel_view(t, transitions), "your_move": your_move(t, draft, cust), "momentum": momentum.view(s, t), "ghost": ghost_view(t),
         "demo_remaining": max(0, len(t.demo_script or []) - t.demo_cursor),
-        "summary": t.summary, "summary_version": t.summary_version,
+        "summary": t.summary, "summary_version": t.summary_version, "hint": t.demo_hint or "",
         "messages": [{"id": m.id, "direction": m.direction, "author": m.author, "sender": m.sender or ("customer" if m.direction == "in" else "rep"), "text": m.text, "sent_at": m.sent_at.isoformat(), "ago": timefmt.since(m.sent_at)} for m in t.messages],
         "booking": ((draft.structured or {}).get("booking") if draft else None) or booking.booking_view(s, t, dealer, memory.facts_dict(memory.active_facts(s, t.id)), {}, [], inventory.vehicle_card(v) if v else None),
         "ownership": ownership_view(s, t),

@@ -93,3 +93,12 @@ def test_audit_export_is_a_download(client):
     assert b["autonomous_sends"] == 0 and b["scope"] == {"thread_id": 1} and b["counts"]["drafts"] >= 1
     assert all(d["thread_id"] == 1 for d in b["drafts"])
     assert any("validation" in d for d in b["drafts"])
+
+
+def test_every_seeded_lead_has_a_short_buddy_note(client):
+    from lotbeacon.seed import CONVERSATIONS, HINTS
+    for _, name, _, _ in CONVERSATIONS:
+        assert name in HINTS and 1 <= len(HINTS[name].replace("·", " ").split()) <= 10, name
+    rows = client.get("/api/queue").json()["rows"]
+    assert all(r["hint"] for r in rows)
+    assert client.get("/api/threads/1").json()["hint"] == HINTS["Sarah Miller"]
