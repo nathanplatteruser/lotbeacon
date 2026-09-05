@@ -19,6 +19,65 @@ from .pipeline import audit, ingest_inbound, process_message, regenerate, revali
 app = FastAPI(title="LotBeacon", version=__version__)
 WEB = Path(__file__).parent / "web"
 
+# ------------------------------------------------------------------ hosted demo gate
+# When LOTBEACON_DEMO_CODE is set (cloud demo), every page and API call needs the passcode cookie. Locally: no code, no gate.
+import os  # noqa: E402
+
+from fastapi import Request  # noqa: E402
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse  # noqa: E402
+
+DEMO_CODE = os.getenv("LOTBEACON_DEMO_CODE", "").strip()
+GATE_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LotBeacon · demo</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#00095B;font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#fff}
+.box{background:#fff;color:#050505;border-radius:16px;padding:28px 30px;width:min(380px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+h1{margin:0 0 4px;font-size:22px;display:flex;align-items:center;gap:10px}.mark{width:28px;height:28px;border-radius:50%;background:#00095B;color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+p{margin:0 0 16px;color:#65676B;font-size:13.5px}input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 12px;border:1.5px solid #CED0D4;border-radius:10px;margin-bottom:10px}
+button{width:100%;font:inherit;font-weight:700;font-size:15px;padding:11px;border:0;border-radius:999px;background:#00095B;color:#fff;cursor:pointer}.err{color:#C62828;font-size:13px;margin:0 0 8px}
+small{display:block;margin-top:14px;color:#8A8D91;font-size:11.5px}</style></head><body>
+<form class="box" method="post" action="/demo/unlock"><h1><span class="mark">L</span>LotBeacon</h1><p>Messenger copilot for dealership sales reps · pilot demo for %DEALER%</p>%ERR%
+<input name="code" type="password" placeholder="Access code" autofocus autocomplete="off"><button>Open the demo</button>
+<small>Demo data only. No autonomous sends, ever — every message is approved by a person.</small></form></body></html>"""
+
+
+@app.middleware("http")
+async def _demo_gate(request: Request, call_next):
+    if DEMO_CODE and request.url.path not in ("/health", "/demo/unlock") and request.cookies.get("lb_demo") != DEMO_CODE:
+        if request.url.path == "/" or request.url.path.startswith("/demo"):
+            from .config import DEALER_NAME
+
+            return HTMLResponse(GATE_HTML.replace("%DEALER%", DEALER_NAME).replace("%ERR%", ""))
+        return JSONResponse({"detail": "demo access code required"}, status_code=401)
+    return await call_next(request)
+
+
+@app.post("/demo/unlock")
+async def demo_unlock(request: Request):
+    form = await request.form()
+    code = str(form.get("code", "")).strip()
+    if DEMO_CODE and code == DEMO_CODE:
+        r = RedirectResponse("/", status_code=303)
+        r.set_cookie("lb_demo", code, max_age=60 * 60 * 24 * 14, httponly=True, samesite="lax", secure=request.url.scheme == "https")
+        return r
+    from .config import DEALER_NAME
+
+    return HTMLResponse(GATE_HTML.replace("%DEALER%", DEALER_NAME).replace("%ERR%", '<p class="err">That code didn\'t work — check with Nathan.</p>'), status_code=401)
+
+
+@app.get("/health")
+def health():
+    return {"ok": True, "version": __version__}
+
+
+@app.post("/api/demo/reset")
+def demo_reset():
+    """Between prospects: wipe and reseed the 20 conversations. Hosted demo only (local users delete lotbeacon.db)."""
+    from . import seed
+    from .db import Base, engine
+
+    Base.metadata.drop_all(engine)
+    init_db()
+    return seed.run()
+
 
 @app.on_event("startup")
 def _startup():

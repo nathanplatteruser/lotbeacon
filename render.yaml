@@ -1,0 +1,17 @@
+# Render Blueprint — New + > Blueprint > pick the lotbeacon repo. Set ANTHROPIC_API_KEY and LOTBEACON_DEMO_CODE in the dashboard.
+services:
+  - type: web
+    name: lotbeacon
+    runtime: docker
+    plan: starter          # $7/mo keeps it warm; "free" works but sleeps after 15 min idle (first click takes ~40 s)
+    healthCheckPath: /health
+    autoDeploy: true       # every push to main redeploys
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false        # paste in the dashboard, never in the repo
+      - key: LOTBEACON_DEMO_CODE
+        sync: false        # the passcode you give prospects, e.g. zoellner
+      - key: LOTBEACON_AI_PROVIDER
+        value: auto
+      - key: LOTBEACON_DEALER_NAME
+        value: Zoellner Ford

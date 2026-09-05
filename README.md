@@ -201,3 +201,15 @@ tests/                     34 tests: golden scenarios + Claude provider contract
 Real Messenger app + webhook signature (19–22) · pilot inventory connector behind `inventory.py` (39–40) ·
 CRM adapter (75–76) · auth (13–14) · golden dataset expansion + eval harness (92–95) · shadow-mode run against
 exported historical threads (98).
+
+## Put it on a link (hosted demo)
+
+The repo ships a `Dockerfile` and a Render Blueprint (`render.yaml`). Any container host works (Render, Railway, Fly.io); Render is the fewest clicks:
+
+1. render.com → **New +** → **Blueprint** → connect GitHub → pick `lotbeacon`. Render reads `render.yaml`.
+2. When asked for env vars: `ANTHROPIC_API_KEY` = your key · `LOTBEACON_DEMO_CODE` = the passcode you'll give prospects (e.g. `zoellner`).
+3. Deploy (≈3 min). Your link: `https://lotbeacon.onrender.com` (or whatever Render assigns; add a custom domain under Settings → Custom Domains).
+
+What visitors see: a LotBeacon-branded gate asking for the access code, then the full workspace. Without the code, every page and API call is refused, so nobody can burn tokens by guessing the URL. Every push to `main` redeploys; the SQLite file lives in `/tmp`, so each deploy starts from the clean 20-conversation seed. Between prospects, `POST /api/demo/reset` (or just redeploy) wipes and reseeds.
+
+Cost: Render Starter is ~$7/month always-on. The free plan also works but sleeps after 15 idle minutes (first click takes ~40 s to wake). Claude usage in a typical 20-minute demo is well under $1.
