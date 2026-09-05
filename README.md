@@ -213,3 +213,7 @@ The repo ships a `Dockerfile` and a Render Blueprint (`render.yaml`). Any contai
 What visitors see: a LotBeacon-branded gate asking for the access code, then the full workspace. Without the code, every page and API call is refused, so nobody can burn tokens by guessing the URL. Every push to `main` redeploys; the SQLite file lives in `/tmp`, so each deploy starts from the clean 20-conversation seed. Between prospects, `POST /api/demo/reset` (or just redeploy) wipes and reseeds.
 
 Cost: Render Starter is ~$7/month always-on. The free plan also works but sleeps after 15 idle minutes (first click takes ~40 s to wake). Claude usage in a typical 20-minute demo is well under $1.
+
+## Zero-backend showcase (GitHub Pages)
+
+`python -m scripts.export_showcase` plays every seeded conversation forward through the real pipeline and writes `docs/index.html`: the real UI with the API replaced by those recordings. No server, no key, no cost — serve it from GitHub Pages (Settings → Pages → Deploy from a branch → `main` / `/docs`). Send & next and Book play the recording forward; why-this-action, evidence, Impact and the Owner dashboard all work. Free-text edit re-validation, reply styles and the live-inquiry analyzer need the hosted demo (see above). Rebuild after any pipeline change and commit `docs/`.
