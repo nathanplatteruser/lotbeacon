@@ -131,7 +131,7 @@ def render(data: dict, artifact: bool = False) -> str:
                         "<script>\nwindow.LB_STATIC=" + json.dumps(data, separators=(",", ":")).replace("</", "<\\/") + ";\n</script>\n<script>\nconst $=s=>document.querySelector(s);" + SHIM)
     # keep the page honest about what it is
     built = datetime.fromisoformat(data["built_at"]).strftime("%b %d, %Y")
-    banner = f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Recorded showcase · real UI, recorded pipeline output ({built}) · Send &amp; next and Book play the recording forward · free-text edits, reply styles and the live-inquiry analyzer need the hosted demo</div>'
+    banner = f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Interactive showcase · recorded {built} · Send &amp; next and Book play the conversation forward</div>'
     html = html.replace("</header>", "</header>" + banner, 1)
     html = html.replace("calc(100vh - 52px)", "calc(100vh - 52px - 31px)")
     html = html.replace("window.open(`/api/audit/export?thread_id=${d.id}`,'_blank');", "needsLive('Audit export');")

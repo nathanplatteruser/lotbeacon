@@ -40,6 +40,18 @@ header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);co
 
 .app{display:grid;grid-template-columns:340px 1fr 300px;height:calc(100vh - 52px)}
 @media (max-width:1180px){.app{grid-template-columns:300px 1fr}.side{display:none}}
+/* phone: queue on top (scrolls), conversation below; owner tiles stack */
+@media (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:38vh 1fr;height:auto;min-height:calc(100vh - 52px)}
+  .queue{border-right:0;border-bottom:1px solid var(--line)}
+  header{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px 12px} header .keys{display:none} header .sub{display:none}
+  header .right{margin-left:0;width:100%;justify-content:space-between}
+  .thead{padding:8px 12px} .convo{padding:10px 12px 6px} .msg{max-width:86%} .card{margin:6px 10px 10px}
+  .stages{padding:6px 12px;overflow-x:auto;white-space:nowrap} .stages .sub,.stages .paused{display:none}
+  .tiles{grid-template-columns:1fr} .hero,.section{grid-template-columns:1fr} .owner{padding:12px}
+  .card .top{grid-template-columns:1fr} .card .missing{text-align:left}
+  .modal .box{padding:16px 14px} .pstep{grid-template-columns:70px 1fr}
+}
 
 /* ---- Action queue ---- */
 .queue{background:var(--surface);border-right:1px solid var(--line);overflow-y:auto}
