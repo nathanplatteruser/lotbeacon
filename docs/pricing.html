@@ -5,15 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LotBeacon Pricing</title>
 <meta property="og:type" content="website"><meta property="og:site_name" content="LotBeacon">
-<meta property="og:title" content="LotBeacon pricing — return on time, return on investment, room for more conversations">
-<meta property="og:description" content="Three packages, every one built to return at least 4× on a deliberately pessimistic model. Founding-dealer beta at half price for 90 days.">
+<meta property="og:title" content="LotBeacon pricing — Solo $129 · Three Amigos $299 · Dealership $599">
+<meta property="og:description" content="HITL Messenger copilot for dealers. Human Send only. Solo $129, Three Amigos $299, Dealership $599. Not Beakon (lot GPS).">
 <meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/pricing.html">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
 <style>
 :root{--ford:#00095B;--ford-2:#0A1E8C;--msgr:#0084FF;--msgr-soft:#E7F0FF;--bg:#F4F5F7;--surface:#FFFFFF;--surface-2:#F0F2F5;--line:#E4E6EB;--line-strong:#CED0D4;--ink:#050505;--ink-2:#45474D;--ink-3:#65676B;--ok:#1E7A3C;--ok-soft:#E6F4EA;--warn:#B45309;--warn-soft:#FFF3DF;--bad:#C62828}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#18191A;--surface:#242526;--surface-2:#3A3B3C;--line:#3E4042;--line-strong:#4E4F50;--ink:#E4E6EB;--ink-2:#B0B3B8;--ink-3:#8A8D91;--msgr-soft:#1B2A44;--ok:#5CC48A;--ok-soft:#1E3A26;--warn:#F0A742;--warn-soft:#3D2F14;--bad:#F28B82}}
-:root[data-theme="dark"]{--bg:#18191A;--surface:#242526;--surface-2:#3A3B3C;--line:#3E4042;--line-strong:#4E4F50;--ink:#E4E6EB;--ink-2:#B0B3B8;--ink-3:#8A8D91;--msgr-soft:#1B2A44;--ok:#5CC48A;--ok-soft:#1E3A26;--warn:#F0A742;--warn-soft:#3D2F14;--bad:#F28B82}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .page{max-width:1080px;margin:0 auto;padding:0 0 32px}
@@ -54,74 +53,76 @@ tr.total td{font-weight:700;border-top:2px solid var(--line-strong);border-botto
 .tabs{display:flex;gap:4px;padding:8px 28px;background:var(--ford-2);flex-wrap:wrap}
 .tabs a{color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;opacity:.8}
 .tabs a:hover{opacity:1;background:rgba(255,255,255,.12)} .tabs a[aria-current]{opacity:1;background:rgba(255,255,255,.2)}
+.disambig{font-size:13px;background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;line-height:1.45}
 </style>
 </head>
 <body>
 <div class="page">
-<header><span class="mark">L</span><h1>LotBeacon pricing — built to return 4× on the pessimistic math</h1><div class="sub">Per rooftop, per month · Sept 2026 · numbers from the <a href="impact-estimate.html">before &amp; after estimate</a><br><a href="./">try the interactive demo</a></div></header>
-<nav class="tabs"><a href="./">Interactive demo</a><a href="impact-estimate.html" >Before &amp; after</a><a href="pricing.html" aria-current="page">Pricing</a><a href="compare.html" >vs the field</a></nav>
+<header><span class="mark">L</span><h1>LotBeacon pricing — HITL Messenger copilot</h1><div class="sub">Per rooftop · Sept 2026 · SoT: Solo $129 · Three Amigos $299 · Dealership $599<br><a href="./">try the interactive demo</a></div></header>
+<nav class="tabs"><a href="./">Interactive demo</a><a href="impact-estimate.html">Before &amp; after</a><a href="pricing.html" aria-current="page">Pricing</a><a href="compare.html">vs the field</a></nav>
 <main>
 
-<p class="lede">The question is never "what does it cost." It's <b>what does one rep-month of dropped leads, 47-minute replies and retyped answers cost you now</b>. On the deliberately pessimistic model, LotBeacon returns about <b>$2,700 per rep per month</b> before counting anything soft — <b>$2,160</b> in gross from 0.9 extra units and <b>$578</b> in rep hours at $38/h. Every package below is priced so that even that low case pays back <b>at least 4×</b>. The high case (reps use half the recovered hours for more conversations) roughly doubles it.</p>
+<p class="disambig"><b>Not Beakon</b> (lot GPS / recon ~$895–995). LotBeacon is a Facebook Messenger <b>sales</b> copilot: prioritize, draft, escalate. <b>Human Send only.</b> Never invents discounts, payments, inventory, holds, or appointments.</p>
+
+<p class="lede">Priced to sit <b>under</b> opaque AI-BDC floors while staying anti-autonomous. Tyler leads with <b>Solo</b>. Kyle frames <b>Dealership</b> (or Solo pilot first). All ROT/ROI math below is <b>modeled</b>, not a guarantee. No live Stripe until Nathan ships.</p>
 
 <section class="plans">
-  <div class="plan"><div class="name">Solo Quota Crusher</div><div class="for">One rep who wants to be the store's Messenger closer. Proves it on one desk.</div>
-    <div class="price">$549<small> /month</small></div><div class="seat"><b>1 seat</b> · $549 per seat · about $18 a day</div>
-    <div class="roi"><span>Countable return, low case</span><b>$2,738</b><span>ROI, low case</span><b class="g">5.0×</b><span>ROI, high case</span><b class="g">8.9×</b><span>Units to break even</span><b>0.23 / month</b></div>
-    <ul class="inc"><li>Action queue, verified drafts, one-click booking</li><li>Hallucination firewall + 24-h window policy</li><li>Six reply styles, momentum, evidence for every fact</li><li>Personal impact drawer</li></ul></div>
-  <div class="plan mid"><div class="badge">Beta favorite</div><div class="name">Three Amigos</div><div class="for">Three reps, one shared queue. Enough seats for hand-offs, coverage on days off, and a real before/after.</div>
-    <div class="price">$1,347<small> /month</small></div><div class="seat"><b>3 seats</b> · $449 per seat · about $15 a day each</div>
-    <div class="roi"><span>Countable return, low case</span><b>$8,214</b><span>ROI, low case</span><b class="g">6.1×</b><span>ROI, high case</span><b class="g">10.9×</b><span>Units to break even</span><b>0.56 / month</b></div>
-    <ul class="inc"><li>Everything in Solo</li><li>Shared queue with ownership + take-over</li><li>Manager view: by-rep table, gates, audit export</li><li>Weekly 20-minute tune-up call during beta</li></ul></div>
-  <div class="plan big"><div class="name">Dealership Umbrella</div><div class="for">The whole floor. Every Messenger lead the store pays for gets worked, every send stays human.</div>
-    <div class="price">$2,990<small> /month</small></div><div class="seat"><b>Up to 8 rep seats</b> · $374 per seat · owner &amp; manager dashboards free</div>
-    <div class="roi"><span>Countable return at 6 active reps</span><b>$16,428</b><span>ROI, 6 reps, low case</span><b class="g">5.5×</b><span>ROI, 8 reps, low case</span><b class="g">7.3×</b><span>ROI, high case</span><b class="g">9.8–13.1×</b><span>Units to break even</span><b>1.25 / month</b></div>
-    <ul class="inc"><li>Everything in Three Amigos</li><li>Owner dashboard with editable assumptions, pilot gates, Responsible-AI scorecard</li><li>Inventory-feed connection and dealer-hours setup</li><li>Quarterly before/after report for the GM</li></ul></div>
+  <div class="plan"><div class="name">Solo</div><div class="for">Tyler — top rep on Messenger who still hits Send.</div>
+    <div class="price">$129<small> /month</small></div><div class="seat"><b>1 seat</b> · ~$99/mo if billed yearly · about $4 a day</div>
+    <div class="roi"><span>3× value bar (Nathan rule)</span><b>~$387 / mo</b><span>Conservative story</span><b class="g">3–5 hrs ROT or 1 rescued same-day path / 6–8 wks</b></div>
+    <ul class="inc"><li>Attention / action queue</li><li>Conversation state + thread memory</li><li>Intent ≠ sentiment (price friction, same-day visit)</li><li>Next-reply draft · human Send</li><li>Hallucination firewall · manager escalate</li></ul></div>
+  <div class="plan mid"><div class="badge">Pod</div><div class="name">Three Amigos</div><div class="for">Three floor / BDC-assist reps on one shared queue.</div>
+    <div class="price">$299<small> /month</small></div><div class="seat"><b>3 seats</b> · ~$249/mo yearly · matches LotDesk entry sticker, HITL not auto-book</div>
+    <div class="roi"><span>3× value bar</span><b>~$897 / mo</b><span>Conservative story</span><b class="g">Shared queue vs 3 Meta logins · ~⅓ unit / mo across the pod</b></div>
+    <ul class="inc"><li>Everything in Solo</li><li>Multi-rep assignment / shared queue</li><li>Audit log of drafts/sends (◐)</li><li>Role permissions / store playbook (◐)</li></ul></div>
+  <div class="plan big"><div class="name">Dealership</div><div class="for">Kyle + floor — owner escalation + audit. Up to 10 seats.</div>
+    <div class="price">$599<small> /month</small></div><div class="seat"><b>Up to 10 seats</b> · +$39/seat overage · ~$499/mo yearly</div>
+    <div class="roi"><span>3× value bar</span><b>~$1,797 / mo</b><span>Conservative story</span><b class="g">&lt;1 incremental unit / mo or one avoided bad price quote</b></div>
+    <ul class="inc"><li>Everything in Three Amigos</li><li>Owner / GM escalation dashboard</li><li>Full audit log · store playbook</li><li>CRM note export when available (◐)</li></ul></div>
 </section>
 
 <div class="grid2">
 <section class="panel">
-  <h2>Where the return comes from · one rep, one month, low case</h2>
+  <h2>Why these prices · vs the field</h2>
   <table>
-    <tr><th>Line</th><th class="n">Value</th><th>Basis</th></tr>
-    <tr><td>Extra units sold</td><td class="n g">$2,160</td><td>1.9 → 2.8 units × $2,400 gross. Close rate held flat; the lift is speed, no dropped leads, two-slot booking.</td></tr>
-    <tr><td>Rep hours returned</td><td class="n g">$578</td><td>33 h → 18 h on messaging × $38/h loaded. Two selling days back.</td></tr>
-    <tr><td>Claims kept out of the inbox</td><td class="n">not counted</td><td>Every unsupported price/availability/financing claim blocked. Real money (walk-backs, goodwill), left out to stay pessimistic.</td></tr>
-    <tr><td>Reply-window saves, after-hours drafts</td><td class="n">not counted</td><td>40–50% of leads arrive after hours; each one has a draft waiting at 8 AM.</td></tr>
-    <tr class="total"><td>Countable return per rep</td><td class="n g">$2,738</td><td>High case (40 conversations instead of 30): <b>$4,898</b>.</td></tr>
+    <tr><th>Comp</th><th class="n">Public</th><th>LotBeacon stance</th></tr>
+    <tr><td>Meta Business Suite Inbox</td><td class="n">Free</td><td>Table stakes — we sell judgment on top</td></tr>
+    <tr><td>ManyChat / respond.io</td><td class="n">~$17–349</td><td>Bots that send — wrong risk for pricing asks</td></tr>
+    <tr><td>LotDesk</td><td class="n">$299+</td><td>Three Amigos matches entry — we are HITL Messenger OS, not AI that books/holds</td></tr>
+    <tr><td>BDC.AI</td><td class="n">from $595</td><td>Dealership $599 sits beside — we do <b>not</b> replace BDC headcount</td></tr>
+    <tr><td>Beakon</td><td class="n">$895–995</td><td>Different product (lot GPS) — disambiguate in first 10s</td></tr>
+    <tr class="total"><td>LotBeacon Dealership</td><td class="n">$599</td><td>Whole-floor HITL wedge · human Send · no invent</td></tr>
   </table>
-  <div class="note">4× minimum means the top price a single seat can carry in the low case is about $685. Solo sits at $549 — deliberately between the $249–799 browser-extension auto-repliers and the $2,000–5,000 autonomous platforms (see <a href="compare.html" style="color:var(--msgr)">vs the field</a>). Multi-seat packages drop the per-seat price because the store's fixed setup (inventory feed, hours, policies) is done once.</div>
+  <div class="note">Retired showcase cards (Solo $549 · Three Amigos $1,347 · Umbrella $2,990) are gone. Commercial SoT: PRICING-ONE-PAGER.md.</div>
 </section>
 
 <section class="panel">
-  <h2>What the alternatives cost · same job, different shape</h2>
+  <h2>What we will not claim</h2>
   <table>
-    <tr><th>Option</th><th class="n">Per month</th><th>Shape</th></tr>
-    <tr><td>One in-house BDC agent</td><td class="n">$4,583–5,833</td><td>Fully loaded; handles the phones, not the rep's own Messenger threads. Turnover risk.</td></tr>
-    <tr><td>Outsourced BDC, small store</td><td class="n">$3,000–8,750</td><td>Retainer or $15–45 per lead. Someone else talks to your customer.</td></tr>
-    <tr><td>Enterprise dealer AI platform</td><td class="n">$2,000–5,000</td><td>Per rooftop, by module, often autonomous replies. Custom quotes, annual contracts.</td></tr>
-    <tr><td>Marketplace browser-extension bots</td><td class="n">$249–799</td><td>Auto-send from the rep's personal Facebook session (CARVID, FB Auto Reply). No approval, no claim check, policy risk.</td></tr>
-    <tr><td>Doing nothing</td><td class="n">$2,738 / rep</td><td>The return above is what a rep-month of status quo already costs the store.</td></tr>
-    <tr class="total"><td>LotBeacon Umbrella</td><td class="n">$2,990</td><td>Whole floor, human sends every message, no per-lead fees, month to month during beta.</td></tr>
+    <tr><th>Don’t say</th><th>Why</th></tr>
+    <tr><td>Live Meta inbox today</td><td>Seeded preview; live Page Messenger is next build</td></tr>
+    <tr><td>AI takes $2,500 off</td><td>Hard refuse — never invent discounts</td></tr>
+    <tr><td>Replaces your BDC</td><td>Anti-goal vs LotDesk / Matador / BDC.AI</td></tr>
+    <tr><td>Books holds for you</td><td>We escalate humans</td></tr>
+    <tr><td>We’re Beakon</td><td>Wrong product</td></tr>
   </table>
-  <div class="note">Sources: Strolid BDC pricing guide (in-house and outsourced ranges); Swirl 2026 comparison (Fullpath $2–5k/rooftop; Impel, Gubagoo, Roadster custom). Ranges are public-page figures, not quotes.</div>
 </section>
 </div>
 
 <section class="founding">
-  <h3>Founding-dealer beta · first three rooftops</h3>
-  <p><b>Half price for the first 90 days</b> (Solo $275 · Three Amigos $674 · Umbrella $1,495), then <b>25% off list, locked for 12 months</b>. In exchange: a 20-minute feedback call each week, permission to publish the anonymized before/after numbers, and a named testimonial if the gates pass. Month to month, cancel any time, your data exported on the way out. At half price the low-case return is <b>10–15×</b>, which is the point: the beta should feel like a gift, and the case study is what lets the price go up for dealer four.</p>
+  <h3>Founding-dealer note (Nathan approve)</h3>
+  <p>Optional first <b>90 days at 50% of list</b> for Kyle’s store only (Solo $65 · Three Amigos $150 · Dealership $300). Still must clear <b>3× on full list</b> before raising. Month to month. No live checkout until Nathan ships Stripe.</p>
 </section>
 
 <section class="panel">
-  <h2>The two objections, and the reframe</h2>
+  <h2>Objections · short reframe</h2>
   <div class="obj">
-    <div><div class="q">"What does it cost?"</div><p class="a">"Depends how many desks. One rep is $549 a month, about $18 a day. Before I tell you whether that's a lot, can I show you what a rep-month costs you right now? <b>43% of internet leads get mishandled, the average reply lands after 47 minutes, and a rep spends about 33 hours a month typing the same answers.</b> On your numbers that's roughly $2,700 per rep per month walking out the door."</p></div>
-    <div><div class="q">"That's too expensive."</div><p class="a">"Compared to what? An outsourced BDC is $3–8k and it isn't your rep talking to your customer. This is <b>return on time</b> — two selling days back per rep per month; <b>return on investment</b> — 4× in the pessimistic case, and I held your close rate flat to get there; and <b>expansion of capacity</b> — the same rep can carry 40 conversations instead of 30, so the extra units are new, not moved around. <b>One extra unit pays for four months of a seat.</b> The $250 Marketplace bots are cheaper, and they auto-send from your rep's personal Facebook login without asking — read Meta's terms before you bet the listings on that. And during the founding beta it's half price, so if the numbers don't show up in 90 days, you've spent about $800 to find that out and I've learned something. If they do, you're the case study and you keep 25% off for a year."</p></div>
+    <div><div class="q">"What does it cost?"</div><p class="a">"One desk is <b>$129</b>. Three seats <b>$299</b>. Whole floor up to ten seats <b>$599</b>. Before we debate sticker: can I show you the thread where the buyer said <b>$2,500 off and I’m there today</b>? Sentiment tools call that cold. We call manager — and <b>you</b> still hit Send."</p></div>
+    <div><div class="q">"That’s too expensive."</div><p class="a">"Compared to what? BDC.AI starts near <b>$595</b> and sells replacement. LotDesk is <b>$299</b> plus show fees and books/holds. We’re HITL Messenger judgment under those floors. <b>One same-day buyer you’d have missed</b> is the Kyle bar. Tyler: faster than typing in Meta — you still hit Send."</p></div>
   </div>
 </section>
 
-<div class="src">Model inputs and sources: see the <a href="impact-estimate.html">before &amp; after estimate</a>. BDC cost ranges: <a href="https://strolid.com/learn/what-automotive-bdc-costs-pricing-models-roi-calculator">Strolid, automotive BDC pricing guide</a>. Platform pricing: <a href="https://goswirl.ai/blogs/comparison-salesagent-2026/">Swirl, AI sales agents for dealerships 2026</a>. All figures monthly, USD, per rooftop.</div>
+<div class="src">Commercial SoT: Solo $129 · Three Amigos $299 · Dealership $599 (Saas PM PRICING-ONE-PAGER, 2026-09-06). Demo claims: DEMO-CLAIMS.md. Competitor notes: COMPETITOR-MATRIX.md. Product #3 forever separate from SettleUp and Marketplace Copilot.</div>
 </main>
 </div>
 </body>
