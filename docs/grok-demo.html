@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LotBeacon · HITL preview (Craig)</title>
+<meta name="description" content="Phone-first LotBeacon HITL demo. Intent ≠ sentiment. Human Send only. Zoellner Ford seed.">
+<style>
+:root{--bg:#0b1220;--card:#121a2b;--line:#243049;--ink:#e8eefc;--muted:#9aa8c7;--msgr:#0084FF;--ok:#3dd68c;--warn:#f5a524;--bad:#ff6b6b;--chip:#1a2438;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.wrap{max-width:430px;margin:0 auto;min-height:100dvh;padding:12px 12px calc(18px + var(--safe));display:flex;flex-direction:column;gap:10px}
+header.top{padding:8px 4px 2px}
+header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.mark{width:28px;height:28px;border-radius:8px;background:var(--msgr);display:grid;place-items:center;font-size:12px;font-weight:900}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.rules{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pill{font-size:12px;font-weight:700;padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--line);color:var(--muted)}
+.pill.ok{color:var(--ok);border-color:#1f4d3a}
+.filters{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.92);backdrop-filter:blur(8px);padding:8px 0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;min-width:44px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:15px;font-weight:700}
+.chip[aria-pressed="true"]{background:var(--msgr);border-color:var(--msgr);color:#fff}
+.count{color:var(--muted);font-size:13px;align-self:center;margin-left:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:none}
+.card.on{display:block}
+.card h2{margin:0 0 6px;font-size:16px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:10px}
+.thread{display:flex;flex-direction:column;gap:8px;max-height:42vh;overflow:auto;padding-right:4px}
+.bubble{max-width:92%;padding:10px 12px;border-radius:14px;font-size:15px}
+.bubble.in{align-self:flex-start;background:#1c2740;border:1px solid var(--line)}
+.bubble.out{align-self:flex-end;background:#0d3a6e;border:1px solid #1a5aa8}
+.who{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:700}
+.intent{margin-top:12px;padding:12px;border-radius:12px;background:#152033;border:1px solid var(--line)}
+.intent .row{display:flex;justify-content:space-between;gap:8px;margin:6px 0;font-size:14px}
+.intent .bad{color:var(--bad);text-decoration:line-through;opacity:.75}
+.intent .good{color:var(--ok);font-weight:800}
+.tag{display:inline-block;font-size:12px;font-weight:800;padding:4px 8px;border-radius:8px;margin:2px 4px 2px 0}
+.tag.hot{background:#3a1d10;color:#ffb080}
+.tag.buy{background:#143528;color:var(--ok)}
+.tag.price{background:#3a2a10;color:var(--warn)}
+.actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.btn{min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:16px;font-weight:800;padding:12px}
+.btn.primary{background:var(--msgr);border-color:var(--msgr);color:#fff}
+.btn:disabled{opacity:.45}
+.draft{width:100%;min-height:110px;border-radius:12px;border:1px solid var(--line);background:#0a101c;color:var(--ink);padding:12px;font-size:16px;resize:vertical}
+.firewall{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:14px;border:1px solid var(--line)}
+.firewall.block{background:#2a1216;border-color:#5a1f2a;color:#ffb4b4}
+.firewall.clear{background:#12261c;border-color:#1f4d3a;color:#b7f5d0}
+.esc{margin-top:10px;padding:12px;border-radius:12px;background:#1a2030;border:1px dashed var(--warn)}
+.foot{color:var(--muted);font-size:12px;text-align:center;padding:8px 4px 0}
+.step{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--msgr);margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="mark">LB</span> LotBeacon · HITL preview</h1>
+    <div class="sub">Zoellner Ford seed · salesperson stays in control · nothing sends by itself</div>
+    <div class="rules">
+      <span class="pill ok">Human Send only</span>
+      <span class="pill">No invent</span>
+      <span class="pill">Inventory = claims</span>
+      <span class="pill">Intent ≠ sentiment</span>
+    </div>
+  </header>
+
+  <div class="filters" role="toolbar" aria-label="Demo steps">
+    <button type="button" class="chip" data-step="queue" aria-pressed="true">1 Queue</button>
+    <button type="button" class="chip" data-step="thread" aria-pressed="false">2 Thread</button>
+    <button type="button" class="chip" data-step="intent" aria-pressed="false">3 Intent</button>
+    <button type="button" class="chip" data-step="draft" aria-pressed="false">4 Draft</button>
+    <button type="button" class="chip" data-step="send" aria-pressed="false">5 Send</button>
+    <span class="count" id="showing">Showing Craig · hot</span>
+  </div>
+
+  <section class="card on" id="queue" data-card="queue">
+    <div class="step">Who needs attention now</div>
+    <h2>Action queue</h2>
+    <p class="meta">Not unread dots. Ranked by risk of losing a buyer today.</p>
+    <button type="button" class="btn primary" id="openCraig" style="text-align:left">
+      <div style="font-size:12px;opacity:.85;margin-bottom:4px">REPLY NOW · PRICE FRICTION</div>
+      <div><b>Craig Mott</b> · 2023 F-150 XLT</div>
+      <div style="font-size:14px;margin-top:4px;font-weight:600">"$2,500 off and I'm there today."</div>
+    </button>
+    <button type="button" class="btn" disabled style="text-align:left;margin-top:8px;opacity:.55">
+      <div style="font-size:12px">WINDOW CLOSING</div>
+      <div>Maya Chen · Tahoe Premier</div>
+    </button>
+  </section>
+
+  <section class="card" id="thread" data-card="thread">
+    <div class="step">What already happened</div>
+    <h2>Craig Mott · F-150 XLT</h2>
+    <p class="meta">Stock F2302 · available on lot · Zoellner Ford · Alex Reyes owns Send</p>
+    <div class="thread" aria-label="Conversation">
+      <div class="bubble in"><div class="who">Craig</div>Is the blue F-150 still there?</div>
+      <div class="bubble out"><div class="who">Alex · sent</div>Yes — 2023 F-150 XLT, Antimatter Blue, stock F2302. Still on the lot.</div>
+      <div class="bubble in"><div class="who">Craig</div>Price feels high vs the listing down the road.</div>
+      <div class="bubble out"><div class="who">Alex · sent</div>I hear you. Pricing goes through our sales manager — let me flag it.</div>
+      <div class="bubble in"><div class="who">Craig · latest</div><b>$2,500 off and I'm there today.</b></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn primary" data-goto="intent">Read the intent →</button>
+    </div>
+  </section>
+
+  <section class="card" id="intent" data-card="intent">
+    <div class="step">What's changing · intent ≠ sentiment</div>
+    <h2>LotBeacon read</h2>
+    <div class="intent">
+      <div class="row"><span>Basic sentiment tool</span><span class="bad">Cold / frustrated</span></div>
+      <div class="row"><span>LotBeacon</span><span class="good">High purchase intent</span></div>
+      <div style="margin-top:8px">
+        <span class="tag buy">Buy today</span>
+        <span class="tag price">Price friction</span>
+        <span class="tag hot">Same-day visit</span>
+        <span class="tag hot">Falling patience</span>
+      </div>
+      <p style="margin:10px 0 0;font-size:14px;color:var(--muted)">Next best action: get a <b style="color:var(--ink)">manager pricing decision</b> now. Do not invent $2,500 off in-thread.</p>
+    </div>
+    <div class="esc">
+      <b>Manager escalate</b>
+      <div style="font-size:14px;margin-top:6px;color:var(--muted)">Ping Morgan (GSM) with context: Craig · F2302 · asked $2,500 off · will come today if number works. Human still owns the reply.</div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn primary" data-goto="draft">Draft the reply →</button>
+    </div>
+  </section>
+
+  <section class="card" id="draft" data-card="draft">
+    <div class="step">What to say next · firewall</div>
+    <h2>Grounded draft</h2>
+    <p class="meta">Inventory is the only vehicle claim source. Try inventing a discount — Send stays blocked.</p>
+    <textarea class="draft" id="draftText" spellcheck="false">Craig — heard you. I won't invent a discount in chat. Our sales manager Morgan can talk numbers if you can come today. F-150 XLT stock F2302 is still on the lot. Want me to have Morgan call you, or grab a time this afternoon?</textarea>
+    <div class="actions" style="flex-direction:row;flex-wrap:wrap">
+      <button type="button" class="btn" id="poison">Try invent $2,500 off</button>
+      <button type="button" class="btn" id="resetDraft">Reset safe draft</button>
+    </div>
+    <div class="firewall clear" id="fw">Firewall clear · ready for human Send</div>
+    <div class="actions">
+      <button type="button" class="btn primary" data-goto="send" id="toSend">Continue to Send →</button>
+    </div>
+  </section>
+
+  <section class="card" id="send" data-card="send">
+    <div class="step">You stay in control</div>
+    <h2>Human Send</h2>
+    <p class="meta">Nothing autonomous. Tyler / Alex taps Send. Manager path stays a human handoff.</p>
+    <div class="intent" id="sendPreview" style="white-space:pre-wrap;font-size:15px"></div>
+    <div class="firewall clear" id="fw2">Blocked claims: none</div>
+    <div class="actions">
+      <button type="button" class="btn primary" id="sendBtn">Send (HITL)</button>
+      <button type="button" class="btn" id="escalateBtn">Escalate to manager only</button>
+    </div>
+    <p id="sentNote" class="meta" style="display:none;color:var(--ok);font-weight:700;margin-top:10px">Sent by human. Audit logged. No autonomous outbound.</p>
+  </section>
+
+  <p class="foot">Product #3 · separate from Marketplace Copilot + SettleUp · seed Zoellner Ford · preview for Kyle / Tyler</p>
+</div>
+<script>
+(function(){
+  const chips=[...document.querySelectorAll('.chip')];
+  const cards=[...document.querySelectorAll('[data-card]')];
+  const draft=document.getElementById('draftText');
+  const fw=document.getElementById('fw');
+  const fw2=document.getElementById('fw2');
+  const sendPreview=document.getElementById('sendPreview');
+  const sendBtn=document.getElementById('sendBtn');
+  const safe=`Craig — heard you. I won't invent a discount in chat. Our sales manager Morgan can talk numbers if you can come today. F-150 XLT stock F2302 is still on the lot. Want me to have Morgan call you, or grab a time this afternoon?`;
+  const poison=`I can do $2,500 off right now if you come today. Payment as low as $399/mo. I'll hold F2302 and book you for 4pm.`;
+
+  function show(step){
+    chips.forEach(c=>c.setAttribute('aria-pressed', String(c.dataset.step===step)));
+    cards.forEach(c=>c.classList.toggle('on', c.dataset.card===step));
+    if(step==='send'){
+      sendPreview.textContent=draft.value.trim();
+      const blocked=isBlocked(draft.value);
+      fw2.className='firewall '+(blocked?'block':'clear');
+      fw2.textContent=blocked?('Firewall BLOCKED · '+blocked):'Blocked claims: none · human may Send';
+      sendBtn.disabled=!!blocked;
+    }
+    document.getElementById('sentNote').style.display='none';
+  }
+  function isBlocked(t){
+    const s=t.toLowerCase();
+    if(/\$\s?2,?500|2500 off|\$2.5k/.test(s)) return 'invented discount';
+    if(/\$\s?399|\/mo|payment as low/.test(s)) return 'invented payment';
+    if(/\bhold\b/.test(s) && /f2302|truck|f-150/.test(s)) return 'invented hold';
+    if(/book you|appointment at|see you at 4/.test(s)) return 'invented appointment';
+    return '';
+  }
+  function checkDraft(){
+    const blocked=isBlocked(draft.value);
+    fw.className='firewall '+(blocked?'block':'clear');
+    fw.textContent=blocked?('Firewall BLOCKED · '+blocked+' · Send disabled'):'Firewall clear · ready for human Send';
+    document.getElementById('toSend').disabled=false;
+  }
+
+  chips.forEach(c=>c.addEventListener('click',()=>show(c.dataset.step)));
+  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.goto)));
+  document.getElementById('openCraig').addEventListener('click',()=>show('thread'));
+  document.getElementById('poison').addEventListener('click',()=>{draft.value=poison;checkDraft();});
+  document.getElementById('resetDraft').addEventListener('click',()=>{draft.value=safe;checkDraft();});
+  draft.addEventListener('input',checkDraft);
+  sendBtn.addEventListener('click',()=>{
+    if(isBlocked(draft.value)) return;
+    document.getElementById('sentNote').style.display='block';
+  });
+  document.getElementById('escalateBtn').addEventListener('click',()=>{
+    document.getElementById('sentNote').style.display='block';
+    document.getElementById('sentNote').textContent='Manager escalate logged. No customer message sent. Human still owns next step.';
+  });
+  checkDraft();
+})();
+</script>
+</body>
+</html>
