@@ -35,7 +35,8 @@ button,.btn,.chip,summary{touch-action:manipulation;-webkit-touch-callout:none}
 .walk-details[open] summary::before{content:"▾"}
 .walk-path{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:8px -4px 0;padding:0 4px 4px;list-style:none}
 .walk-path::-webkit-scrollbar{display:none}
-.walk-tick{flex:0 0 auto;max-width:min(220px,78vw);padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:13px;font-weight:700;text-align:left;white-space:normal;line-height:1.25}
+.walk-path li{flex:0 0 196px;width:196px}
+.walk-tick{display:block;width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:13px;font-weight:700;text-align:left;white-space:normal;line-height:1.25}
 .walk-tick .when{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--msgr);margin-bottom:2px}
 .walk-tick[aria-current="step"]{border-color:var(--msgr);box-shadow:0 0 0 2px rgba(0,132,255,.28)}
 .walk-tick.done{border-color:#1f4d3a}
@@ -81,8 +82,12 @@ button,.btn,.chip,summary{touch-action:manipulation;-webkit-touch-callout:none}
 .hl{animation:pulse 1.1s ease-in-out 2;outline:2px solid var(--msgr);outline-offset:2px;border-radius:12px}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,132,255,.45)}50%{box-shadow:0 0 0 8px rgba(0,132,255,0)}}
 @media (max-width:374px){
-  .chip{padding:10px 12px;font-size:14px}
+  .wrap{gap:8px;padding-top:8px}
+  .sub,.walk-meta,#queue .meta{display:none}
+  .rules{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .walk{padding:10px}
   .walk-line{font-size:13px}
+  .chip{padding:10px 12px;font-size:14px}
   .count{font-size:12px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -113,14 +118,14 @@ button,.btn,.chip,summary{touch-action:manipulation;-webkit-touch-callout:none}
       <button type="button" class="walk-start" id="start60" aria-pressed="false">Start 60s</button>
     </div>
     <p class="walk-meta">Preview · firewall + Human Send only · never auto-sends · no live Meta · no CRM write-back</p>
-    <details class="walk-details" id="walkDetails" open>
-      <summary>Timed tap path</summary>
+    <details class="walk-details" id="walkDetails">
+      <summary>Timed tap path · 0–10 Craig → Human Send</summary>
       <ol class="walk-path" id="walkPath">
-        <li><button type="button" class="walk-tick" data-jump="queue" data-beat="0"><span class="when">0–10s</span>Open Craig · “$2,500 off and I'm there today”</button></li>
-        <li><button type="button" class="walk-tick" data-jump="thread" data-beat="1"><span class="when">10–20s</span>Thread · intent ≠ sentiment (not cold)</button></li>
-        <li><button type="button" class="walk-tick" data-jump="intent" data-beat="2"><span class="when">20–35s</span>Manager escalate · no invent discount</button></li>
-        <li><button type="button" class="walk-tick" data-jump="draft" data-beat="3"><span class="when">35–50s</span>Draft · Try invent $2,500 off → firewall</button></li>
-        <li><button type="button" class="walk-tick" data-jump="send" data-beat="4"><span class="when">50–60s</span>Reset safe draft · Human Send</button></li>
+        <li><button type="button" class="walk-tick" data-jump="queue" data-beat="0"><span class="when">0–10s</span>Open Craig · $2,500 off today</button></li>
+        <li><button type="button" class="walk-tick" data-jump="thread" data-beat="1"><span class="when">10–20s</span>Thread · intent ≠ sentiment</button></li>
+        <li><button type="button" class="walk-tick" data-jump="intent" data-beat="2"><span class="when">20–35s</span>Escalate · no invent discount</button></li>
+        <li><button type="button" class="walk-tick" data-jump="draft" data-beat="3"><span class="when">35–50s</span>Invent $2,500 → firewall</button></li>
+        <li><button type="button" class="walk-tick" data-jump="send" data-beat="4"><span class="when">50–60s</span>Reset · Human Send</button></li>
       </ol>
     </details>
     <div class="walk-timer" aria-hidden="true">
