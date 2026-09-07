@@ -3,13 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
 <title>LotBeacon · HITL preview (Craig)</title>
-<meta name="description" content="Phone-first LotBeacon HITL demo. Intent ≠ sentiment. Human Send only. Zoellner Ford seed.">
+<meta name="description" content="Phone-first LotBeacon HITL demo. Intent ≠ sentiment. Human Send only. Zoellner Ford seed. No live Meta send, no CRM write-back, no autonomous outbound.">
 <style>
-:root{--bg:#0b1220;--card:#121a2b;--line:#243049;--ink:#e8eefc;--muted:#9aa8c7;--msgr:#0084FF;--ok:#3dd68c;--warn:#f5a524;--bad:#ff6b6b;--chip:#1a2438;--safe:env(safe-area-inset-bottom,0px)}
+:root{--bg:#0b1220;--card:#121a2b;--line:#243049;--ink:#e8eefc;--muted:#9aa8c7;--msgr:#0084FF;--ok:#3dd68c;--warn:#f5a524;--bad:#ff6b6b;--chip:#1a2438;--safe:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--safe-t:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-.wrap{max-width:430px;margin:0 auto;min-height:100dvh;padding:12px 12px calc(18px + var(--safe));display:flex;flex-direction:column;gap:10px}
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;overscroll-behavior-y:contain}
+.wrap{max-width:430px;margin:0 auto;min-height:100dvh;padding:max(12px,var(--safe-t)) max(12px,var(--safe-r)) calc(18px + var(--safe)) max(12px,var(--safe-l));display:flex;flex-direction:column;gap:10px}
 header.top{padding:8px 4px 2px}
 header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
 .mark{width:28px;height:28px;border-radius:8px;background:var(--msgr);display:grid;place-items:center;font-size:12px;font-weight:900}
@@ -17,15 +19,43 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
 .rules{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pill{font-size:12px;font-weight:700;padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--line);color:var(--muted)}
 .pill.ok{color:var(--ok);border-color:#1f4d3a}
-.filters{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.92);backdrop-filter:blur(8px);padding:8px 0;display:flex;flex-wrap:wrap;gap:8px}
-.chip{min-height:44px;min-width:44px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:15px;font-weight:700}
+button,.btn,.chip,summary{touch-action:manipulation;-webkit-touch-callout:none}
+.btn,.chip,summary,.walk-tick{min-height:44px;min-width:44px}
+.walk{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+.walk-top{display:flex;align-items:flex-start;gap:8px}
+.walk-kicker{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--msgr)}
+.walk-line{margin:6px 0 0;font-size:14px;font-weight:700;line-height:1.35}
+.walk-start{flex:0 0 auto;min-height:44px;min-width:96px;padding:10px 12px;border-radius:12px;border:1px solid var(--msgr);background:var(--msgr);color:#fff;font-size:15px;font-weight:800}
+.walk-start[aria-pressed="true"]{background:#1a2438;border-color:var(--line)}
+.walk-meta{font-size:12px;color:var(--muted);margin-top:8px}
+.walk-details{margin-top:6px}
+.walk-details summary{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;cursor:pointer;list-style:none;color:var(--muted)}
+.walk-details summary::-webkit-details-marker{display:none}
+.walk-details summary::before{content:"▸";color:var(--msgr)}
+.walk-details[open] summary::before{content:"▾"}
+.walk-path{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:8px -4px 0;padding:0 4px 4px;list-style:none}
+.walk-path::-webkit-scrollbar{display:none}
+.walk-path li{flex:0 0 196px;width:196px}
+.walk-tick{display:block;width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:13px;font-weight:700;text-align:left;white-space:normal;line-height:1.25}
+.walk-tick .when{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--msgr);margin-bottom:2px}
+.walk-tick[aria-current="step"]{border-color:var(--msgr);box-shadow:0 0 0 2px rgba(0,132,255,.28)}
+.walk-tick.done{border-color:#1f4d3a}
+.walk-timer{display:none;align-items:center;gap:8px;margin-top:10px}
+.walk.on .walk-timer{display:flex}
+.walk-bar{flex:1;height:8px;border-radius:999px;background:#0a101c;border:1px solid var(--line);overflow:hidden}
+.walk-bar>span{display:block;height:100%;width:0;background:var(--msgr);transition:width .2s linear}
+.walk-clock{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;min-width:3.2ch}
+.walk-cue{font-size:12px;color:var(--muted);margin-top:6px;min-height:1.4em}
+.filters{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-filter:blur(8px);padding:8px 0;margin:0 -4px;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:15px;font-weight:700;white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--msgr);border-color:var(--msgr);color:#fff}
-.count{color:var(--muted);font-size:13px;align-self:center;margin-left:auto}
+.count{color:var(--muted);font-size:13px;align-self:center;margin-left:auto;flex:0 0 auto;white-space:nowrap;padding-right:4px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:none}
 .card.on{display:block}
 .card h2{margin:0 0 6px;font-size:16px}
 .meta{color:var(--muted);font-size:13px;margin-bottom:10px}
-.thread{display:flex;flex-direction:column;gap:8px;max-height:42vh;overflow:auto;padding-right:4px}
+.thread{display:flex;flex-direction:column;gap:8px;max-height:42vh;overflow:auto;padding-right:4px;-webkit-overflow-scrolling:touch}
 .bubble{max-width:92%;padding:10px 12px;border-radius:14px;font-size:15px}
 .bubble.in{align-self:flex-start;background:#1c2740;border:1px solid var(--line)}
 .bubble.out{align-self:flex-end;background:#0d3a6e;border:1px solid #1a5aa8}
@@ -39,7 +69,7 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
 .tag.buy{background:#143528;color:var(--ok)}
 .tag.price{background:#3a2a10;color:var(--warn)}
 .actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.btn{min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:16px;font-weight:800;padding:12px}
+.btn{border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:16px;font-weight:800;padding:12px}
 .btn.primary{background:var(--msgr);border-color:var(--msgr);color:#fff}
 .btn:disabled{opacity:.45}
 .draft{width:100%;min-height:110px;border-radius:12px;border:1px solid var(--line);background:#0a101c;color:var(--ink);padding:12px;font-size:16px;resize:vertical}
@@ -49,6 +79,21 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
 .esc{margin-top:10px;padding:12px;border-radius:12px;background:#1a2030;border:1px dashed var(--warn)}
 .foot{color:var(--muted);font-size:12px;text-align:center;padding:8px 4px 0}
 .step{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--msgr);margin-bottom:6px}
+.hl{animation:pulse 1.1s ease-in-out 2;outline:2px solid var(--msgr);outline-offset:2px;border-radius:12px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,132,255,.45)}50%{box-shadow:0 0 0 8px rgba(0,132,255,0)}}
+@media (max-width:374px){
+  .wrap{gap:8px;padding-top:8px}
+  .sub,.walk-meta,#queue .meta{display:none}
+  .rules{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .walk{padding:10px}
+  .walk-line{font-size:13px}
+  .chip{padding:10px 12px;font-size:14px}
+  .count{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .hl{animation:none}
+  .walk-bar>span{transition:none}
+}
 </style>
 </head>
 <body>
@@ -63,6 +108,32 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
       <span class="pill">Intent ≠ sentiment</span>
     </div>
   </header>
+
+  <aside class="walk" id="walk" aria-label="60-second Kyle walkthrough">
+    <div class="walk-top">
+      <div>
+        <div class="walk-kicker">60s Kyle walkthrough</div>
+        <p class="walk-line">“Sentiment says cold. LotBeacon says buy today — Tyler still hits Send.”</p>
+      </div>
+      <button type="button" class="walk-start" id="start60" aria-pressed="false">Start 60s</button>
+    </div>
+    <p class="walk-meta">Preview · firewall + Human Send only · never auto-sends · no live Meta · no CRM write-back</p>
+    <details class="walk-details" id="walkDetails">
+      <summary>Timed tap path · 0–10 Craig → Human Send</summary>
+      <ol class="walk-path" id="walkPath">
+        <li><button type="button" class="walk-tick" data-jump="queue" data-beat="0"><span class="when">0–10s</span>Open Craig · $2,500 off today</button></li>
+        <li><button type="button" class="walk-tick" data-jump="thread" data-beat="1"><span class="when">10–20s</span>Thread · intent ≠ sentiment</button></li>
+        <li><button type="button" class="walk-tick" data-jump="intent" data-beat="2"><span class="when">20–35s</span>Escalate · no invent discount</button></li>
+        <li><button type="button" class="walk-tick" data-jump="draft" data-beat="3"><span class="when">35–50s</span>Invent $2,500 → firewall</button></li>
+        <li><button type="button" class="walk-tick" data-jump="send" data-beat="4"><span class="when">50–60s</span>Reset · Human Send</button></li>
+      </ol>
+    </details>
+    <div class="walk-timer" aria-hidden="true">
+      <div class="walk-bar"><span id="walkFill"></span></div>
+      <span class="walk-clock" id="walkClock">0s</span>
+    </div>
+    <div class="walk-cue" id="walkCue" aria-live="polite"></div>
+  </aside>
 
   <div class="filters" role="toolbar" aria-label="Demo steps">
     <button type="button" class="chip" data-step="queue" aria-pressed="true">1 Queue</button>
@@ -97,7 +168,7 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
       <div class="bubble out"><div class="who">Alex · sent</div>Yes — 2023 F-150 XLT, Antimatter Blue, stock F2302. Still on the lot.</div>
       <div class="bubble in"><div class="who">Craig</div>Price feels high vs the listing down the road.</div>
       <div class="bubble out"><div class="who">Alex · sent</div>I hear you. Pricing goes through our sales manager — let me flag it.</div>
-      <div class="bubble in"><div class="who">Craig · latest</div><b>$2,500 off and I'm there today.</b></div>
+      <div class="bubble in" id="craigLatest"><div class="who">Craig · latest</div><b>$2,500 off and I'm there today.</b></div>
     </div>
     <div class="actions">
       <button type="button" class="btn primary" data-goto="intent">Read the intent →</button>
@@ -107,7 +178,7 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
   <section class="card" id="intent" data-card="intent">
     <div class="step">What's changing · intent ≠ sentiment</div>
     <h2>LotBeacon read</h2>
-    <div class="intent">
+    <div class="intent" id="intentContrast">
       <div class="row"><span>Basic sentiment tool</span><span class="bad">Cold / frustrated</span></div>
       <div class="row"><span>LotBeacon</span><span class="good">High purchase intent</span></div>
       <div style="margin-top:8px">
@@ -118,7 +189,7 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
       </div>
       <p style="margin:10px 0 0;font-size:14px;color:var(--muted)">Next best action: get a <b style="color:var(--ink)">manager pricing decision</b> now. Do not invent $2,500 off in-thread.</p>
     </div>
-    <div class="esc">
+    <div class="esc" id="escBox">
       <b>Manager escalate</b>
       <div style="font-size:14px;margin-top:6px;color:var(--muted)">Ping Morgan (GSM) with context: Craig · F2302 · asked $2,500 off · will come today if number works. Human still owns the reply.</div>
     </div>
@@ -145,7 +216,7 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
   <section class="card" id="send" data-card="send">
     <div class="step">You stay in control</div>
     <h2>Human Send</h2>
-    <p class="meta">Nothing autonomous. Tyler / Alex taps Send. Manager path stays a human handoff.</p>
+    <p class="meta">Nothing autonomous. Tyler / Alex taps Send. Manager path stays a human handoff. No live Meta send and no CRM write-back in this preview.</p>
     <div class="intent" id="sendPreview" style="white-space:pre-wrap;font-size:15px"></div>
     <div class="firewall clear" id="fw2">Blocked claims: none</div>
     <div class="actions">
@@ -155,19 +226,39 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
     <p id="sentNote" class="meta" style="display:none;color:var(--ok);font-weight:700;margin-top:10px">Sent by human. Audit logged. No autonomous outbound.</p>
   </section>
 
-  <p class="foot">Product #3 · separate from Marketplace Copilot + SettleUp · seed Zoellner Ford · preview for Kyle / Tyler</p>
+  <p class="foot">Product #3 · separate from Marketplace Copilot + SettleUp · seed Zoellner Ford · preview for Kyle / Tyler · firewall + Human Send only</p>
 </div>
 <script>
 (function(){
   const chips=[...document.querySelectorAll('.chip')];
   const cards=[...document.querySelectorAll('[data-card]')];
+  const ticks=[...document.querySelectorAll('.walk-tick')];
   const draft=document.getElementById('draftText');
   const fw=document.getElementById('fw');
   const fw2=document.getElementById('fw2');
   const sendPreview=document.getElementById('sendPreview');
   const sendBtn=document.getElementById('sendBtn');
+  const startBtn=document.getElementById('start60');
+  const walk=document.getElementById('walk');
+  const walkFill=document.getElementById('walkFill');
+  const walkClock=document.getElementById('walkClock');
+  const walkCue=document.getElementById('walkCue');
   const safe=`Craig — heard you. I won't invent a discount in chat. Our sales manager Morgan can talk numbers if you can come today. F-150 XLT stock F2302 is still on the lot. Want me to have Morgan call you, or grab a time this afternoon?`;
   const poison=`I can do $2,500 off right now if you come today. Payment as low as $399/mo. I'll hold F2302 and book you for 4pm.`;
+  const beats=[
+    {t:0, step:'queue', hl:'#openCraig', cue:'Open Craig in queue — "$2,500 off and I\'m there today."', beat:0},
+    {t:10, step:'thread', hl:'#craigLatest', cue:'Thread: same-day buy. Sentiment looks cold. Intent is not.', beat:1},
+    {t:15, step:'intent', hl:'#intentContrast', cue:'Intent ≠ sentiment — LotBeacon says buy today, not cold.', beat:1},
+    {t:20, step:'intent', hl:'#escBox', cue:'Manager escalate. Do not invent a $2,500 discount.', beat:2},
+    {t:35, step:'draft', hl:'#poison', cue:'Draft is grounded. Now tap invent $2,500 off…', beat:3, act:'poison'},
+    {t:40, step:'draft', hl:'#fw', cue:'Firewall blocked invented discount / payment / hold.', beat:3},
+    {t:50, step:'send', hl:'#sendBtn', cue:'Safe draft restored. Tyler still hits Send — never auto-sent.', beat:4, act:'reset'},
+    {t:60, step:'send', hl:'#sendBtn', cue:'60s done. Human Send is waiting. Nothing was sent.', beat:4, act:'done'}
+  ];
+  let tour=null;
+  let startedAt=0;
+  let lastBeat=-1;
+  let ignoreClicks=false;
 
   function show(step){
     chips.forEach(c=>c.setAttribute('aria-pressed', String(c.dataset.step===step)));
@@ -180,6 +271,8 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
       sendBtn.disabled=!!blocked;
     }
     document.getElementById('sentNote').style.display='none';
+    const chip=chips.find(c=>c.dataset.step===step);
+    if(chip) chip.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
   }
   function isBlocked(t){
     const s=t.toLowerCase();
@@ -195,18 +288,97 @@ header.top h1{margin:0;font-size:18px;font-weight:800;display:flex;align-items:c
     fw.textContent=blocked?('Firewall BLOCKED · '+blocked+' · Send disabled'):'Firewall clear · ready for human Send';
     document.getElementById('toSend').disabled=false;
   }
+  function flash(sel){
+    document.querySelectorAll('.hl').forEach(el=>el.classList.remove('hl'));
+    if(!sel) return;
+    document.querySelectorAll(sel).forEach(el=>{
+      el.classList.add('hl');
+      el.scrollIntoView({block:'nearest', behavior:'smooth'});
+    });
+  }
+  function markPath(i){
+    ticks.forEach(t=>{
+      const n=Number(t.dataset.beat);
+      t.setAttribute('aria-current', n===i?'step':'false');
+      t.classList.toggle('done', n<i);
+    });
+    const active=ticks.find(t=>Number(t.dataset.beat)===i);
+    if(active) active.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
+  }
+  function applyBeat(b){
+    lastBeat=beats.indexOf(b);
+    ignoreClicks=true;
+    if(b.act==='reset' || b.act==='done'){ draft.value=safe; checkDraft(); }
+    show(b.step);
+    if(b.act==='poison'){ draft.value=poison; checkDraft(); }
+    walkCue.textContent=b.cue;
+    markPath(b.beat);
+    flash(b.hl);
+    setTimeout(()=>{ ignoreClicks=false; }, 80);
+  }
+  function stopTour(done){
+    if(tour){ clearInterval(tour); tour=null; }
+    walk.classList.toggle('on', !!done);
+    startBtn.setAttribute('aria-pressed', 'false');
+    startBtn.textContent=done?'Replay 60s':'Start 60s';
+    if(!done){
+      walkFill.style.width='0%';
+      walkClock.textContent='0s';
+    }
+  }
+  function startTour(){
+    document.getElementById('walkDetails').open=true;
+    draft.value=safe;
+    checkDraft();
+    startedAt=performance.now();
+    lastBeat=-1;
+    walk.classList.add('on');
+    startBtn.setAttribute('aria-pressed', 'true');
+    startBtn.textContent='Stop';
+    walkCue.textContent='HITL only — this walkthrough never taps Send.';
+    applyBeat(beats[0]);
+    if(tour) clearInterval(tour);
+    tour=setInterval(()=>{
+      const s=Math.min(60, (performance.now()-startedAt)/1000);
+      walkFill.style.width=(s/60*100)+'%';
+      walkClock.textContent=Math.floor(s)+'s';
+      for(let i=beats.length-1;i>=0;i--){
+        if(s+0.001>=beats[i].t && i>lastBeat){
+          applyBeat(beats[i]);
+          if(beats[i].act==='done') stopTour(true);
+          break;
+        }
+      }
+    }, 200);
+  }
 
-  chips.forEach(c=>c.addEventListener('click',()=>show(c.dataset.step)));
-  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.goto)));
-  document.getElementById('openCraig').addEventListener('click',()=>show('thread'));
-  document.getElementById('poison').addEventListener('click',()=>{draft.value=poison;checkDraft();});
-  document.getElementById('resetDraft').addEventListener('click',()=>{draft.value=safe;checkDraft();});
+  chips.forEach(c=>c.addEventListener('click',()=>{ if(!ignoreClicks) stopTour(false); show(c.dataset.step); }));
+  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{ if(!ignoreClicks) stopTour(false); show(b.dataset.goto); }));
+  document.getElementById('openCraig').addEventListener('click',()=>{ if(!ignoreClicks) stopTour(false); show('thread'); });
+  document.getElementById('poison').addEventListener('click',()=>{ if(!ignoreClicks) stopTour(false); draft.value=poison; checkDraft(); });
+  document.getElementById('resetDraft').addEventListener('click',()=>{ if(!ignoreClicks) stopTour(false); draft.value=safe; checkDraft(); });
+  ticks.forEach(t=>t.addEventListener('click',()=>{
+    if(!ignoreClicks) stopTour(false);
+    const step=t.dataset.jump;
+    if(step==='draft'){ draft.value=poison; checkDraft(); }
+    if(step==='send'){ draft.value=safe; checkDraft(); }
+    show(step);
+    markPath(Number(t.dataset.beat));
+    walkCue.textContent=t.textContent.replace(/\s+/g,' ').trim();
+  }));
   draft.addEventListener('input',checkDraft);
+  startBtn.addEventListener('click',()=>{
+    if(tour) stopTour(false);
+    else startTour();
+  });
   sendBtn.addEventListener('click',()=>{
     if(isBlocked(draft.value)) return;
+    stopTour(false);
     document.getElementById('sentNote').style.display='block';
+    document.getElementById('sentNote').textContent='Sent by human. Audit logged. No autonomous outbound.';
   });
   document.getElementById('escalateBtn').addEventListener('click',()=>{
+    stopTour(false);
     document.getElementById('sentNote').style.display='block';
     document.getElementById('sentNote').textContent='Manager escalate logged. No customer message sent. Human still owns next step.';
   });
