@@ -9,7 +9,10 @@ for those recordings, so it can be served from GitHub Pages (or any static host)
 
 What still works: queue, every thread, Send & next (advances the recording), Book, why-this-action, inventory evidence,
 Impact, Owner dashboard, tour, keyboard. What is disabled (needs the live server): free-text edits being re-validated,
-the live-inquiry analyzer, reply-style changes, follow-up nudges, fact corrections, inventory events.
+reply-style changes, follow-up nudges, fact corrections, inventory events. The live-inquiry analyzer is closed on this
+recording: the button and modal ask for a four-field pilot (name, shop, named Page, what you will paste) and do not
+claim the pipeline runs against live inventory. grok-demo.html is the separately maintained desk; this script does
+not overwrite it.
 """
 import json
 import os
@@ -29,6 +32,51 @@ from fastapi.testclient import TestClient  # noqa: E402
 from lotbeacon.api import app  # noqa: E402
 
 MAX_STEPS = 12
+
+PARENT_BANNER = "Synthetic shopper. Not a live Facebook inbox. A person still sends."
+PILOT_COPY = (
+    "This recording cannot run a live inquiry. Request a pilot. "
+    "Send your name, the shop, the named Page, and what you will paste. "
+    "A person replies. Nothing here sends to Facebook."
+)
+PILOT_MAILTO = (
+    "mailto:nathanplatter@gmail.com?subject="
+    "LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29"
+)
+LIVE_INQUIRY_BTN = (
+    '<button id="anaBtn" title="Paste a real customer message and watch the pipeline run — nothing is stored">'
+    "Try a live inquiry</button>"
+)
+LIVE_INQUIRY_TOUR = (
+    "{sel:'#anaBtn',title:'Try a live inquiry',text:'Paste a message a real customer sent your store today. "
+    "The whole pipeline runs against live inventory and shows the draft, the verdicts and the decision path — nothing is stored.'},"
+)
+
+
+def close_live_inquiry(html: str) -> str:
+    """Replace the live-app analyzer with the four-field pilot close. Fail loud if the source moved."""
+    if LIVE_INQUIRY_BTN not in html:
+        raise SystemExit("export_showcase: live-inquiry button missing; cannot close it")
+    html = html.replace(LIVE_INQUIRY_BTN, f'<button id="anaBtn" title="{PILOT_COPY}">Request a pilot</button>')
+    start = html.find("const EXAMPLES=[")
+    end = html.find("$('#anaBtn').onclick=showAnalyzer;")
+    if start == -1 or end == -1 or end < start:
+        raise SystemExit("export_showcase: live-inquiry analyzer block missing; cannot close it")
+    closed = (
+        "function showAnalyzer(){\n"
+        "  openModal(`<h2>Request a pilot</h2>\n"
+        f"    <div class=\"sub\">{PILOT_COPY}</div>\n"
+        f'    <p style="margin:16px 0 0"><a class="btn primary" href="{PILOT_MAILTO}">Request a pilot</a></p>`);\n'
+        "}\n"
+    )
+    html = html[:start] + closed + html[end:]
+    if LIVE_INQUIRY_TOUR not in html:
+        raise SystemExit("export_showcase: live-inquiry tour step missing; cannot close it")
+    html = html.replace(
+        LIVE_INQUIRY_TOUR,
+        "{sel:'#anaBtn',title:'Request a pilot',text:'" + PILOT_COPY + "'},",
+    )
+    return html
 
 
 def build() -> dict:
@@ -106,7 +154,7 @@ async function api(path,opts={}){
   if(path==='/api/metrics/assumptions'){needsLive('Editing assumptions');return LB.owner.assumptions;}
   if(path==='/api/inventory') return Object.values(LB.evidence).map(e=>e.vehicle);
   const ev=path.match(/^\/api\/inventory\/([^/]+)\/evidence$/); if(ev) return LB.evidence[decodeURIComponent(ev[1])];
-  if(path==='/api/analyze'){throw new Error('The live-inquiry analyzer runs Claude against live inventory — it needs the hosted demo, not this recording.');}
+  if(path==='/api/analyze'){throw new Error('This recording cannot run a live inquiry.');}
   const dm=path.match(/^\/api\/drafts\/(\d+)\/(edit|send)$/);
   if(dm){
     const id=Object.keys(LB.threads).find(k=>stepOf(k).detail.draft&&stepOf(k).detail.draft.id===+dm[1]);
@@ -146,9 +194,22 @@ def render(data: dict, artifact: bool = False) -> str:
                         "<script>\nwindow.LB_STATIC=" + json.dumps(data, separators=(",", ":")).replace("</", "<\\/") + ";\n</script>\n<script>\nconst $=s=>document.querySelector(s);" + SHIM)
     # keep the page honest about what it is
     built = datetime.fromisoformat(data["built_at"]).strftime("%b %d, %Y")
-    banner = f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Interactive showcase · recorded {built} · Send &amp; next and Book play the conversation forward</div>'
+    banner = (
+        f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">'
+        f'Interactive showcase · recorded {built} · {PARENT_BANNER} '
+        f'<a href="grok-demo.html" style="color:inherit;font-weight:700">Open the desk</a></div>'
+    )
     html = html.replace("</header>", "</header>" + banner, 1)
-    html = html.replace('<button id="anaBtn"', '<a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn"', 1)
+    html = html.replace(
+        '<button id="anaBtn"',
+        '<a class="navlink" href="grok-demo.html">Open the desk</a>'
+        '<a class="navlink" href="impact-estimate.html">Before &amp; after</a>'
+        '<a class="navlink" href="pricing.html">Pricing</a>'
+        '<a class="navlink" href="compare.html">vs the field</a>'
+        '<button id="anaBtn"',
+        1,
+    )
+    html = close_live_inquiry(html)
     html = html.replace("header .nav button[aria-selected=\"true\"]", "header .nav .navlink{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;opacity:.75;text-decoration:none;display:inline-block}header .nav .navlink:hover{opacity:1}\nheader .nav button[aria-selected=\"true\"]", 1)
     html = html.replace("calc(100vh - 52px)", "calc(100vh - 52px - 31px)")
     html = html.replace("window.open(`/api/audit/export?thread_id=${d.id}`,'_blank');", "needsLive('Audit export');")
@@ -165,12 +226,11 @@ if __name__ == "__main__":
     data = build()
     docs = ROOT / "docs"
     docs.mkdir(exist_ok=True)
-    desk = render(data)
-    (docs / "index.html").write_text(desk)
-    (docs / "grok-demo.html").write_text(desk.replace("<title>LotBeacon · showcase</title>", "<title>LotBeacon · desk</title>", 1))
+    page = render(data)
+    (docs / "index.html").write_text(page)
     (docs / ".nojekyll").write_text("")
     n_steps = sum(len(t["steps"]) for t in data["threads"].values())
-    print(f"docs/index.html + docs/grok-demo.html — {len(data['threads'])} conversations, {n_steps} recorded states, {os.path.getsize(docs / 'index.html') / 1024:.0f} KB")
+    print(f"docs/index.html — {len(data['threads'])} conversations, {n_steps} recorded states, {os.path.getsize(docs / 'index.html') / 1024:.0f} KB (desk at docs/grok-demo.html is left alone)")
     if "--artifact" in sys.argv:
         (docs / "showcase-artifact.html").write_text(render(data, artifact=True))
         print("docs/showcase-artifact.html")

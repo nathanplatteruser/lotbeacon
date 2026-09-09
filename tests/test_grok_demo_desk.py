@@ -259,11 +259,67 @@ def test_recording_closes_analyze_and_keeps_language_path_controls():
     assert html.index(path_note) > blurb_at
 
 
+PARENT_BANNER = "Synthetic shopper. Not a live Facebook inbox. A person still sends."
+PARENT_CLOSE = (
+    "This recording cannot run a live inquiry. Request a pilot. "
+    "Send your name, the shop, the named Page, and what you will paste. "
+    "A person replies. Nothing here sends to Facebook."
+)
+
+
+def test_parent_closes_live_inquiry_to_four_field_pilot():
+    index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+    assert PARENT_BANNER in index
+    assert "Open the desk" in index
+    assert 'href="grok-demo.html"' in index
+    assert PARENT_CLOSE in index
+    assert PILOT_MAILTO in index
+    assert "your name" in index and "the shop" in index and "named Page" in index and "what you will paste" in index
+    assert "Try a live inquiry" not in index
+    assert 'id="anaRun"' not in index
+    assert ">Analyze<" not in index
+    assert "api('/api/analyze'" not in index
+    assert "Paste a real customer message" not in index
+    assert "pipeline runs against live inventory" not in index
+    assert "checkout.stripe.com" not in index
+    assert EM not in PARENT_BANNER
+    assert EM not in PARENT_CLOSE
+
+
+def test_close_live_inquiry_rewrites_live_app_source():
+    from scripts.export_showcase import PILOT_COPY, close_live_inquiry
+
+    src = (ROOT / "lotbeacon" / "web" / "index.html").read_text(encoding="utf-8")
+    assert "Try a live inquiry" in src
+    out = close_live_inquiry(src)
+    assert "Try a live inquiry" not in out
+    assert PILOT_COPY in out
+    assert PILOT_MAILTO in out
+    assert 'id="anaRun"' not in out
+    assert ">Analyze<" not in out
+    assert "api('/api/analyze'" not in out
+    assert "pipeline runs against live inventory" not in out
+
+
+def test_export_showcase_closes_live_inquiry_and_leaves_desk_alone():
+    src = (ROOT / "scripts" / "export_showcase.py").read_text(encoding="utf-8")
+    assert PARENT_BANNER in src
+    assert "This recording cannot run a live inquiry." in src
+    assert "Send your name, the shop, the named Page, and what you will paste." in src
+    assert "nathanplatter@gmail.com" in src
+    assert "LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29" in src
+    assert "def close_live_inquiry" in src
+    assert '(docs / "grok-demo.html").write_text' not in src
+    assert "left alone" in src
+    assert "This recording cannot run a live inquiry." in src
+    assert "The live-inquiry analyzer runs Claude against live inventory" not in src
+
+
 def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
     pricing = (ROOT / "docs" / "pricing.html").read_text(encoding="utf-8")
     compare = (ROOT / "docs" / "compare.html").read_text(encoding="utf-8")
-    assert "Synthetic shopper. Not a live Facebook inbox. A person still sends." in index
+    assert PARENT_BANNER in index
     assert 'href="grok-demo.html"' in index
     assert "Open the desk" in index
     assert 'href="./">try the interactive demo' not in pricing
