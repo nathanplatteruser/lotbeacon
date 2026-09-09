@@ -78,6 +78,17 @@ header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);co
 .thead .buddy{font-size:12.5px}
 .row.closed .who,.row.closed .next{color:var(--ink-3);font-weight:500}
 .row .win{font-size:11px;color:var(--ink-3)} .row .win.hot{color:var(--bad);font-weight:700}
+.row .spark-rail{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:36px;margin:2px 0 1px}
+.row .spark-rail svg.spark{display:block;flex:0 0 auto;width:132px;height:36px}
+.row .spark-rail .spark-lab{font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.row .spark-rail.up .spark-lab{color:var(--ok)}
+.row .spark-rail.flat .spark-lab{color:var(--warn)}
+.row .spark-rail.down .spark-lab{color:var(--bad)}
+@media (max-width:760px){
+  .row{padding:12px 14px}
+  .row .spark-rail{min-height:44px}
+  .row .spark-rail svg.spark{width:156px;height:40px}
+}
 
 /* ---- Thread ---- */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--surface)}
@@ -339,6 +350,7 @@ async function loadQueue(){
     html+=rows.map(r=>`<button class="row ${r.bucket==='closed'?'closed':''}" data-id="${r.id}" aria-current="${r.id===current}">
       <span class="who">${r.unread?'<i class="dot"></i>':''}${esc(r.customer)}</span>
       <span class="wait ${r.waiting_seconds>600?'hot':''}">${r.waiting?'waiting '+esc(r.waiting):(r.window_left&&r.bucket!=='closed'?`<span class="win ${r.window_hours_left<4?'hot':''}">${esc(r.window_left)} left</span>`:'')}</span>
+      ${sparkRail(r.momentum)}
       <span class="what">${esc(r.summary)}</span>
       ${r.hint?`<span class="buddy" title="Buddy note (demo): how this lead has behaved so far">${esc(r.hint)}</span>`:''}
       <span class="next ${r.blocked?'bad':r.needs_person?'person':''}">→ ${esc(r.next_action)}</span>
@@ -531,12 +543,19 @@ function renderSide(){
   $('#simSend').onclick=async()=>{const t=$('#simText').value.trim();if(!t)return;await api('/webhook/messenger',{method:'POST',body:{page_id:META.dealership.page_id,psid:d.customer.psid,text:t,display_name:d.customer.name}});await open(d.id);loadQueue();};
   const si=$('#simInv');if(si)si.onchange=async e=>{const val=e.target.value;if(!val||!v)return;await api('/api/inventory/'+v.stock_number,{method:'POST',body:val==='stale'?{stale:true}:{status:val}});e.target.value='';const dr=detail.draft;if(dr&&!['sent','discarded'].includes(dr.status)){await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:dr.text}});}toast('Inventory changed — draft re-checked');await open(d.id);};
 }
+const SPARK_SCAN={up:'Climbing',flat:'Holding',down:'Slipping'};
 function spark(m,w,h){
+  if(!m||!m.series||!m.series.length) return '';
   let s=m.series.slice(-8); if(s.length===1) s=[s[0],s[0]];
   const pad=4,W=w-pad*2,H=h-pad*2,n=s.length,x=i=>pad+i*W/(n-1),y=v=>pad+H-(Math.max(0,Math.min(100,v))/100)*H;
   const col={up:'var(--ok)',flat:'var(--warn)',down:'var(--bad)'}[m.trend];
   const pts=s.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${m.label}"><title>${s.join(' → ')}</title><line x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}" stroke="var(--line)"></line><polyline fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${pts}"></polyline><circle cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3" fill="${col}"></circle></svg>`;
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(m.label)}"><title>${s.join(' → ')}</title><line x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}" stroke="var(--line)"></line><polyline fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${pts}"></polyline><circle cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3.2" fill="${col}"></circle></svg>`;
+}
+function sparkRail(m){
+  if(!m||!m.series||!m.series.length) return '';
+  const scan=SPARK_SCAN[m.trend]||m.label;
+  return `<span class="spark-rail ${esc(m.trend)}">${spark(m,132,36)}<span class="spark-lab">${esc(scan)}</span></span>`;
 }
 
 /* ---------------- impact drawer ---------------- */
@@ -653,14 +672,14 @@ document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.onclick=
 
 /* ---------------- guided tour ---------------- */
 const TOUR=[
-  {sel:'.queue',title:'The queue',text:'Not a leaderboard — a work list. Each row: who, how long they have waited, what happened, and the exact next action. Buckets are ordered by urgency; scores and colors are gone.'},
+  {sel:'.queue',title:'The queue',text:'Not a leaderboard. Each row: who, how long they have waited, the conversation sparkline (green climbing, yellow holding, red slipping), what happened, and the exact next action. Buckets are ordered by urgency.'},
   {sel:'.row .buddy',title:'Buddy notes (demo)',text:'The amber line is the two-second briefing a coworker would text you: "price grinder", "serial ghoster", "angry be-back". It tells you which situation you are about to watch LotBeacon handle. Demo-only for now — beta testers decide if it ships.'},
   {sel:'.thead .meta',title:'Channel, window, ownership',text:'Facebook Messenger with a live countdown on the 24-hour reply window, and one plain line saying who drafts and who sends. No autonomous sends, ever.'},
   {sel:'.stages',title:'Four stages, auto-derived',text:'Engage → Qualify → Book → Visit outcome. The sub-state is precise: "visit interest (tentative)" is not "appointment requested."'},
   {sel:'#card',title:'One action card',text:'Goal · Missing · Known (click a fact to see the customer\'s own words) · Verified vehicle · the draft. Two real appointment slots, verified against hours and existing bookings. When the customer picks one, this becomes a one-click Book + confirm.'},
   {sel:'#whyBtn',title:'Why this action?',text:'Click it and the card explains itself: what it read, what it remembers (with certainty), what it verified in inventory, which stage, which action, which claims it checked, and the human gate. No black box.'},
   {sel:'#impactBtn',title:'Business impact',text:'What this conversation has produced: rep attention saved, first-response time, claims kept out of the customer\'s inbox, expected gross once booked. Reps prove the work; managers see the return.'},
-  {sel:'.side',title:'Details, not clutter',text:'Vehicle card, evidence for every fact, momentum, stage history, diagnostics — behind disclosure. The demo simulator lives here too.'},
+  {sel:'.side',title:'Details, not clutter',text:'Vehicle card, evidence for every fact, the selected-thread momentum score, stage history, diagnostics. Behind disclosure. The demo simulator lives here too. Scan vibe across every lead on the left rail, not here.'},
   {sel:'header .nav',title:'Owner dashboard',text:'Active conversations, median first response, rep attention saved, claims routed for verification — usage and return, with every assumption editable and visible.'},
   {sel:'#anaBtn',title:'Try a live inquiry',text:'Paste a message a real customer sent your store today. The whole pipeline runs against live inventory and shows the draft, the verdicts and the decision path — nothing is stored.'},
   {sel:'header .keys',title:'Keyboard-first',text:'J/K walk the queue, E edits, ⌘↵ sends and opens the next lead, 1/2 swap the slot pair. Built for volume.'},

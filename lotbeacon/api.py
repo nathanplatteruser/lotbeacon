@@ -142,7 +142,7 @@ def meta(s: Session = Depends(get_session)):
 
 @app.get("/api/queue")
 def action_queue(s: Session = Depends(get_session)):
-    """The rep's work list. Buckets + one-line next action per row. No scores."""
+    """The rep's work list. Buckets + next action + momentum series for the left-rail sparkline."""
     return queue.build(s, ghost_view)
 
 

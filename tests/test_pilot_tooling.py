@@ -102,3 +102,41 @@ def test_every_seeded_lead_has_a_short_buddy_note(client):
     rows = client.get("/api/queue").json()["rows"]
     assert all(r["hint"] for r in rows)
     assert client.get("/api/threads/1").json()["hint"] == HINTS["Sarah Miller"]
+
+
+def test_queue_carries_momentum_series_for_left_rail(client):
+    """Left-rail scan uses the existing momentum model, not a new score. Same series as thread Details."""
+    rows = {r["customer"]: r for r in client.get("/api/queue").json()["rows"]}
+    assert rows, "seeded queue is empty"
+    for name, r in rows.items():
+        m = r.get("momentum") or {}
+        assert isinstance(m.get("series"), list), name
+        assert len(m["series"]) <= 8, name
+        assert m.get("trend") in {"up", "flat", "down"}, name
+
+    sarah = rows["Sarah Miller"]["momentum"]
+    assert sarah["trend"] == "up" and sarah["label"] == "Gaining momentum"
+    assert len(sarah["series"]) >= 2 and sarah["series"][-1] > sarah["series"][0]
+
+    mike = rows["Mike Torres"]["momentum"]
+    assert mike["trend"] == "down" and mike["label"] == "Losing momentum"
+    assert mike["series"][-1] < mike["series"][0]
+
+    denise = rows["Denise Okafor"]["momentum"]
+    assert len(denise["series"]) >= 3
+    assert denise["series"][-1] > max(denise["series"][:-1])
+
+    detail = client.get("/api/threads/1").json()
+    assert detail["customer"]["name"] == "Sarah Miller"
+    assert detail["momentum"] == sarah
+
+
+def test_desk_html_draws_sparkline_on_every_queue_row():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    for rel in ("lotbeacon/web/index.html", "docs/index.html"):
+        html = (root / rel).read_text()
+        assert "${sparkRail(r.momentum)}" in html, rel
+        assert "function sparkRail(" in html, rel
+        assert "function spark(" in html, rel
+        assert ".row .spark-rail" in html, rel

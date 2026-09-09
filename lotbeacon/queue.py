@@ -1,7 +1,8 @@
 """The action queue. Answers three questions per row without opening the thread:
 what happened · how long have they waited · what do I do next.
 
-Deterministic ranking. No scores on the surface. Buckets, in order of urgency:
+Deterministic ranking. Numeric scores stay off the surface; the left rail draws the
+existing momentum sparkline (last 8 customer communications). Buckets, in order of urgency:
   reply_now · book_now · window_closing · appointment_changes · followup_due · waiting · closed
 """
 from datetime import datetime, timezone
@@ -9,7 +10,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import policy, timefmt
+from . import momentum, policy, timefmt
 from .models import Customer, Draft, LeadState, Thread, Vehicle
 
 BUCKETS = [
@@ -127,7 +128,8 @@ def row_for(s: Session, t: Thread, ghost: dict | None) -> dict:
         "unread": customer_waiting, "owner": t.assigned_rep_id, "blocked": bool(d and d.status == "blocked"),
         "needs_person": action.startswith("route_") or action == "human_takeover",
         "last_customer_message_at": t.last_customer_message_at.isoformat() if t.last_customer_message_at else None,
-        # details (hidden by default in the UI)
+        # series for the left-rail sparkline (same model as Details). Numeric score stays off the surface.
+        "momentum": momentum.view(s, t),
         "state": state.value, "priority": t.priority,
     }
 
