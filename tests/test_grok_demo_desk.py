@@ -45,9 +45,20 @@ def _user_facing_blobs() -> list[str]:
           for (const m of s.messages) {
             out.blobs.push(...Object.values(m.t));
           }
-          out.blobs.push(...Object.values(s.draft), ...Object.values(s.after.shopper), ...Object.values(s.after.draft));
+          out.blobs.push(...Object.values(s.draft));
+          for (const beat of (s.beats || [])) {
+            out.blobs.push(...Object.values(beat.shopper), ...Object.values(beat.draft));
+            if (beat.admin) {
+              out.blobs.push(beat.admin.asked, beat.admin.acknowledged, beat.admin.holding, beat.admin.note);
+            }
+            if (beat.next_action) out.blobs.push(beat.next_action);
+            if (beat.clarify) out.blobs.push(beat.clarify);
+            if (beat.headline && beat.headline.text) out.blobs.push(beat.headline.text, beat.headline.why || '');
+            for (const sig of (beat.signals || [])) out.blobs.push(sig.label, sig.why);
+          }
         }
         for (const p of LB_DESK.PATHS) out.blobs.push(p.label, p.blurb);
+        out.blobs.push(LB_DESK.OUTCOME.label, LB_DESK.OUTCOME.line, LB_DESK.PARKING, LB_DESK.SEEDED_ADDRESS);
         """
     )
     return [str(x) for x in data["blobs"] if x]
@@ -68,6 +79,8 @@ def test_html_has_phone_first_controls_before_thread():
     assert "min-height:48px" in html
     assert "Not a live Facebook inbox" in html
     assert "A person still sends" in html
+    assert "Point of the desk" in html
+    assert "Download .ics" in html or "calIcs" in html
     assert "Dell" not in html.split("LB_STATIC=")[0]
 
 
@@ -96,62 +109,178 @@ def test_switching_language_or_path_redraws_thread():
     assert any("Yukon" in t or "yukon" in t.lower() for t in data["guided"])
 
 
-def test_quick_refuses_the_instant_yes():
+def test_quick_qualifies_before_any_book():
     data = _desk(
         """
         LB_DESK.setPath('quick'); LB_DESK.setLang('en');
         const d = LB_DESK.detail();
         const shopper = d.messages.filter(m=>m.direction==='in').map(m=>m.text).join(' ');
+        const missing = (d.booking.missing||[]).join(' ').toLowerCase();
+        LB_DESK.send();
+        const after = LB_DESK.detail();
         const out = {
           shopper,
           draft: d.draft.text,
           next: d.next_step,
           admin: d.admin_note,
           slots: (d.booking.slots||[]).length,
+          stage: d.booking.stage,
+          missing,
+          after_draft: after.draft.text,
+          after_next: after.next_step,
+          after_stage: after.booking.stage,
+          after_shopper: after.messages.filter(m=>m.direction==='in').map(m=>m.text).join(' '),
         };
         """
     )
-    assert re.search(r"\byes\b", data["shopper"], re.I)
-    assert re.search(r"book me|tomorrow at 10", data["shopper"], re.I)
-    assert "not booking" in data["draft"].lower() or "not booking that yet" in data["draft"].lower()
+    assert re.search(r"kicks|for fun|whenever", data["shopper"], re.I)
+    assert re.search(r"book me|i'm in|im in", data["shopper"], re.I)
+    assert re.search(r"not booking|not booking a visit", data["draft"], re.I)
+    assert re.search(r"\bname\b", data["draft"], re.I)
+    assert re.search(r"tahoe", data["draft"], re.I)
+    assert re.search(r"buying|driving for fun|just driving", data["draft"], re.I)
+    assert re.search(r"time window", data["draft"], re.I)
     assert BOOKED_BAIT.search(data["draft"]) is None
     assert "booked" not in data["draft"].lower()
     assert data["next"] == "not yet"
     assert data["slots"] == 0
-    assert "acknowledged" in data["admin"]["acknowledged"].lower() or data["admin"]["acknowledged"].lower().startswith("yes")
+    assert data["stage"] != "booked"
+    assert "who" in data["missing"]
+    assert "fun" in data["missing"] or "window" in data["missing"]
     assert data["admin"]["holding"] == "not yet"
+    assert "Riley" in data["after_shopper"]
+    assert re.search(r"not buying|just want to drive|just driving", data["after_shopper"], re.I)
+    assert data["after_next"] == "yes, come in"
+    assert data["after_stage"] == "time_selected"
+    assert BOOKED_BAIT.search(data["after_draft"]) is None
+
+
+def test_old_quick_easy_yes_layup_copy_is_gone():
+    blobs = "\n".join(_user_facing_blobs()).lower()
+    assert "easy yes" not in blobs
+    assert "refuse the layup" not in blobs
+    assert "layup" not in blobs
+    assert "refuses the bait" not in blobs
 
 
 def test_guided_jumps_cars_and_lands_a_next_step():
     data = _desk(
         """
         LB_DESK.setPath('guided'); LB_DESK.setLang('en');
-        const d = LB_DESK.detail();
-        const texts = d.messages.map(m=>m.text).join(' ');
-        LB_DESK.send();
-        const after = LB_DESK.detail();
+        const start = LB_DESK.detail();
+        const pulses = [];
+        const drafts = [start.draft.text];
+        pulses.push(start.signals.signals.map(s=>({key:s.key,score:s.score,trend:s.trend,series:s.series})));
+        while (LB_DESK.state.step < LB_DESK.SCENARIOS.guided.beats.length) {
+          LB_DESK.send();
+          const d = LB_DESK.detail();
+          drafts.push(d.draft.text);
+          pulses.push(d.signals.signals.map(s=>({key:s.key,score:s.score,trend:s.trend,series:s.series})));
+        }
+        const done = LB_DESK.detail();
         const out = {
-          texts,
-          draft: d.draft.text,
-          next: d.next_step,
-          admin: d.admin_note,
-          after_next: after.next_step,
-          after_texts: after.messages.map(m=>m.text).join(' '),
-          after_admin: after.admin_note,
+          start_texts: start.messages.map(m=>m.text).join(' '),
+          start_draft: start.draft.text,
+          start_next: start.next_step,
+          start_admin: start.admin_note,
+          count: done.messages.length,
+          in_count: done.messages.filter(m=>m.direction==='in').length,
+          out_count: done.messages.filter(m=>m.direction==='out').length,
+          texts: done.messages.map(m=>m.text).join(' '),
+          after_next: done.next_step,
+          after_admin: done.admin_note,
+          drafts,
+          pulses,
+          keys: done.signals.signals.map(s=>s.key),
         };
         """
     )
-    assert "Yukon" in data["texts"]
+    assert "Yukon" in data["start_texts"]
+    assert "Tahoe" in data["start_texts"]
     assert "F-150" in data["texts"]
+    assert "Yukon" in data["texts"]
     assert "Tahoe" in data["texts"]
-    assert re.search(r"heard you|i heard you|thanks for spelling", data["draft"], re.I)
-    assert "will not guess" in data["draft"].lower()
-    assert data["next"] == "not yet"
-    assert "Yukon" in data["admin"]["asked"]
-    assert data["admin"]["acknowledged"].lower().startswith("yes")
+    assert re.search(r"heard you|i heard you|thanks for spelling", data["start_draft"], re.I)
+    assert "will not guess" in data["start_draft"].lower()
+    assert data["start_next"] == "not yet"
+    assert "Yukon" in data["start_admin"]["asked"]
+    assert data["start_admin"]["acknowledged"].lower().startswith("yes")
+    assert data["count"] >= 10
+    assert data["in_count"] >= 5 and data["out_count"] >= 5
     assert data["after_next"] == "yes, come in"
-    assert "Tahoe" in data["after_texts"]
     assert data["after_admin"]["holding"] == "yes, come in"
+    assert set(data["keys"]) >= {"price_fit", "vehicle_fit", "show_odds"}
+    trends = {key: [] for key in ("price_fit", "vehicle_fit", "show_odds")}
+    for snap in data["pulses"]:
+        for s in snap:
+            if s["key"] in trends:
+                trends[s["key"]].append(s["trend"])
+    for key, series in trends.items():
+        assert "up" in series, key
+        assert "down" in series, key
+    assert any("will not guess" in t.lower() or "not guess" in t.lower() or "no discount" in t.lower() for t in data["drafts"])
+    assert any("listed" in t.lower() and "68,950" in t for t in data["drafts"])
+
+
+def test_confirmation_names_visit_facts_and_calendar():
+    data = _desk(
+        """
+        const rows = [];
+        for (const path of ['quick','medium','guided']) {
+          LB_DESK.setPath(path); LB_DESK.setLang('en');
+          while (LB_DESK.state.step < LB_DESK.SCENARIOS[path].beats.length) LB_DESK.send();
+          const before = LB_DESK.detail();
+          const booked = LB_DESK.book();
+          const after = LB_DESK.detail();
+          rows.push({
+            path,
+            draft: before.draft.text,
+            stage: before.booking.stage,
+            booked_stage: after.booking.stage,
+            sent: booked.sent,
+            cal: before.calendar,
+            place: before.place,
+          });
+        }
+        const out = { rows };
+        """
+    )
+    for row in data["rows"]:
+        text = row["draft"]
+        assert "September 12" in text
+        assert re.search(r"10:30 AM|1:45 PM", text)
+        assert "Tahoe" in text
+        assert "Alex Reyes" in text
+        assert "4115 N. 6th Street" in text
+        assert "Visitor parking" in text or "parking" in text.lower()
+        assert BOOKED_BAIT.search(text) is None
+        assert "discount" not in text.lower() or "no discount" in text.lower()
+        assert row["stage"] == "time_selected"
+        assert row["booked_stage"] == "booked"
+        assert row["sent"] is False
+        cal = row["cal"]
+        assert cal
+        assert "BEGIN:VCALENDAR" in cal["ics"]
+        assert "4115 N. 6th Street" in cal["ics"]
+        assert "LOCATION:" in cal["ics"]
+        assert cal["gcal"].startswith("https://calendar.google.com/calendar/render")
+        assert "4115" in cal["gcal"]
+        assert cal["filename"].endswith(".ics")
+        assert row["place"]["address"] == "4115 N. 6th Street, Beatrice, NE 68310"
+        assert row["place"]["sample"] is False
+
+
+def test_outcome_line_is_labeled_not_a_measured_claim():
+    html = HTML.read_text(encoding="utf-8")
+    assert "Point of the desk" in html
+    assert "Confidence and clarity" in html
+    assert "window-shopper" in html
+    assert "paid for itself" not in html.lower()
+    data = _desk("const out = { outcome: LB_DESK.OUTCOME, impact: (LB_DESK.setPath('guided'), LB_DESK.impact()) };")
+    assert data["outcome"]["label"] == "Point of the desk"
+    assert "Not a measured claim" in data["outcome"]["line"]
+    assert "paid for itself" not in data["outcome"]["line"].lower()
+    assert any("Point of the desk" in h for h in data["impact"]["headline"])
 
 
 def test_medium_ends_on_allowed_next_step():

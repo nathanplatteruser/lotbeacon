@@ -348,6 +348,17 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 .deskbar .desk-admin{margin-top:8px;padding:10px 12px;background:var(--surface-2);border-radius:12px;font-size:13px;line-height:1.4}
 .deskbar .desk-admin b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
 .deskbar .desk-chip{display:inline-flex;align-items:center;min-height:32px;padding:4px 10px;border-radius:999px;background:var(--msgr-soft);color:var(--ford);font-size:12.5px;font-weight:700;margin-top:6px}
+.deskbar .desk-outcome{margin-top:8px;padding:8px 12px;border-left:3px solid var(--ford);background:var(--surface-2);border-radius:0 10px 10px 0;font-size:13px;line-height:1.4;color:var(--ink-2)}
+.deskbar .desk-outcome b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.deskbar .desk-pulses{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.deskbar .desk-pulse{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:3px 9px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12px;font-weight:700}
+.deskbar .desk-pulse.up{color:var(--ok);border-color:var(--ok)}
+.deskbar .desk-pulse.down{color:var(--bad);border-color:var(--bad)}
+.deskbar .desk-pulse.flat{color:var(--warn);border-color:var(--warn)}
+.cal-links{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 16px 4px}
+.cal-links a{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line-strong);font-size:13px;font-weight:700;color:var(--ford);text-decoration:none;background:var(--surface)}
+.cal-links a:hover{border-color:var(--msgr);color:var(--msgr)}
+.cal-links .cal-note{font-size:12px;color:var(--ink-3);line-height:1.35;flex:1 1 100%}
 .msg .gloss{display:block;margin-top:6px;font-size:12px;line-height:1.35;opacity:.78;font-style:italic}
 .msg.out .gloss{color:#fff;opacity:.85}
 .msg[dir="rtl"]{text-align:right}
@@ -396,6 +407,7 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
   <div class="desk-note" id="deskBlurb">Average path. A normal number of DMs before a clear yes or no.</div>
   <p class="desk-help">This sets the shopper path in the recording. It does not set how long your reply will be.</p>
   <div class="desk-note">Synthetic shopper. Not a live Facebook inbox. Suggested wording is a draft. A person still sends.</div>
+  <p class="desk-outcome" id="deskOutcome"><b>Point of the desk</b> Confidence and clarity. More of the window-shopper threads handled, higher chance they convert, higher odds they show. Not a measured claim.</p>
   <div class="desk-admin" id="deskAdmin"></div>
 </div>
 
@@ -454,7 +466,7 @@ async function api(path,opts={}){
       if(sub==='explain') return {thread_id:+id,steps:LB_DESK.explain()};
       if(sub==='impact') return LB_DESK.impact();
       if(sub==='assign') return {ok:true};
-      if(sub==='book'){ toast('Book stays with a person on this synthetic path'); return {label:'Saturday 10:30 AM'}; }
+      if(sub==='book'){ return LB_DESK.book(); }
       if(sub==='slots'){needsLive('Swapping the slot pair');return {};}
       return {};
     }
@@ -509,6 +521,7 @@ async function loadQueue(){
   }
   $('#qrows').innerHTML=html;
   if(!current){const desk=window.LB_DESK&&Q.rows.find(r=>r.id===LB_DESK.THREAD_ID);const first=desk||Q.rows.find(r=>!['closed','waiting'].includes(r.bucket))||Q.rows[0];if(first)open(first.id);}
+  if(window.LB_DESK&&current&&LB_DESK.handles(current)) paintDeskbar();
 }
 function visibleOrder(){return Q?Q.rows.filter(r=>r.bucket!=='closed').map(r=>r.id):[];}
 function step(dir){const ids=visibleOrder();if(!ids.length)return;let i=ids.indexOf(current);i=(i+dir+ids.length)%ids.length;open(ids[i]);}
@@ -517,6 +530,7 @@ async function open(id){
   current=id;detail=await api('/api/threads/'+id);slotVariant=0;renderThread();renderSide();
   document.querySelectorAll('.row').forEach(l=>l.setAttribute('aria-current',+l.dataset.id===id));
   if(!detail.ownership.rep_id&&!['LOST','DO_NOT_CONTACT'].includes(detail.funnel.state)){api(`/api/threads/${id}/assign`,{method:'POST',body:{rep_id:repId()}}).catch(()=>{});}
+  if(window.LB_DESK&&LB_DESK.handles(id)){paintDeskbar();if(VIEW==='admin')renderAdmin();}
 }
 
 /* ---------------- thread ---------------- */
@@ -578,10 +592,13 @@ function renderCard(d){
   const trade=d.facts.find(f=>f.key==='trade_vehicle');
   let body='';
   if(stage==='booked'){
-    body=`<div class="bookline"><div><div class="when">${esc(bk.date_label)} · ${esc(bk.time_label)}</div><div class="det">${v?esc(v.year+' '+v.make+' '+v.model+' '+v.trim):''}${trade?' · trade appraisal: '+esc(trade.value):''} · owner: ${esc(d.ownership.rep_name||repName())}</div></div><span class="small">Confirmation sent</span></div>`;
-    if(dr&&dr.status!=='sent'&&dr.text){body+=`<textarea id="draft">${esc(dr.text)}</textarea>`;}
+    body=`<div class="bookline"><div><div class="when">${esc(bk.date_label)} · ${esc(bk.time_label)}</div><div class="det">${v?esc(v.year+' '+v.make+' '+v.model+' '+v.trim):''}${trade?' · trade appraisal: '+esc(trade.value):''} · owner: ${esc(d.ownership.rep_name||repName())}</div></div><span class="small">${d.id===90?'Visit held on the desk. Confirmation is still a draft.':'Confirmation sent'}</span></div>`;
+    if(dr&&dr.status!=='sent'&&dr.text){body+=`<textarea id="draft">${esc(dr.text)}</textarea>${dr.gloss?`<div class="draft-gloss">${esc(dr.gloss)}</div>`:''}`;}
+    if(d.id===90) body+=renderCalendar(d);
   } else if(stage==='time_selected'){
-    body=`<div class="bookline"><div><div class="when">${esc(bk.selected.day_label)} · ${esc(bk.selected.label)}</div><div class="det">${v?esc(v.year+' '+v.make+' '+v.model+' '+v.trim):''}${trade?' · trade appraisal: '+esc(trade.value):''} · you: ${esc(repName())}</div></div><button class="btn book" id="book">Book ${esc(bk.selected.label)} + send confirmation</button></div>`;
+    body=`<div class="bookline"><div><div class="when">${esc(bk.selected.day_label)} · ${esc(bk.selected.label)}</div><div class="det">${v?esc(v.year+' '+v.make+' '+v.model+' '+v.trim):''}${trade?' · trade appraisal: '+esc(trade.value):''} · you: ${esc(d.ownership.rep_name||repName())}</div></div><button class="btn book" id="book">${d.id===90?'Book this visit':'Book '+esc(bk.selected.label)+' + send confirmation'}</button></div>`;
+    if(d.id===90&&dr&&dr.text){body+=`<textarea id="draft">${esc(dr.text)}</textarea>${dr.gloss?`<div class="draft-gloss">${esc(dr.gloss)}</div>`:''}`;}
+    if(d.id===90) body+=renderCalendar(d);
   } else if(dr){
     const flags=(dr.validation?.claims||[]).filter(c=>c.verdict!=='supported');
     body=`${flags.map(c=>`<div class="flag ${c.risk==='orange'?'person':''}">⚠ <span><b>${esc(c.kind.replace(/_/g,' '))}</b> — <span class="q">“${esc(c.text)}”</span> · ${esc(c.note||'')}</span></div>`).join('')}
@@ -591,8 +608,9 @@ function renderCard(d){
     body=`<textarea id="draft" placeholder="Type a reply…"></textarea>`;
   }
   const sent=dr&&dr.status==='sent', blocked=dr&&(dr.status==='blocked'||dr.risk_level==='red');
-  const actions=(stage==='booked'&&!(dr&&dr.status!=='sent'&&dr.text))?'':`<div class="actions">
-      ${stage==='time_selected'?`<button class="btn quiet sm" id="sendAnyway">Reply instead</button>`:`<button class="btn primary" id="send" title="Plays this recording forward. Does not send to Facebook." ${(!dr||sent||blocked||!d.window.open)?'disabled':''}>${sent?'Sent':(d.id===90?'Send':'Send & next')}</button>`}
+  const deskSend=`<button class="btn primary" id="send" title="Plays this recording forward. Does not send to Facebook." ${(!dr||sent||blocked||!d.window.open)?'disabled':''}>${sent?'Sent':(d.id===90?'Send':'Send & next')}</button>`;
+  const actions=(stage==='booked'&&!(dr&&dr.status!=='sent'&&dr.text)&&d.id!==90)?'':`<div class="actions">
+      ${stage==='time_selected'?`<button class="btn quiet sm" id="sendAnyway">Reply instead</button>${d.id===90?deskSend:''}`:deskSend}
       <span class="hint" id="valstate">${blocked?'<span style="color:var(--bad);font-weight:700">Blocked — fix the flagged sentence</span>':(d.id===90?'Draft only. A person still sends.':(sent?'':'claims re-checked at send'))}${d.id===90?'':' · <kbd>⌘↵</kbd>'}</span>
       ${d.id===90?'<span class="send-help">Plays this recording forward. Does not send to Facebook.</span>':''}</div>`;
   return `<div class="card ${cls}" id="card"><div class="top"><div class="goal">Goal <button class="whybtn" id="whyBtn" title="The decision path behind this card">why this action?</button><b>${esc(goal)}</b></div><div class="missing ${missOk?'ok':''}">${missing}</div>${renderKnown(d)}${veri}${clarify}</div>${body}${actions}</div>`;
@@ -603,7 +621,7 @@ function renderKnown(d){
   const parts=[];
   for(const f of d.facts){
     if(['financing_sensitive','objection'].includes(f.key)) continue;
-    const label={trade_vehicle:'Trade',preferred_vehicle:'Vehicle',timing:'Visit',need:'',asked_about:'Asked',budget:'Budget',payment_target:'Payment target'}[f.key]??f.key;
+    const label={trade_vehicle:'Trade',preferred_vehicle:'Vehicle',timing:'Visit',need:'',asked_about:'Asked',budget:'Budget',payment_target:'Payment target',who:'Who',visit_purpose:'Purpose'}[f.key]??f.key;
     const cw=CW[f.certainty]||'';
     parts.push(`<button data-mid="${f.evidence?.message_id||''}" title="click → source message">${label?`<span class="q">${esc(label)}:</span> `:''}<b>${esc(f.value)}</b>${cw?` <span class="q">(${cw})</span>`:''}</button>`);
   }
@@ -669,12 +687,20 @@ async function doSend(){
 }
 async function doBook(){
   const d=detail;
-  try{const r=await api(`/api/threads/${d.id}/book`,{method:'POST',body:{rep_id:repId()}});toast('Booked '+r.label+' · confirmation sent');await loadQueue();open(d.id);}
+  try{const r=await api(`/api/threads/${d.id}/book`,{method:'POST',body:{rep_id:repId()}});toast(r.sent===false?('Visit held · '+r.label+' · confirmation is still a draft'):('Booked '+r.label+' · confirmation sent'));await loadQueue();open(d.id);}
   catch(e){toast(e.message||'Could not book');}
+}
+function renderCalendar(d){
+  const c=d.calendar; if(!c) return '';
+  return `<div class="cal-links">
+    <a id="calIcs" download="${esc(c.filename)}" href="${esc(c.ics_href)}">Download .ics</a>
+    <a id="calGcal" target="_blank" rel="noopener" href="${esc(c.gcal)}">Google Calendar</a>
+    <span class="cal-note">${c.sample?'Sample lot address. Edit it in the draft before send.':'Location is the seeded lot address. A maps app can open it from the invite.'}</span>
+  </div>`;
 }
 
 /* ---------------- side ---------------- */
-const SIG_COL={purchase_intent:'var(--msgr)',price_friction:'var(--warn)',engagement:'#7C3AED',visit_progression:'var(--ok)',objection_hints:'var(--bad)'};
+const SIG_COL={purchase_intent:'var(--msgr)',price_friction:'var(--warn)',engagement:'#7C3AED',visit_progression:'var(--ok)',objection_hints:'var(--bad)',price_fit:'var(--warn)',vehicle_fit:'var(--msgr)',show_odds:'var(--ok)'};
 function renderSide(){
   const d=detail,v=d.vehicle,m=d.momentum,sig=d.signals||{},df=d.deal_file||{};
   const banner=sig.headline;
@@ -804,6 +830,8 @@ function renderAdmin(){
   const n=window.LB_DESK?LB_DESK.adminNote():null;
   const path=(window.LB_DESK&&LB_DESK.PATHS.find(p=>p.id===LB_DESK.state.path))||{};
   const lang=(window.LB_DESK&&LB_DESK.LANGS.find(l=>l.id===LB_DESK.state.lang))||{};
+  const d=window.LB_DESK?LB_DESK.detail():null;
+  const sig=d&&d.signals||{};
   $('#adminView').innerHTML=`
     <div class="ownerbar"><div><h2>Admin</h2><div class="sub">Verify the shopper was acknowledged. Synthetic data only. Not a live Facebook inbox.</div></div></div>
     <div class="panel2 admin-panel" style="margin:16px">
@@ -813,6 +841,10 @@ function renderAdmin(){
       <div class="k">Acknowledged</div><div class="v">${esc(n?n.acknowledged:'')}</div>
       <div class="k">Next step the desk is holding</div><div class="v">${esc(n?n.holding:'')}</div>
       <div class="k">Note</div><div class="v">${esc(n?n.note:'')}</div>
+      <div class="k">Pulses this step</div>
+      <div class="v">${(sig.signals||[]).map(x=>signalRow(x)).join('')||'<div class="small">Step the thread on Queue to watch price fit, vehicle fit, and odds they show move.</div>'}</div>
+      <div class="k">${esc((window.LB_DESK&&LB_DESK.OUTCOME.label)||'Point of the desk')}</div>
+      <div class="v">${esc((window.LB_DESK&&LB_DESK.OUTCOME.line)||'')}</div>
       <div class="small" style="margin-top:12px">Suggested wording stays a draft. A person still taps Send. No live Meta attach.</div>
       ${n&&n.demo_copy?'<div class="small">Non-English lines are demo copy. Not a certified translation. Languages follow the Nebraska DHHS Language and LEP Report Card 2021 (ACS).</div>':''}
     </div>`;
@@ -914,12 +946,14 @@ function paintDeskbar(){
   if(!window.LB_DESK)return;
   const path=LB_DESK.PATHS.find(p=>p.id===LB_DESK.state.path);
   const n=LB_DESK.adminNote();
+  const d=LB_DESK.detail();
   const langSel=$('#deskLang'),pathSel=$('#deskPath');
   if(langSel)langSel.value=LB_DESK.state.lang;
   if(pathSel)pathSel.value=LB_DESK.state.path;
   const blurb=$('#deskBlurb');if(blurb&&path)blurb.textContent=path.blurb;
   const box=$('#deskAdmin');
-  if(box) box.innerHTML=`<b>Admin note</b>Asked: ${esc(n.asked)}<br>Acknowledged: ${esc(n.acknowledged)}<br>Holding: ${esc(n.holding)}<span class="desk-chip">Next step: ${esc(n.holding)}</span>`;
+  const pulses=(d.signals&&d.signals.signals||[]).map(s=>`<span class="desk-pulse ${esc(s.trend)}">${esc(s.label)} ${s.score} ${s.trend==='up'?'up':s.trend==='down'?'down':'flat'}</span>`).join('');
+  if(box) box.innerHTML=`<b>Admin note</b>Asked: ${esc(n.asked)}<br>Acknowledged: ${esc(n.acknowledged)}<br>Holding: ${esc(n.holding)}<span class="desk-chip">Next step: ${esc(n.holding)}</span><div class="desk-pulses">${pulses}</div>`;
   syncDeskbarH();
 }
 function onDeskChange(){
