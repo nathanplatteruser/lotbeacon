@@ -254,15 +254,22 @@ def test_recording_closes_analyze_and_keeps_language_path_controls():
     assert "English" in head and "Spanish" in head and "Vietnamese" in head and "Arabic" in head
     assert "Quick" in head and "Medium" in head and "Guided" in head
     assert 'title="Plays this recording forward. Does not send to Facebook."' in html
+    blurb_at = html.index('id="deskBlurb"')
+    path_note = "This sets the shopper path in the recording. It does not set how long your reply will be."
+    assert html.index(path_note) > blurb_at
 
 
 def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
     pricing = (ROOT / "docs" / "pricing.html").read_text(encoding="utf-8")
     compare = (ROOT / "docs" / "compare.html").read_text(encoding="utf-8")
-    assert "This is not a live Facebook inbox" in index
+    assert "Synthetic shopper. Not a live Facebook inbox. A person still sends." in index
     assert 'href="grok-demo.html"' in index
     assert "Open the desk" in index
+    assert 'href="./">try the interactive demo' not in pricing
+    assert 'href="grok-demo.html">try the interactive demo' in pricing
+    assert 'href="./">try the demo' not in compare
+    assert 'href="grok-demo.html">try the demo' in compare
     for page in (pricing, compare):
         assert 'href="grok-demo.html"' in page
         assert "Open the desk" in page
