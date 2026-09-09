@@ -266,6 +266,13 @@ def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     assert "Synthetic shopper. Not a live Facebook inbox. A person still sends." in index
     assert 'href="grok-demo.html"' in index
     assert "Open the desk" in index
+    assert FUNNEL_COPY[0] in index
+    assert PILOT_MAILTO in index
+    assert "Try a live inquiry" not in index
+    assert 'id="anaRun"' not in index
+    assert ">Analyze<" not in index
+    assert "api('/api/analyze'" not in index
+    assert "checkout.stripe.com" not in index
     assert 'href="./">try the interactive demo' not in pricing
     assert 'href="grok-demo.html">try the interactive demo' in pricing
     assert 'href="./">try the demo' not in compare
