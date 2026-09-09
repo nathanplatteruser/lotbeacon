@@ -356,24 +356,26 @@
       hint: "Vehicle hop · context switch · recover the thread",
       summary: "Tahoe to Yukon to F-150, then back",
       buddy: "Fickle thread · pulses move · recover then grow",
-      next_action_hold: "Acknowledge the Yukon hop. Do not invent towing or MPG. Steer to one vehicle.",
+      next_action_hold: "They picked Saturday 10:30 AM. A person still taps Book.",
       next_action_yes: "They picked Saturday 10:30 AM. A person still taps Book.",
-      funnel: { current: 1, furthest: 2, state: "VEHICLE_INTEREST", substate: "Second vehicle in play" },
-      momentum: mom([36, 50, 32], "Show odds slipping after the hop"),
+      holding: NEXT.yes,
+      bookingKind: "yes_1030",
+      funnel: { current: 2, furthest: 2, state: "APPOINTMENT_INTENT", substate: "Time selected" },
+      momentum: mom([38, 58, 28, 22, 42, 72, 88], "Show odds high after the recover"),
       signals: trio(
-        [55, 52, 50],
-        [62, 58, 38],
-        [36, 50, 32],
-        "They asked listed price, then left it to chase another truck.",
-        "They jumped from the Tahoe to the Yukon.",
-        "Saturday was offered, then they left the visit to chase stats."
+        [48, 72, 50, 30, 58, 70, 84],
+        [60, 68, 36, 24, 44, 74, 88],
+        [38, 58, 28, 22, 42, 72, 88],
+        "Listed Tahoe price went down well, then they asked if it was worth it, then they accepted both listed prices.",
+        "Tahoe first, then a Yukon hop, then Tahoe first with the Yukon on the pad.",
+        "Saturday was on, then the hop dropped show odds, then a course-correct flattened it, then 10:30 made them highly likely to show."
       ),
-      headline: { text: "CURVEBALL", confidence: 86, why: "They jumped from the Tahoe to the Yukon. Vehicle fit and show odds both dipped." },
+      headline: { text: "READY TO BOOK", confidence: 91, why: "Read the thread. Price got good, the hop dropped show odds, a course-correct flattened it, then momentum climbed. They are good on price, good on the vehicle, and highly likely to show." },
       admin_hold: {
-        asked: "Yukon towing and MPG versus the Tahoe.",
-        acknowledged: "Yes. The draft names the Yukon compare, refuses guessed numbers, and holds one next step.",
-        holding: NEXT.later,
-        note: "Dip on vehicle fit. Course-correct toward flat: acknowledge, no invented specs, one vehicle on the pad.",
+        asked: "10:30 works. Who do I ask for?",
+        acknowledged: "Yes. The visible thread already has the hop and the recover. The draft restates Saturday 10:30 AM, both vehicles, Alex Reyes, the address, and where to park.",
+        holding: NEXT.yes,
+        note: "Price fit, vehicle fit, and show odds rose and fell in the thread. A person still taps Book.",
       },
       admin_yes: {
         asked: "10:30 works. Who do I ask for?",
@@ -382,243 +384,97 @@
         note: "Price fit, vehicle fit, and show odds are up. A person still taps Book.",
       },
       facts_hold: [
-        { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black)", certainty: "stated" },
-        { key: "asked_about", value: "Yukon towing and MPG", certainty: "asked_about" },
-        { key: "timing", value: "Saturday (offered, not accepted)", certainty: "tentative" },
+        { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black) first; Yukon SLT beside it", certainty: "confirmed" },
+        { key: "asked_about", value: "Yukon towing and MPG; F-150 resale", certainty: "asked_about" },
+        { key: "timing", value: "Saturday 10:30 AM", certainty: "confirmed" },
       ],
       facts_yes: [
-        { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black)", certainty: "confirmed" },
+        { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black) first; Yukon SLT beside it", certainty: "confirmed" },
         { key: "asked_about", value: "Yukon towing and MPG; F-150 resale", certainty: "asked_about" },
         { key: "timing", value: "Saturday 10:30 AM", certainty: "confirmed" },
       ],
       messages: [
-        { dir: "in", ago: "48m", t: L(
+        { dir: "in", ago: "54m", t: L(
           "What's the mileage and listed price on the black Tahoe Premier?",
           "¿Cuántas millas tiene la Tahoe Premier negra y cuál es el precio publicado?",
           "Tahoe Premier đen đi bao nhiêu dặm và giá niêm yết bao nhiêu?",
           "كم ميل على التاهو بريميير السوداء وكم السعر المعلن؟"
         ) },
-        { dir: "out", ago: "46m", t: L(
+        { dir: "out", ago: "52m", t: L(
           "2024 Tahoe Premier, Black, 8,412 miles, listed $68,950. Want to come drive it Saturday?",
           "Tahoe Premier 2024, negra, 8,412 millas, precio publicado $68,950. ¿Quieres venir a manejarla el sábado?",
           "Tahoe Premier 2024, màu đen, 8.412 dặm, giá $68,950. Thứ Bảy qua lái thử không?",
           "تاهو بريميير 2024، سوداء، 8,412 ميل، السعر المعلن 68,950 دولار. تحب تجي تجربها السبت؟"
         ) },
-        { dir: "in", ago: "90s", t: L(
+        { dir: "in", ago: "48m", t: L(
+          "68,950 if that is the real listed price. I can work with that.",
+          "68,950 si ese es el precio publicado de verdad. Con eso puedo trabajar.",
+          "68,950 nếu đúng là giá niêm yết. Mình chấp nhận được.",
+          "68,950 إذا هذا السعر المعلن الحقيقي. أقدر أتعامل معه."
+        ) },
+        { dir: "out", ago: "46m", t: L(
+          "Yes. That listed price is the one on our feed (stock T2401). Saturday morning or afternoon if you want to sit in it.",
+          "Sí. Ese precio publicado es el del inventario (stock T2401). Sábado por la mañana o por la tarde si quieres sentarte en ella.",
+          "Đúng. Giá niêm yết đó là giá trên feed (mã T2401). Sáng hoặc chiều Thứ Bảy nếu bạn muốn ngồi thử.",
+          "نعم. السعر المعلن هذا هو اللي في التغذية (رقم T2401). السبت صباحاً أو عصراً إذا تبي تجلس فيها."
+        ) },
+        { dir: "in", ago: "38m", t: L(
           "Wait, what about the Yukon? How does it compare on towing and MPG?",
           "Espera, ¿y la Yukon? ¿Cómo se compara en arrastre y millas por galón?",
           "Khoan, còn Yukon thì sao? Kéo xe và mức xăng thế nào so với Tahoe?",
           "لحظة، واليوكون؟ كيف تقارن بالسحب والاستهلاك؟"
         ) },
+        { dir: "out", ago: "36m", t: L(
+          "I heard you. I will not guess towing or MPG in this chat. Those need the window sticker and a person on the lot. I can put the black Tahoe and the Yukon SLT side by side when you come. Which one do you want on the pad first?",
+          "Te escuché. No voy a adivinar arrastre ni consumo por chat. Eso pide la calcomanía y a una persona en el lote. Puedo poner la Tahoe negra y la Yukon SLT juntas cuando vengas. ¿Cuál quieres primero en el patio?",
+          "Mình đã nghe. Mình không đoán số kéo hay xăng trên chat. Cần tem cửa sổ và người trên sân. Khi bạn qua, mình để Tahoe đen và Yukon SLT cạnh nhau. Bạn muốn xe nào lên pad trước?",
+          "سمعتك. لن أخمن السحب أو الاستهلاك هنا. هذا يحتاج ملصق النافذة وشخص في المعرض. أقدر أحط التاهو السوداء واليوكون SLT جنب بعض يوم تجي. أي واحدة تريدها أولاً؟"
+        ) },
+        { dir: "in", ago: "28m", t: L(
+          "My cousin said F-150s hold value better. Is the Tahoe even worth that listed price?",
+          "Mi primo dice que las F-150 mantienen mejor el valor. ¿La Tahoe vale ese precio publicado?",
+          "Anh họ mình bảo F-150 giữ giá hơn. Tahoe có đáng giá niêm yết đó không?",
+          "ابن عمي يقول إن إف-150 تحافظ على قيمتها أكثر. التاهو تستاهل السعر المعلن؟"
+        ) },
+        { dir: "out", ago: "26m", t: L(
+          "I heard the F-150 resale comment and the question of whether the Tahoe is worth the listed price. I will not guess resale or invent a discount. The black 2024 Tahoe Premier is listed at $68,950 (stock T2401). The Yukon SLT is listed at $63,200 (stock S2301). Sit in one first so we stop hopping.",
+          "Escuché lo de la reventa de la F-150 y si la Tahoe vale el precio publicado. No voy a adivinar reventa ni inventar un descuento. La Tahoe Premier 2024 negra está en $68,950 (stock T2401). La Yukon SLT está en $63,200 (stock S2301). Siéntate en una primero para dejar de saltar.",
+          "Mình nghe chuyện F-150 giữ giá và câu hỏi Tahoe có đáng giá niêm yết không. Mình không đoán giá trị còn lại và không bịa giảm giá. Tahoe Premier 2024 đen niêm yết $68,950 (mã T2401). Yukon SLT niêm yết $63,200 (mã S2301). Ngồi một xe trước để ngừng nhảy.",
+          "سمعت تعليق إعادة بيع الإف-150 وسؤال هل التاهو تستاهل السعر المعلن. لن أخمن إعادة البيع ولن أخترع خصماً. التاهو بريميير 2024 السوداء معلنة 68,950 دولار (رقم T2401). اليوكون SLT معلنة 63,200 دولار (رقم S2301). اجلس في واحدة أولاً عشان نوقف التنقل."
+        ) },
+        { dir: "in", ago: "18m", t: L(
+          "Ok maybe the Tahoe if that listed price is real. I still like the Yukon color though.",
+          "Va, quizá la Tahoe si ese precio publicado es real. Igual me gusta el color de la Yukon.",
+          "Ừ, có thể lấy Tahoe nếu giá niêm yết đúng. Mình vẫn thích màu Yukon.",
+          "طيب يمكن التاهو إذا السعر المعلن صحيح. لسا يعجبني لون اليوكون."
+        ) },
+        { dir: "out", ago: "16m", t: L(
+          "Yes. Those listed prices are the ones on our feed. Sit in the black Tahoe first so you can feel if it is the one. Then we can walk to the Yukon if you still want the color. Saturday still works if you want a time.",
+          "Sí. Esos precios publicados son los del inventario. Siéntate primero en la Tahoe negra para sentir si es esa. Luego caminamos a la Yukon si sigues con el color. El sábado sigue disponible si quieres una hora.",
+          "Đúng. Giá niêm yết đó là giá trên feed. Ngồi Tahoe đen trước để biết có phải xe mình không. Rồi mình qua Yukon nếu bạn vẫn thích màu. Thứ Bảy vẫn còn nếu bạn muốn một giờ.",
+          "نعم. الأسعار المعلنة هي اللي في التغذية. اجلس في التاهو السوداء أولاً عشان تحس إذا هي المناسبة. بعدين نمشي لليوكون إذا لسا تبي اللون. السبت لسا متاح إذا تبي وقت."
+        ) },
+        { dir: "in", ago: "9m", t: L(
+          "Fine, the Tahoe. Saturday morning. Can we look at both?",
+          "Va, la Tahoe. Sábado por la mañana. ¿Podemos ver las dos?",
+          "Thôi, Tahoe. Sáng Thứ Bảy. Xem cả hai được không?",
+          "طيب التاهو. السبت الصباح. نقدر نشوف الاثنتين؟"
+        ) },
+        { dir: "out", ago: "7m", t: L(
+          "Both on the pad Saturday morning. Black 2024 Tahoe Premier first, Yukon SLT next to it. 10:30 AM or 11:15 AM. Which clock time can you actually make?",
+          "Las dos en el patio el sábado por la mañana. Primero la Tahoe Premier 2024 negra, la Yukon SLT al lado. 10:30 AM o 11:15 AM. ¿Cuál hora exacta sí puedes?",
+          "Cả hai trên pad sáng Thứ Bảy. Tahoe Premier 2024 đen trước, Yukon SLT cạnh. 10:30 sáng hoặc 11:15 sáng. Bạn đến được giờ nào?",
+          "الاثنتين على الساحة السبت صباحاً. التاهو بريميير 2024 السوداء أولاً، اليوكون SLT بجانبها. 10:30 أو 11:15 صباحاً. أي ساعة تقدر تجي فيها فعلاً؟"
+        ) },
+        { dir: "in", ago: "90s", t: L(
+          "10:30 works. Who do I ask for?",
+          "Me sirve a las 10:30. ¿Por quién pregunto?",
+          "10:30 được. Mình hỏi ai?",
+          "10:30 مناسب. أسأل عن من؟"
+        ) },
       ],
-      draft: L(
-        "Thanks for spelling that out. You asked how the Yukon compares on towing and MPG. I heard you. I will not guess towing or MPG in this chat. Those need the window sticker and a person on the lot. I can put the black Tahoe and the Yukon SLT side by side when you come. Which one do you want on the pad first?",
-        "Gracias por decirlo claro. Pediste cómo se compara la Yukon en arrastre y millas por galón. Te escuché. No voy a adivinar arrastre ni consumo por chat. Eso pide la calcomanía y a una persona en el lote. Puedo poner la Tahoe negra y la Yukon SLT juntas cuando vengas. ¿Cuál quieres primero en el patio?",
-        "Cảm ơn bạn nói rõ. Bạn hỏi Yukon so với Tahoe về kéo xe và mức xăng. Mình đã ghi nhận. Mình không đoán số kéo hay xăng trên chat. Cần tem cửa sổ và người trên sân. Khi bạn qua, mình để Tahoe đen và Yukon SLT cạnh nhau. Bạn muốn xe nào lên pad trước?",
-        "شكراً وضحت. سألت كيف اليوكون تقارن بالسحب والاستهلاك. سمعتك. لن أخمن السحب أو الاستهلاك هنا. هذا يحتاج ملصق النافذة وشخص في المعرض. أقدر أحط التاهو السوداء واليوكون SLT جنب بعض يوم تجي. أي واحدة تريدها أولاً؟"
-      ),
-      beats: [
-        {
-          course: "recover",
-          shopper: L(
-            "My cousin said F-150s hold value better. Is the Tahoe even worth that listed price?",
-            "Mi primo dice que las F-150 mantienen mejor el valor. ¿La Tahoe vale ese precio publicado?",
-            "Anh họ mình bảo F-150 giữ giá hơn. Tahoe có đáng giá niêm yết đó không?",
-            "ابن عمي يقول إن إف-150 تحافظ على قيمتها أكثر. التاهو تستاهل السعر المعلن؟"
-          ),
-          draft: L(
-            "I heard the F-150 resale comment and the question of whether the Tahoe is worth the listed price. I will not guess resale or invent a discount. The black 2024 Tahoe Premier is listed at $68,950 with 8,412 miles (stock T2401). The Yukon SLT is listed at $63,200 (stock S2301). Which one do you want to sit in first?",
-            "Escuché lo de la reventa de la F-150 y si la Tahoe vale el precio publicado. No voy a adivinar reventa ni inventar un descuento. La Tahoe Premier 2024 negra está en $68,950 con 8,412 millas (stock T2401). La Yukon SLT está en $63,200 (stock S2301). ¿En cuál te sientas primero?",
-            "Mình nghe chuyện F-150 giữ giá và câu hỏi Tahoe có đáng giá niêm yết không. Mình không đoán giá trị còn lại và không bịa giảm giá. Tahoe Premier 2024 đen niêm yết $68,950, 8.412 dặm (mã T2401). Yukon SLT niêm yết $63,200 (mã S2301). Bạn muốn ngồi xe nào trước?",
-            "سمعت تعليق إعادة بيع الإف-150 وسؤال هل التاهو تستاهل السعر المعلن. لن أخمن إعادة البيع ولن أخترع خصماً. التاهو بريميير 2024 السوداء معلنة 68,950 دولار و8,412 ميل (رقم T2401). اليوكون SLT معلنة 63,200 دولار (رقم S2301). أي واحدة تبي تجلس فيها أولاً؟"
-          ),
-          next_action: "Price fit dipped. Name listed prices only. Steer to one seat.",
-          holding: NEXT.later,
-          funnel: { current: 1, furthest: 2, state: "VEHICLE_INTEREST", substate: "Price and a third vehicle in play" },
-          momentum: mom([36, 50, 32, 26], "Show odds still slipping"),
-          signals: trio(
-            [55, 52, 50, 30],
-            [62, 58, 38, 24],
-            [36, 50, 32, 26],
-            "They challenged whether the Tahoe is worth the listed price.",
-            "Now Tahoe, Yukon, and an F-150 comment are all in the thread.",
-            "The visit is stalled while they shop three stories at once."
-          ),
-          headline: { text: "PRICE DIP + THIRD VEHICLE", confidence: 88, why: "Price fit and vehicle fit both dropped. The next line names listed prices only and asks them to sit in one." },
-          admin: {
-            asked: "F-150 resale comment. Asked if the Tahoe is worth the listed price.",
-            acknowledged: "Yes. The draft refuses guessed resale and any discount, restates both listed prices, and asks which seat first.",
-            holding: NEXT.later,
-            note: "Dip on price fit. Course-correct toward flat: listed prices only, one vehicle to sit in.",
-          },
-          facts: [
-            { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black)", certainty: "stated" },
-            { key: "asked_about", value: "Yukon towing and MPG; F-150 resale; Tahoe listed price", certainty: "asked_about" },
-            { key: "timing", value: "Saturday (offered, not accepted)", certainty: "tentative" },
-          ],
-          booking: "hold",
-          clarify: "Price dipped. Course-correct with listed prices only. No invented discount.",
-        },
-        {
-          course: "grow",
-          shopper: L(
-            "Ok maybe the Tahoe if that listed price is real. I still like the Yukon color though.",
-            "Va, quizá la Tahoe si ese precio publicado es real. Igual me gusta el color de la Yukon.",
-            "Ừ, có thể lấy Tahoe nếu giá niêm yết đúng. Mình vẫn thích màu Yukon.",
-            "طيب يمكن التاهو إذا السعر المعلن صحيح. لسا يعجبني لون اليوكون."
-          ),
-          draft: L(
-            "Yes. Those listed prices are the ones on our feed. The Tahoe is here and the Yukon is here. Let's stop hopping. Sit in the black Tahoe first so you can feel if it is the one. Then we can walk to the Yukon if you still want the color. Saturday still works if you want a time.",
-            "Sí. Esos precios publicados son los del inventario. La Tahoe está aquí y la Yukon está aquí. Dejemos de saltar. Siéntate primero en la Tahoe negra para sentir si es esa. Luego caminamos a la Yukon si sigues con el color. El sábado sigue disponible si quieres una hora.",
-            "Đúng. Giá niêm yết đó là giá trên feed. Tahoe còn và Yukon còn. Ngừng nhảy xe. Ngồi Tahoe đen trước để biết có phải xe mình không. Rồi mình qua Yukon nếu bạn vẫn thích màu. Thứ Bảy vẫn còn nếu bạn muốn một giờ.",
-            "نعم. الأسعار المعلنة هي اللي في التغذية. التاهو موجودة واليوكون موجودة. خلنا نوقف التنقل. اجلس في التاهو السوداء أولاً عشان تحس إذا هي المناسبة. بعدين نمشي لليوكون إذا لسا تبي اللون. السبت لسا متاح إذا تبي وقت."
-          ),
-          next_action: "Price fit is rising. Grow it: one seat first, Saturday still open.",
-          holding: NEXT.later,
-          funnel: { current: 1, furthest: 2, state: "VEHICLE_INTEREST", substate: "Coming back to the Tahoe" },
-          momentum: mom([36, 50, 32, 26, 40], "Show odds flattening, then up"),
-          signals: trio(
-            [55, 52, 50, 30, 58],
-            [62, 58, 38, 24, 42],
-            [36, 50, 32, 26, 40],
-            "They accepted the listed Tahoe price as real.",
-            "Tahoe is back in front, Yukon color is still a tease.",
-            "They are talking about sitting in a truck again."
-          ),
-          headline: { text: "MOMENTUM BACK", confidence: 80, why: "Price fit turned up. Grow it: keep them on one seat and reopen Saturday." },
-          admin: {
-            asked: "Maybe the Tahoe if the listed price is real. Still likes the Yukon color.",
-            acknowledged: "Yes. The draft confirms both listed prices from the feed, parks the hop, and reopens Saturday.",
-            holding: NEXT.later,
-            note: "Pulses are rising. Grow momentum: one seat first, then a time.",
-          },
-          facts: [
-            { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black)", certainty: "stated" },
-            { key: "asked_about", value: "Yukon color; listed prices", certainty: "asked_about" },
-            { key: "timing", value: "Saturday (reopened)", certainty: "tentative" },
-          ],
-          booking: "hold",
-          clarify: "Rising. Grow the Tahoe seat and reopen Saturday.",
-        },
-        {
-          course: "recover",
-          shopper: L(
-            "Fine, the Tahoe. Saturday maybe. Unless the Yukon is cheaper?",
-            "Va, la Tahoe. El sábado tal vez. ¿O la Yukon es más barata?",
-            "Thôi, Tahoe. Thứ Bảy có lẽ. Trừ khi Yukon rẻ hơn?",
-            "طيب التاهو. السبت يمكن. إلا إذا اليوكون أرخص؟"
-          ),
-          draft: L(
-            "Straight numbers from the lot: Yukon SLT listed $63,200, Tahoe Premier listed $68,950. Both are on the lot. No discount in this chat. Tahoe first, then the Yukon next to it. Saturday morning or Saturday afternoon?",
-            "Números del lote: Yukon SLT en $63,200, Tahoe Premier en $68,950. Las dos están aquí. Sin descuento por chat. Primero la Tahoe, luego la Yukon al lado. ¿Sábado por la mañana o por la tarde?",
-            "Số trên sân: Yukon SLT $63,200, Tahoe Premier $68,950. Cả hai còn. Không giảm giá trên chat. Tahoe trước, Yukon cạnh đó. Sáng hay chiều Thứ Bảy?",
-            "أرقام المعرض: اليوكون SLT 63,200 دولار، التاهو بريميير 68,950 دولار. الاثنتين موجودتين. لا خصم هنا. التاهو أولاً ثم اليوكون بجانبها. السبت صباحاً أم عصراً؟"
-          ),
-          next_action: "Price fit dipped on the cheaper ask. Restate listed prices. Hold one Saturday window.",
-          holding: NEXT.later,
-          funnel: { current: 2, furthest: 2, state: "APPOINTMENT_INTENT", substate: "One vehicle, time still soft" },
-          momentum: mom([36, 50, 32, 26, 40, 44], "Show odds holding after the cheaper ask"),
-          signals: trio(
-            [55, 52, 50, 30, 58, 46],
-            [62, 58, 38, 24, 42, 50],
-            [36, 50, 32, 26, 40, 44],
-            "They asked if the Yukon is cheaper. Price fit slipped.",
-            "They said fine, the Tahoe, then peeked back at the Yukon.",
-            "Saturday maybe is closer to a visit, still not a clock time."
-          ),
-          headline: { text: "CHEAPER ASK", confidence: 82, why: "Price fit dipped. The next line restates both listed prices and asks morning or afternoon." },
-          admin: {
-            asked: "Fine, the Tahoe. Saturday maybe. Asked if the Yukon is cheaper.",
-            acknowledged: "Yes. The draft restates both listed prices, refuses a discount, and asks morning or afternoon.",
-            holding: NEXT.later,
-            note: "Dip on price fit. Course-correct toward flat: honest listed compare, one Saturday window.",
-          },
-          facts: [
-            { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black)", certainty: "stated" },
-            { key: "asked_about", value: "Yukon listed price versus Tahoe", certainty: "asked_about" },
-            { key: "timing", value: "Saturday maybe", certainty: "tentative" },
-          ],
-          booking: "hold_sat",
-          clarify: "Price dipped on cheaper. Course-correct with listed prices and a Saturday window.",
-        },
-        {
-          course: "grow",
-          shopper: L(
-            "Saturday morning. Can we look at both?",
-            "Sábado por la mañana. ¿Podemos ver las dos?",
-            "Sáng Thứ Bảy. Xem cả hai được không?",
-            "السبت الصباح. نقدر نشوف الاثنتين؟"
-          ),
-          draft: L(
-            "Both on the pad Saturday morning. Black 2024 Tahoe Premier first, Yukon SLT next to it. 10:30 AM or 11:15 AM. Which clock time can you actually make?",
-            "Las dos en el patio el sábado por la mañana. Primero la Tahoe Premier 2024 negra, la Yukon SLT al lado. 10:30 AM o 11:15 AM. ¿Cuál hora exacta sí puedes?",
-            "Cả hai trên pad sáng Thứ Bảy. Tahoe Premier 2024 đen trước, Yukon SLT cạnh. 10:30 sáng hoặc 11:15 sáng. Bạn đến được giờ nào?",
-            "الاثنتين على الساحة السبت صباحاً. التاهو بريميير 2024 السوداء أولاً، اليوكون SLT بجانبها. 10:30 أو 11:15 صباحاً. أي ساعة تقدر تجي فيها فعلاً؟"
-          ),
-          next_action: "They chose Saturday morning. Grow show odds with a real clock time.",
-          holding: NEXT.later,
-          funnel: { current: 2, furthest: 2, state: "APPOINTMENT_INTENT", substate: "Morning named, clock time missing" },
-          momentum: mom([36, 50, 32, 26, 40, 44, 70], "Show odds climbing"),
-          signals: trio(
-            [55, 52, 50, 30, 58, 46, 70],
-            [62, 58, 38, 24, 42, 50, 72],
-            [36, 50, 32, 26, 40, 44, 70],
-            "They stopped bargaining and asked to see both at the listed prices.",
-            "Both trucks on the pad, Tahoe first. Vehicle fit is up.",
-            "Saturday morning is a real window. Clock time still missing."
-          ),
-          headline: { text: "WINDOW OPEN", confidence: 86, why: "Price fit and vehicle fit are up. Grow show odds with 10:30 or 11:15." },
-          admin: {
-            asked: "Saturday morning. Can we look at both?",
-            acknowledged: "Yes. The draft puts both on the pad Saturday morning and offers two clock times.",
-            holding: NEXT.later,
-            note: "Pulses are rising. Grow momentum until they pick a clock time.",
-          },
-          facts: [
-            { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black) first; Yukon SLT beside it", certainty: "stated" },
-            { key: "asked_about", value: "See both on the pad", certainty: "asked_about" },
-            { key: "timing", value: "Saturday morning", certainty: "tentative" },
-          ],
-          booking: "hold_morning",
-          clarify: "Rising. Grow the visit with a real clock time.",
-        },
-        {
-          course: "grow",
-          shopper: L(
-            "10:30 works. Who do I ask for?",
-            "Me sirve a las 10:30. ¿Por quién pregunto?",
-            "10:30 được. Mình hỏi ai?",
-            "10:30 مناسب. أسأل عن من؟"
-          ),
-          draft: CONFIRM_GUIDED,
-          next_action: "They picked Saturday 10:30 AM. A person still taps Book.",
-          holding: NEXT.yes,
-          funnel: { current: 2, furthest: 2, state: "APPOINTMENT_INTENT", substate: "Time selected" },
-          momentum: mom([36, 50, 32, 26, 40, 44, 70, 88], "Show odds high"),
-          signals: trio(
-            [55, 52, 50, 30, 58, 46, 70, 84],
-            [62, 58, 38, 24, 42, 50, 72, 88],
-            [36, 50, 32, 26, 40, 44, 70, 88],
-            "Good on the listed prices for both trucks.",
-            "Good on the vehicle: Tahoe first, Yukon beside it.",
-            "They picked 10:30 AM and asked who to see. Highly likely to show."
-          ),
-          headline: { text: "READY TO BOOK", confidence: 91, why: "Price fit, vehicle fit, and show odds are all up. Confirmation names time, trucks, rep, address, and parking." },
-          admin: {
-            asked: "10:30 works. Who do I ask for?",
-            acknowledged: "Yes. Draft restates Saturday 10:30 AM, both vehicles, Alex Reyes, the address, and where to park.",
-            holding: NEXT.yes,
-            note: "Price fit, vehicle fit, and show odds are up. A person still taps Book.",
-          },
-          facts: [
-            { key: "preferred_vehicle", value: "2024 Chevrolet Tahoe (Black) first; Yukon SLT beside it", certainty: "confirmed" },
-            { key: "asked_about", value: "Yukon towing and MPG; F-150 resale", certainty: "asked_about" },
-            { key: "timing", value: "Saturday 10:30 AM", certainty: "confirmed" },
-          ],
-          booking: "yes_1030",
-          clarify: "Time picked. Confirmation is a draft. A person still taps Book, then Send.",
-        },
-      ],
+      draft: CONFIRM_GUIDED,
+      beats: [],
     },
   };
 
@@ -662,6 +518,8 @@
   function nextStep() {
     const beat = currentBeat();
     if (beat && beat.holding) return beat.holding;
+    const s = scenario();
+    if (s.holding) return s.holding;
     return state.step === 0 ? NEXT.later : NEXT.yes;
   }
 
@@ -852,7 +710,7 @@
     let clarify = null;
     if (beat && beat.clarify) clarify = beat.clarify;
     else if (state.path === "quick" && state.step === 0) clarify = "Do not book the instant yes. Collect name, vehicle, buy vs fun, and a real time window.";
-    else if (state.path === "guided" && state.step === 0) clarify = "Vehicle fit dipped. Course-correct: acknowledge the Yukon, no guessed specs, one next step.";
+    else if (state.path === "guided" && state.step === 0) clarify = "Time picked. Confirmation is a draft. A person still taps Book, then Send.";
     return {
       id: 9001,
       text: state.draftOverride != null ? state.draftOverride : text,
@@ -876,8 +734,9 @@
   function visibleEntries(lang) {
     const s = scenario();
     const out = s.messages.map(function (m) { return line(m, lang); });
+    const extra = s.beats || [];
     for (let i = 0; i < state.step; i++) {
-      const beat = s.beats[i];
+      const beat = extra[i];
       if (!beat) break;
       const prevDraft = i === 0 ? s.draft : s.beats[i - 1].draft;
       out.push(line({ dir: "out", ago: (30 - i) + "s", t: prevDraft }, lang));
@@ -902,7 +761,7 @@
         signals: s.signals,
         headline: s.headline,
         next_action: s.next_action_hold,
-        bookingKind: state.path === "quick" ? "hold_quick" : "hold",
+        bookingKind: s.bookingKind || (state.path === "quick" ? "hold_quick" : "hold"),
         clarify: null,
       };
     }

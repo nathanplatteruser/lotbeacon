@@ -168,58 +168,58 @@ def test_guided_jumps_cars_and_lands_a_next_step():
         """
         LB_DESK.setPath('guided'); LB_DESK.setLang('en');
         const start = LB_DESK.detail();
-        const pulses = [];
-        const drafts = [start.draft.text];
-        pulses.push(start.signals.signals.map(s=>({key:s.key,score:s.score,trend:s.trend,series:s.series})));
-        while (LB_DESK.state.step < LB_DESK.SCENARIOS.guided.beats.length) {
-          LB_DESK.send();
-          const d = LB_DESK.detail();
-          drafts.push(d.draft.text);
-          pulses.push(d.signals.signals.map(s=>({key:s.key,score:s.score,trend:s.trend,series:s.series})));
-        }
-        const done = LB_DESK.detail();
+        const stored = LB_DESK.SCENARIOS.guided.messages;
         const out = {
-          start_texts: start.messages.map(m=>m.text).join(' '),
-          start_draft: start.draft.text,
-          start_next: start.next_step,
-          start_admin: start.admin_note,
-          count: done.messages.length,
-          in_count: done.messages.filter(m=>m.direction==='in').length,
-          out_count: done.messages.filter(m=>m.direction==='out').length,
-          texts: done.messages.map(m=>m.text).join(' '),
-          after_next: done.next_step,
-          after_admin: done.admin_note,
-          drafts,
-          pulses,
-          keys: done.signals.signals.map(s=>s.key),
+          stored_count: stored.length,
+          stored_dirs: stored.map(m=>m.dir),
+          count: start.messages.length,
+          in_count: start.messages.filter(m=>m.direction==='in').length,
+          out_count: start.messages.filter(m=>m.direction==='out').length,
+          texts: start.messages.map(m=>m.text).join('\\n'),
+          draft: start.draft.text,
+          next: start.next_step,
+          admin: start.admin_note,
+          stage: start.booking.stage,
+          keys: start.signals.signals.map(s=>s.key),
+          pulses: start.signals.signals.map(s=>({key:s.key,score:s.score,trend:s.trend,series:s.series})),
         };
         """
     )
-    assert "Yukon" in data["start_texts"]
-    assert "Tahoe" in data["start_texts"]
-    assert "F-150" in data["texts"]
-    assert "Yukon" in data["texts"]
-    assert "Tahoe" in data["texts"]
-    assert re.search(r"heard you|i heard you|thanks for spelling", data["start_draft"], re.I)
-    assert "will not guess" in data["start_draft"].lower()
-    assert data["start_next"] == "not yet"
-    assert "Yukon" in data["start_admin"]["asked"]
-    assert data["start_admin"]["acknowledged"].lower().startswith("yes")
+    assert data["stored_count"] >= 10
     assert data["count"] >= 10
+    assert data["count"] == data["stored_count"]
     assert data["in_count"] >= 5 and data["out_count"] >= 5
-    assert data["after_next"] == "yes, come in"
-    assert data["after_admin"]["holding"] == "yes, come in"
+    assert data["stored_dirs"].count("in") >= 5
+    assert data["stored_dirs"].count("out") >= 5
+    texts = data["texts"]
+    assert "Yukon" in texts
+    assert "Tahoe" in texts
+    assert "F-150" in texts
+    assert re.search(r"work with that|listed price", texts, re.I)
+    assert re.search(r"heard you|i heard you", texts, re.I)
+    assert "will not guess" in texts.lower()
+    assert "no discount" in texts.lower() or "will not" in texts.lower() and "discount" in texts.lower()
+    assert "68,950" in texts
+    assert "10:30" in texts
+    assert "Saturday" in texts
+    assert data["next"] == "yes, come in"
+    assert data["admin"]["holding"] == "yes, come in"
+    assert data["admin"]["acknowledged"].lower().startswith("yes")
+    assert data["stage"] == "time_selected"
+    assert "September 12" in data["draft"]
+    assert "10:30 AM" in data["draft"]
+    assert "Alex Reyes" in data["draft"]
+    assert "4115 N. 6th Street" in data["draft"]
+    assert "parking" in data["draft"].lower()
+    assert BOOKED_BAIT.search(data["draft"]) is None
     assert set(data["keys"]) >= {"price_fit", "vehicle_fit", "show_odds"}
-    trends = {key: [] for key in ("price_fit", "vehicle_fit", "show_odds")}
-    for snap in data["pulses"]:
-        for s in snap:
-            if s["key"] in trends:
-                trends[s["key"]].append(s["trend"])
-    for key, series in trends.items():
-        assert "up" in series, key
-        assert "down" in series, key
-    assert any("will not guess" in t.lower() or "not guess" in t.lower() or "no discount" in t.lower() for t in data["drafts"])
-    assert any("listed" in t.lower() and "68,950" in t for t in data["drafts"])
+    for s in data["pulses"]:
+        deltas = [s["series"][i] - s["series"][i - 1] for i in range(1, len(s["series"]))]
+        assert any(d > 0 for d in deltas), s["key"]
+        assert any(d < 0 for d in deltas), s["key"]
+    show = next(s for s in data["pulses"] if s["key"] == "show_odds")
+    assert show["series"][0] < max(show["series"])
+    assert min(show["series"]) < show["series"][-1]
 
 
 def test_confirmation_names_visit_facts_and_calendar():
