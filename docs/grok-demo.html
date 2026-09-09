@@ -175,7 +175,8 @@ textarea#draft:focus{outline:none;background:var(--surface-2)}
 .flag{padding:6px 16px;background:var(--bad-soft);color:var(--bad);font-size:12.5px;display:flex;gap:8px;align-items:start}
 .flag.person{background:var(--warn-soft);color:var(--warn)}
 .flag .q{font-style:italic;color:var(--ink-2)}
-.actions{display:flex;gap:8px;align-items:center;padding:10px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+.actions .send-help{flex:1 0 100%;font-size:12px;color:var(--ink-3);line-height:1.35}
 .actions .hint{margin-left:auto;font-size:12px;color:var(--ink-3);display:flex;gap:10px;align-items:center}
 .bookline{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 16px;background:var(--ok-soft)}
 .bookline .when{font-size:17px;font-weight:800;color:var(--ok)}
@@ -332,12 +333,16 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ford);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;box-shadow:var(--shadow);z-index:9}
 .toast.show{opacity:1}
 .empty{padding:40px;text-align:center;color:var(--ink-3)}
+.empty .skip{display:block;margin:12px auto 0;max-width:42ch;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+.empty .skip a{color:var(--msgr);font-weight:700}
 
 /* ---- Desk demo controls (language + thread length). Phone-first tap targets. ---- */
 .deskbar{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px 12px}
 .deskbar .desk-row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
 .deskbar .desk-field{display:flex;flex-direction:column;gap:4px;min-width:min(100%,220px);flex:1}
 .deskbar label.desk-lab{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.deskbar .desk-labrow{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.deskbar .desk-help{font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);line-height:1.35;margin:4px 0 0}
 .deskbar select{font:inherit;font-size:16px;font-weight:600;min-height:48px;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:12px;background:var(--surface);color:var(--ink);width:100%}
 .deskbar .desk-note{margin-top:8px;font-size:13px;color:var(--ink-2);line-height:1.4}
 .deskbar .desk-admin{margin-top:8px;padding:10px 12px;background:var(--surface-2);border-radius:12px;font-size:13px;line-height:1.4}
@@ -362,13 +367,16 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 <header>
   <h1><span class="mark">L</span>LotBeacon</h1>
   <span class="sub" id="dealer">—</span>
-  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="admin" aria-selected="false">Admin</button><button data-view="owner" aria-selected="false">Owner dashboard</button><a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn" title="Paste a real customer message and watch the pipeline run — nothing is stored">Try a live inquiry</button></nav>
+  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="admin" aria-selected="false">Admin</button><button data-view="owner" aria-selected="false">Owner dashboard</button><a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn" title="This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.">Request a pilot</button></nav>
   <div class="right"><button class="tourbtn" id="tourBtn" title="Guided tour">?</button><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
 </header><div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Interactive showcase · recorded Sep 09, 2026 · Synthetic shopper. Not a live Facebook inbox. Send stays with a person.</div>
 <div class="deskbar" id="deskbar">
   <div class="desk-row">
     <div class="desk-field">
-      <label class="desk-lab" for="deskLang">Language</label>
+      <div class="desk-labrow">
+        <label class="desk-lab" for="deskLang">Language</label>
+        <span class="desk-help">Draft language in this recording. The customer does not see it until a person sends. Not a certified translation.</span>
+      </div>
       <select id="deskLang" aria-label="Language">
         <option value="en">English</option>
         <option value="es">Spanish</option>
@@ -386,13 +394,14 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
     </div>
   </div>
   <div class="desk-note" id="deskBlurb">Average path. A normal number of DMs before a clear yes or no.</div>
+  <p class="desk-help">This sets the shopper path in the recording. It does not set how long your reply will be.</p>
   <div class="desk-note">Synthetic shopper. Not a live Facebook inbox. Suggested wording is a draft. A person still sends.</div>
   <div class="desk-admin" id="deskAdmin"></div>
 </div>
 
 <div class="app">
   <aside class="queue" id="queue"><div class="qhead"><h2>Queue</h2><span id="qcount"></span></div><div id="qrows"></div></aside>
-  <main class="main" id="main"><div class="empty">Pick a lead.</div></main>
+  <main class="main" id="main"><div class="empty">Pick a lead.<p class="skip"><a href="mailto:nathanplatter@gmail.com?subject=LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29">Or skip the recording. Request a pilot with your name, shop, named Page, and what you will paste.</a></p></div></main>
   <aside class="side" id="side"></aside>
 </div>
 <div class="toast" id="toast"></div>
@@ -583,8 +592,9 @@ function renderCard(d){
   }
   const sent=dr&&dr.status==='sent', blocked=dr&&(dr.status==='blocked'||dr.risk_level==='red');
   const actions=(stage==='booked'&&!(dr&&dr.status!=='sent'&&dr.text))?'':`<div class="actions">
-      ${stage==='time_selected'?`<button class="btn quiet sm" id="sendAnyway">Reply instead</button>`:`<button class="btn primary" id="send" ${(!dr||sent||blocked||!d.window.open)?'disabled':''}>${sent?'Sent':(d.id===90?'Send':'Send & next')}</button>`}
-      <span class="hint" id="valstate">${blocked?'<span style="color:var(--bad);font-weight:700">Blocked — fix the flagged sentence</span>':(d.id===90?'Draft only. A person still sends.':(sent?'':'claims re-checked at send'))}${d.id===90?'':' · <kbd>⌘↵</kbd>'}</span></div>`;
+      ${stage==='time_selected'?`<button class="btn quiet sm" id="sendAnyway">Reply instead</button>`:`<button class="btn primary" id="send" title="Plays this recording forward. Does not send to Facebook." ${(!dr||sent||blocked||!d.window.open)?'disabled':''}>${sent?'Sent':(d.id===90?'Send':'Send & next')}</button>`}
+      <span class="hint" id="valstate">${blocked?'<span style="color:var(--bad);font-weight:700">Blocked — fix the flagged sentence</span>':(d.id===90?'Draft only. A person still sends.':(sent?'':'claims re-checked at send'))}${d.id===90?'':' · <kbd>⌘↵</kbd>'}</span>
+      ${d.id===90?'<span class="send-help">Plays this recording forward. Does not send to Facebook.</span>':''}</div>`;
   return `<div class="card ${cls}" id="card"><div class="top"><div class="goal">Goal <button class="whybtn" id="whyBtn" title="The decision path behind this card">why this action?</button><b>${esc(goal)}</b></div><div class="missing ${missOk?'ok':''}">${missing}</div>${renderKnown(d)}${veri}${clarify}</div>${body}${actions}</div>`;
 }
 
@@ -771,21 +781,10 @@ async function showEvidence(stock){
     <div class="grp" style="margin-top:14px"><h4>Conversations leaning on this unit (${r.used_in.length})</h4><div class="usedin">${r.used_in.map(u=>`<button data-open="${u.thread_id}">${esc(u.customer)} · draft ${esc(u.draft_status)} · risk ${esc(u.risk)}</button>`).join('')||'<span class="small">None yet.</span>'}</div></div>`);
   document.querySelectorAll('#modalBox [data-open]').forEach(b=>b.onclick=()=>{closeModal();if(VIEW!=='work')showView('work');open(+b.dataset.open);});
 }
-const EXAMPLES=['hey is the black tahoe still available? could come by saturday morning','What’s the lowest you’d go on the F-150? I’m pre-approved elsewhere at 5.9%','Yo is that Bronco 4x4 or awd? need something for the farm road','Can you hold the Explorer until Friday? I get paid then','how much for the mustang and can i finance with bad credit'];
 function showAnalyzer(){
-  openModal(`<h2>Try a live inquiry</h2><div class="sub">Paste what a real customer typed. The full pipeline runs against live inventory — classify, extract, verify, decide, draft, firewall. Nothing is stored.</div>
-    <div class="ana"><textarea id="anaText" placeholder="Paste the customer's message…"></textarea>
-    <div class="r"><button class="btn primary sm" id="anaRun">Analyze</button><select id="anaVoice"><option value="">Reply style: auto</option>${META.voices.map(v=>`<option value="${v.id}">${esc(v.label)}</option>`).join('')}</select><span class="ex" id="anaEx">try an example</span></div>
-    <div id="anaOut"></div></div>`);
-  const ta=$('#anaText');let k=0;$('#anaEx').onclick=()=>{ta.value=EXAMPLES[k++%EXAMPLES.length];};
-  $('#anaRun').onclick=async()=>{const t=ta.value.trim();if(!t)return;$('#anaOut').innerHTML='<div class="small">Running…</div>';
-    try{const r=await api('/api/analyze',{method:'POST',body:{text:t,voice:$('#anaVoice').value||null}});const d=r.draft,flags=(d.validation?.claims||[]).filter(c=>c.verdict!=='supported');
-      $('#anaOut').innerHTML=`<div class="out"><div class="draft ${d.status==='blocked'?'blocked':''}">${d.text?esc(d.text):'<i>No AI draft — this is handed to a person: '+esc((d.structured.recommended_action||'').replace(/_/g,' '))+'</i>'}</div>
-        <div class="meta"><span>stage <b>${esc(r.lead_state)}</b></span><span>action <b>${esc((d.structured.recommended_action||'').replace(/_/g,' '))}</b></span><span>risk <b>${esc(d.risk_level)}</b></span><span>style <b>${esc(r.voice)}</b> ${esc(r.voice_reason||'')}</span><span>${flags.length?`<span style="color:var(--bad);font-weight:700">${flags.length} claim${flags.length>1?'s':''} held back</span>`:'<span style="color:var(--ok);font-weight:700">every claim supported</span>'}</span></div></div>
-        <div style="margin-top:12px">${pathHtml(r.explain)}</div><div class="disc">Preview only — no thread was created, no message was sent. AI provider: ${esc(META.provider)}.</div>`;
-      document.querySelectorAll('#modalBox .chiplink').forEach(c=>c.onclick=()=>showEvidence(c.dataset.stock));
-    }catch(e){$('#anaOut').innerHTML=`<div class="small" style="color:var(--bad)">${esc(e.message)}</div>`;}};
-  ta.focus();
+  openModal(`<h2>Request a pilot</h2>
+    <div class="sub">This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.</div>
+    <p style="margin:16px 0 0"><a class="btn primary" href="mailto:nathanplatter@gmail.com?subject=LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29">Request a pilot</a></p>`);
 }
 $('#anaBtn').onclick=showAnalyzer;
 
@@ -874,7 +873,7 @@ const TOUR=[
   {sel:'#impactBtn',title:'Business impact',text:'What this conversation has produced: rep attention saved, first-response time, claims kept out of the customer\'s inbox, expected gross once booked. Reps prove the work; managers see the return.'},
   {sel:'.side',title:'Signals and the deal file',text:'Five communication signals, evidence quotes, and a forwardable deal file for leadership and finance. Diagnostics stay collapsed. Scan show-likelihood across every lead on the left rail.'},
   {sel:'header .nav',title:'Owner dashboard',text:'Active conversations, median first response, rep attention saved, claims routed for verification — usage and return, with every assumption editable and visible.'},
-  {sel:'#anaBtn',title:'Try a live inquiry',text:'Paste a message a real customer sent your store today. The whole pipeline runs against live inventory and shows the draft, the verdicts and the decision path — nothing is stored.'},
+  {sel:'#anaBtn',title:'Request a pilot',text:'This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.'},
   {sel:'header .keys',title:'Keyboard-first',text:'J/K walk the queue, E edits, ⌘↵ sends and opens the next lead, 1/2 swap the slot pair. Built for volume.'},
 ];
 let tourI=0,tourEl=null;
