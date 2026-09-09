@@ -11,7 +11,7 @@ from typing import Protocol
 class Classification:
     intent: str  # availability | price | trade | financing | schedule | vehicle_search | general | opt_out | complaint | sold_elsewhere
     sentiment: str  # positive | neutral | negative | angry
-    objection: str | None = None  # price | payment | trade | trust | timing | None
+    objection: str | None = None  # price | payment | trade | trust | timing | spouse | stall | None
     confidence: float = 0.0
     signals: list[str] = field(default_factory=list)
     voice_hint: str | None = None  # dealer|frank|celeste|jon|dogg|zee — the customer's own tone, if strong

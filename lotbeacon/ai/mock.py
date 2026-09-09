@@ -65,6 +65,14 @@ class MockProvider:
 
         if intent != "schedule" and any(d in t for d in DAYS):
             sig.append("day_mention")
+        if has("wife", "husband", "spouse") or "talk it over" in t or "run it by" in t or "talk to my" in t or "ask my" in t:
+            if objection is None:
+                objection = "spouse"
+            sig.append("spouse")
+        if has("think about it", "let me think", "just looking") or "i'll think" in t or "ill think" in t:
+            if objection is None:
+                objection = "stall"
+            sig.append("stall")
         vh, vconf, vsig = voices.detect(text)
         return Classification(intent, sentiment, objection, conf, sig + [f"tone:{x}" for x in vsig], vh, vconf)
 
@@ -132,6 +140,18 @@ class MockProvider:
         # Objections / sensitive
         if re.search(r"\bcredit\b.*\b\d{3}\b|\b\d{3}\b.*\bcredit\b", low):
             facts.append(ExtractedFact("financing_sensitive", "Customer mentioned credit score — human handles financing", 0.9, _window(t, "credit")))
+        if re.search(r"\b(wife|husband|spouse)\b|talk it over|talk to my|ask my|run it by", low):
+            needle = next((w for w in ("husband", "wife", "spouse", "talk it over", "talk to my") if w in low), "husband")
+            facts.append(ExtractedFact("objection", "spouse", 0.85, _window(t, needle)))
+        if re.search(r"think about it|let me think|just looking|maybe later", low):
+            facts.append(ExtractedFact("objection", "stall", 0.8, _window(t, "think" if "think" in low else "looking")))
+        m = re.search(r"\$\s*[\d,]+(?:\s*k)?\s+off", low)
+        if m and re.search(r"approv|manager|if i close|prepaid", low):
+            amt = re.sub(r"\s+", "", m.group(0))
+            facts.append(ExtractedFact("discount_approval", amt, 0.85, _window(t, "off")))
+        if re.search(r"prepaid (?:oil|maintenance)|oil changes|free (?:oil|maintenance)", low):
+            phrase = "prepaid oil changes" if "oil" in low else "prepaid maintenance"
+            facts.append(ExtractedFact("maintenance_approval", phrase, 0.85, _window(t, "oil" if "oil" in low else "maintenance")))
         return facts
 
     # ---------- drafting ----------

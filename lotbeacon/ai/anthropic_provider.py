@@ -37,7 +37,7 @@ CLASSIFY_TOOL = {
         "properties": {
             "intent": {"type": "string", "enum": ["availability", "price", "trade", "financing", "schedule", "reschedule", "hold", "warranty", "delivery", "vehicle_search", "general", "opt_out", "complaint", "sold_elsewhere"]},
             "sentiment": {"type": "string", "enum": ["positive", "neutral", "negative", "angry"]},
-            "objection": {"type": ["string", "null"], "enum": ["price", "payment", "trade", "trust", "timing", None]},
+            "objection": {"type": ["string", "null"], "enum": ["price", "payment", "trade", "trust", "timing", "spouse", "stall", None]},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
             "signals": {"type": "array", "items": {"type": "string"}, "description": "Short phrases from the message that drove the decision"},
             "voice_hint": {"type": ["string", "null"], "enum": ["frank", "celeste", "jon", "dogg", "zee", None], "description": "Only if the customer's OWN tone strongly matches: frank=fast/direct East Coast, celeste=laid-back Californian, jon=polite Midwestern, dogg=West Coast hip-hop slang, zee=Gen Z texting style. Null for neutral."},

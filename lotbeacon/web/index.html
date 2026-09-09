@@ -38,12 +38,16 @@ header select option{color:#000}
 header .keys{opacity:.75}
 header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}
 
-.app{display:grid;grid-template-columns:340px 1fr 300px;height:calc(100vh - 52px)}
-@media (max-width:1180px){.app{grid-template-columns:300px 1fr}.side{display:none}}
-/* phone: queue on top (scrolls), conversation below; owner tiles stack */
+.app{display:grid;grid-template-columns:360px 1fr 340px;height:calc(100vh - 52px)}
+@media (max-width:1180px){
+  .app{grid-template-columns:300px 1fr;grid-template-rows:1fr auto}
+  .side{display:block;grid-column:1/-1;border-left:0;border-top:1px solid var(--line);max-height:42vh}
+}
+/* phone: queue on top (scrolls), conversation, then signals; owner tiles stack */
 @media (max-width:760px){
-  .app{grid-template-columns:1fr;grid-template-rows:38vh 1fr;height:auto;min-height:calc(100vh - 52px)}
+  .app{grid-template-columns:1fr;grid-template-rows:34vh 1fr auto;height:auto;min-height:calc(100vh - 52px)}
   .queue{border-right:0;border-bottom:1px solid var(--line)}
+  .side{max-height:none}
   header{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px 12px} header .keys{display:none} header .sub{display:none}
   header .right{margin-left:0;width:100%;justify-content:space-between}
   .thead{padding:8px 12px} .convo{padding:10px 12px 6px} .msg{max-width:86%} .card{margin:6px 10px 10px}
@@ -78,16 +82,18 @@ header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);co
 .thead .buddy{font-size:12.5px}
 .row.closed .who,.row.closed .next{color:var(--ink-3);font-weight:500}
 .row .win{font-size:11px;color:var(--ink-3)} .row .win.hot{color:var(--bad);font-weight:700}
-.row .spark-rail{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:36px;margin:2px 0 1px}
-.row .spark-rail svg.spark{display:block;flex:0 0 auto;width:132px;height:36px}
-.row .spark-rail .spark-lab{font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.row .spark-rail{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:48px;margin:2px 0 1px}
+.row .spark-rail svg.spark{display:block;flex:0 0 auto;width:176px;height:56px}
+.row .spark-rail .spark-lab{font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;line-height:1.25}
 .row .spark-rail.up .spark-lab{color:var(--ok)}
 .row .spark-rail.flat .spark-lab{color:var(--warn)}
 .row .spark-rail.down .spark-lab{color:var(--bad)}
+.sidejump{display:none}
+@media (max-width:1180px){.sidejump{display:inline-flex;min-height:44px;align-items:center}}
 @media (max-width:760px){
   .row{padding:12px 14px}
-  .row .spark-rail{min-height:44px}
-  .row .spark-rail svg.spark{width:156px;height:40px}
+  .row .spark-rail{min-height:52px}
+  .row .spark-rail svg.spark{width:188px;height:60px}
 }
 
 /* ---- Thread ---- */
@@ -285,9 +291,24 @@ table.gates td.why{color:var(--ink-3);font-size:12px}
 .vfresh{margin-top:8px;font-size:12px;color:var(--ok)} .vfresh.bad{color:var(--bad)}
 details{border-top:1px solid var(--line);padding-top:6px;margin-top:6px}
 summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;padding:4px 0}
-.ev{font-size:12px;color:var(--ink-2);padding:6px 8px;border-radius:8px;background:var(--surface-2);margin:6px 0;cursor:pointer}
-.ev .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)} .ev .v{font-weight:600;color:var(--ink)}
-.ev .q{font-style:italic;color:var(--ink-3)}
+.ev{font-size:12px;color:var(--ink-2);padding:8px 10px;border-radius:8px;background:var(--surface-2);margin:6px 0;cursor:pointer}
+.ev .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)} .ev .v{font-weight:700;color:var(--ink);font-size:13.5px}
+.ev .q{font-style:italic;color:var(--ink-3);margin-top:3px}
+.sig-alert{background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.sig-alert .hd{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--warn)}
+.sig-alert .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.sig-row{padding:8px 0;border-bottom:1px solid var(--line)}
+.sig-row:last-of-type{border-bottom:0}
+.sig-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:700}
+.sig-top .sc{font-variant-numeric:tabular-nums}
+.sig-top .dlt{font-size:12px;font-weight:800}
+.sig-top .dlt.up{color:var(--ok)} .sig-top .dlt.down{color:var(--bad)} .sig-top .dlt.flat{color:var(--ink-3)}
+.sig-row .why{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.35}
+.sig-whybox{margin-top:10px;background:var(--msgr-soft);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.dealnote{padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.dealnote:last-of-type{border-bottom:0}
+.dealnote b{display:block;color:var(--ink)}
+.dealnote .q{font-size:12px;font-style:italic;color:var(--ink-3);margin-top:2px}
 .trans{font-size:12px;color:var(--ink-2);padding:4px 0;border-bottom:1px solid var(--line)}
 .diag{font-size:11.5px;color:var(--ink-3);line-height:1.6}
 .sim textarea{width:100%;min-height:52px;border:1.5px solid var(--line-strong);border-radius:12px;padding:8px 10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
@@ -383,6 +404,7 @@ function renderThread(){
         <span title="Who controls this conversation"><b>${esc(d.ownership.line)}</b></span>
       </div>
       <div class="tools">
+        <button class="btn quiet sm sidejump" id="jumpSide">Signals</button>
         <button class="btn quiet sm" id="impactBtn" title="What this conversation has produced so far">Impact</button>
         <button class="btn quiet sm ${d.ai_paused?'on':''}" id="manual">${d.ai_paused?'Resume AI drafting':'Switch to manual'}</button>
         <div style="position:relative"><button class="more" id="moreBtn" aria-label="More">⋯</button>
@@ -466,6 +488,7 @@ function renderGhost(d){
 
 function bindThread(){
   const d=detail,dr=d.draft;
+  const js=$('#jumpSide');if(js)js.onclick=()=>{$('#side')?.scrollIntoView({block:'start',behavior:'smooth'});};
   $('#impactBtn').onclick=()=>showImpact(d.id);
   const wb=$('#whyBtn');if(wb)wb.onclick=()=>showWhy(d.id);
   const ex=$('#expThread');if(ex)ex.onclick=()=>{window.open(`/api/audit/export?thread_id=${d.id}`,'_blank');};
@@ -518,44 +541,63 @@ async function doBook(){
 }
 
 /* ---------------- side ---------------- */
+const SIG_COL={purchase_intent:'var(--msgr)',price_friction:'var(--warn)',engagement:'#7C3AED',visit_progression:'var(--ok)',objection_hints:'var(--bad)'};
 function renderSide(){
-  const d=detail,v=d.vehicle,m=d.momentum;
+  const d=detail,v=d.vehicle,m=d.momentum,sig=d.signals||{},df=d.deal_file||{};
+  const banner=sig.headline;
   $('#side').innerHTML=`
     ${v?`<div class="panel"><h3>Vehicle</h3><div class="vname chiplink" data-stock="${esc(v.stock_number)}" title="Evidence behind this vehicle">${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} ↗</div>
       <div class="vrow"><span>Stock</span><span class="mono">${esc(v.stock_number)}</span></div>
-      <div class="vrow"><span>Drivetrain</span><span>${esc(v.drivetrain||'—')}</span></div>
+      <div class="vrow"><span>Drivetrain</span><span>${esc(v.drivetrain||'-')}</span></div>
       <div class="vrow"><span>Color</span><span>${esc(v.color)}</span></div>
       <div class="vrow"><span>Mileage</span><span class="mono">${v.mileage.toLocaleString()}</span></div>
       <div class="vrow"><span>Price</span><span class="mono">$${v.price.toLocaleString()}</span></div>
       <div class="vrow"><span>Status</span><span>${esc(v.status)}</span></div>
-      <div class="vfresh ${v.fresh?'':'bad'}">${v.fresh?'✓':'⚠'} verified ${esc(v.age)} ago${v.fresh?'':' — stale'}</div></div>`:'<div class="panel"><h3>Vehicle</h3><div class="small">No specific unit yet.</div></div>'}
-    <div class="panel"><h3>Details</h3>
-      <details><summary>Evidence for each fact (${d.facts.length})</summary>${d.facts.map(f=>`<div class="ev" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="click → source · right-click → correct"><div class="k">${esc(f.key.replace(/_/g,' '))} · ${esc(f.certainty)}</div><div class="v">${esc(f.value)}</div><div class="q">${f.evidence?'“'+esc(f.evidence.text.slice(0,90))+(f.evidence.text.length>90?'…':'')+'”':'rep-entered'}</div></div>`).join('')||'<div class="small">—</div>'}</details>
-      <details><summary>Momentum${m&&m.series.length?` · ${esc(m.label)}`:''}</summary>${m&&m.series.length?spark(m,200,40)+`<div class="small">One point per customer communication (last 8). Score ${m.score}${m.delta?` (${m.delta>0?'+':''}${m.delta})`:''}.</div>`:'<div class="small">—</div>'}</details>
-      <details><summary>Stage history (${d.transitions.length})</summary>${d.transitions.map(t=>`<div class="trans"><b>${esc(t.from.toLowerCase().replace(/_/g,' '))} → ${esc(t.to.toLowerCase().replace(/_/g,' '))}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">—</div>'}</details>
-      <details><summary>Diagnostics</summary><div class="diag">AI: ${esc(META.provider)} · ${esc(META.rules_version)}<br>draft #${d.draft?.id??'—'} · ${esc(d.draft?.provider||'')} · state ${esc(d.funnel.state)}<br>reply style: ${esc(d.voice)} (${esc(d.voice_reason||'')})<br>demo script remaining: ${d.demo_remaining??0}</div></details>
+      <div class="vfresh ${v.fresh?'':'bad'}">${v.fresh?'✓':'⚠'} verified ${esc(v.age)} ago${v.fresh?'':' · stale'}</div></div>`:'<div class="panel"><h3>Vehicle</h3><div class="small">No specific unit yet.</div></div>'}
+    <div class="panel"><h3>Communication signal</h3>
+      <details open><summary>Communication signal${sig.events?` · ${sig.events} event${sig.events===1?'':'s'}`:''}</summary>
+        ${banner?`<div class="sig-alert"><div class="hd">${esc(banner.text)}</div>${banner.confidence?`<div class="sub">${banner.confidence}% signal confidence · exception-only display</div>`:'<div class="sub">exception-only display</div>'}</div>`:''}
+        ${(sig.signals||[]).map(x=>signalRow(x)).join('')||'<div class="small">No customer communication to score yet.</div>'}
+        ${banner&&banner.why?`<div class="sig-whybox"><b>Why this moved:</b> ${esc(banner.why)}</div>`:''}
+      </details>
+      <details open><summary>Evidence for each fact (${d.facts.length})</summary>${d.facts.map(f=>`<div class="ev" data-mid="${f.evidence?.message_id||''}" data-fid="${f.id}" title="click to source message · right-click to correct"><div class="v">${esc(f.value)}${f.confidence!=null?` · ${Math.round(f.confidence*100)}%`:''}</div><div class="q">${f.evidence?'“'+esc(f.evidence.text.slice(0,120))+(f.evidence.text.length>120?'…':'')+'”':'rep-entered'}</div></div>`).join('')||'<div class="small">No facts on this thread yet.</div>'}</details>
+      <details open><summary>Deal file · leadership and finance</summary>
+        ${(df.notes||[]).map(n=>`<div class="dealnote"><b>${esc(n.label)}: ${esc(n.value)}</b>${n.quote?`<div class="q">“${esc(n.quote)}”</div>`:''}</div>`).join('')||'<div class="small">Nothing unique to this deal is on the thread yet.</div>'}
+        ${df.forward_text?`<button class="btn quiet sm" id="copyDeal" style="margin-top:10px">Copy deal notes</button>`:''}
+      </details>
+      <details><summary>Stage history (${d.transitions.length})</summary>${d.transitions.map(t=>`<div class="trans"><b>${esc(t.from.toLowerCase().replace(/_/g,' '))} → ${esc(t.to.toLowerCase().replace(/_/g,' '))}</b><br>${esc(t.reason)} · ${esc(t.actor)}</div>`).join('')||'<div class="small">No stage changes yet.</div>'}</details>
+      <details><summary>Diagnostics and metadata</summary><div class="diag">AI: ${esc(META.provider)} · ${esc(META.rules_version)}<br>draft #${d.draft?.id??'-'} · ${esc(d.draft?.provider||'')} · state ${esc(d.funnel.state)}<br>reply style: ${esc(d.voice)} (${esc(d.voice_reason||'')})<br>show-likelihood: ${m&&m.score!=null?m.score+'% · '+esc(m.label):'none'}<br>demo script remaining: ${d.demo_remaining??0}</div></details>
     </div>
     <div class="panel sim"><h3>Demo: simulate customer</h3><textarea id="simText" placeholder="What ${esc(d.customer.name||'the customer')} says next…"></textarea>
       <div class="r"><button class="btn sm" id="simSend">Receive</button>${v?`<select id="simInv"><option value="">Inventory event…</option><option value="sold">Mark ${esc(v.model)} sold</option><option value="pending">Mark pending</option><option value="available">Mark available</option><option value="stale">Make feed stale</option></select>`:''}</div></div>`;
   document.querySelectorAll('#side .chiplink').forEach(c=>c.onclick=()=>showEvidence(c.dataset.stock));
   document.querySelectorAll('.ev').forEach(b=>{b.onclick=()=>hl(b.dataset.mid);
     b.oncontextmenu=async e=>{e.preventDefault();const nv=prompt('Correct this fact (empty = remove):',b.querySelector('.v').textContent);if(nv===null)return;await api(`/api/facts/${b.dataset.fid}/correct`,{method:'POST',body:{rep_id:repId(),value:nv||null}});toast('Corrected');open(d.id);};});
+  const cd=$('#copyDeal');if(cd)cd.onclick=async()=>{try{await navigator.clipboard.writeText(df.forward_text);toast('Deal notes copied');}catch(_){toast('Copy failed');}};
   $('#simSend').onclick=async()=>{const t=$('#simText').value.trim();if(!t)return;await api('/webhook/messenger',{method:'POST',body:{page_id:META.dealership.page_id,psid:d.customer.psid,text:t,display_name:d.customer.name}});await open(d.id);loadQueue();};
-  const si=$('#simInv');if(si)si.onchange=async e=>{const val=e.target.value;if(!val||!v)return;await api('/api/inventory/'+v.stock_number,{method:'POST',body:val==='stale'?{stale:true}:{status:val}});e.target.value='';const dr=detail.draft;if(dr&&!['sent','discarded'].includes(dr.status)){await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:dr.text}});}toast('Inventory changed — draft re-checked');await open(d.id);};
+  const si=$('#simInv');if(si)si.onchange=async e=>{const val=e.target.value;if(!val||!v)return;await api('/api/inventory/'+v.stock_number,{method:'POST',body:val==='stale'?{stale:true}:{status:val}});e.target.value='';const dr=detail.draft;if(dr&&!['sent','discarded'].includes(dr.status)){await api(`/api/drafts/${dr.id}/edit`,{method:'POST',body:{rep_id:repId(),text:dr.text}});}toast('Inventory changed · draft re-checked');await open(d.id);};
 }
-const SPARK_SCAN={up:'Climbing',flat:'Holding',down:'Slipping'};
-function spark(m,w,h){
+function signalRow(x){
+  if(x.score==null) return '';
+  const dlt=x.delta?`${x.delta>0?'+':''}${x.delta}`:'0';
+  return `<div class="sig-row"><div class="sig-top"><span>${esc(x.label)}</span><span class="sc">${x.score} <span class="dlt ${esc(x.trend)}">${dlt}</span></span></div>${spark(x,200,28,{color:SIG_COL[x.key]||'var(--msgr)',refs:false,nums:false})}<div class="why">${esc(x.why)}</div></div>`;
+}
+function spark(m,w,h,opts={}){
   if(!m||!m.series||!m.series.length) return '';
-  let s=m.series.slice(-8); if(s.length===1) s=[s[0],s[0]];
-  const pad=4,W=w-pad*2,H=h-pad*2,n=s.length,x=i=>pad+i*W/(n-1),y=v=>pad+H-(Math.max(0,Math.min(100,v))/100)*H;
-  const col={up:'var(--ok)',flat:'var(--warn)',down:'var(--bad)'}[m.trend];
+  const s=m.series.slice(-8), nums=!!opts.nums, refs=opts.refs!==false;
+  const col=opts.color||{up:'var(--ok)',flat:'var(--warn)',down:'var(--bad)'}[m.trend]||'var(--warn)';
+  const padT=nums?13:4, padB=6, padX=nums?12:6, W=w-padX*2, H=h-padT-padB, n=s.length;
+  const x=i=>n===1?w/2:padX+i*W/(n-1), y=v=>padT+H-(Math.max(0,Math.min(100,v))/100)*H;
   const pts=s.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(m.label)}"><title>${s.join(' → ')}</title><line x1="${pad}" y1="${pad+H}" x2="${w-pad}" y2="${pad+H}" stroke="var(--line)"></line><polyline fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${pts}"></polyline><circle cx="${x(n-1).toFixed(1)}" cy="${y(s[n-1]).toFixed(1)}" r="3.2" fill="${col}"></circle></svg>`;
+  const ref=refs?`<line x1="${padX}" y1="${padT}" x2="${w-padX}" y2="${padT}" stroke="#9AA0A6" stroke-width="1"></line><line x1="${padX}" y1="${padT+H}" x2="${w-padX}" y2="${padT+H}" stroke="#9AA0A6" stroke-width="1"></line><text x="2" y="${padT+3}" font-size="7" fill="#9AA0A6">100</text><text x="2" y="${padT+H+3}" font-size="7" fill="#9AA0A6">0</text>`:'';
+  const line=n>1?`<polyline fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${pts}"></polyline>`:'';
+  const dots=s.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${nums?2.8:2.4}" fill="${col}"></circle>${nums?`<text x="${x(i).toFixed(1)}" y="${Math.max(9,y(v)-5).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="${col}">${v}</text>`:''}`).join('');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(m.label||'signal')}"><title>${s.join(' → ')}</title>${ref}${line}${dots}</svg>`;
 }
 function sparkRail(m){
   if(!m||!m.series||!m.series.length) return '';
-  const scan=SPARK_SCAN[m.trend]||m.label;
-  return `<span class="spark-rail ${esc(m.trend)}">${spark(m,132,36)}<span class="spark-lab">${esc(scan)}</span></span>`;
+  const pct=m.score==null?'':`${m.score}% show`;
+  return `<span class="spark-rail ${esc(m.trend)}">${spark(m,176,56,{nums:true,refs:true})}<span class="spark-lab">${esc(pct)}<br>${esc(m.label)}</span></span>`;
 }
 
 /* ---------------- impact drawer ---------------- */
@@ -672,14 +714,14 @@ document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.onclick=
 
 /* ---------------- guided tour ---------------- */
 const TOUR=[
-  {sel:'.queue',title:'The queue',text:'Not a leaderboard. Each row: who, how long they have waited, the conversation sparkline (green climbing, yellow holding, red slipping), what happened, and the exact next action. Buckets are ordered by urgency.'},
+  {sel:'.queue',title:'The queue',text:'Not a leaderboard. Each row: who, how long they have waited, show-likelihood of making the appointment (green climbing, yellow holding, red slipping), what happened, and the exact next action.'},
   {sel:'.row .buddy',title:'Buddy notes (demo)',text:'The amber line is the two-second briefing a coworker would text you: "price grinder", "serial ghoster", "angry be-back". It tells you which situation you are about to watch LotBeacon handle. Demo-only for now — beta testers decide if it ships.'},
   {sel:'.thead .meta',title:'Channel, window, ownership',text:'Facebook Messenger with a live countdown on the 24-hour reply window, and one plain line saying who drafts and who sends. No autonomous sends, ever.'},
   {sel:'.stages',title:'Four stages, auto-derived',text:'Engage → Qualify → Book → Visit outcome. The sub-state is precise: "visit interest (tentative)" is not "appointment requested."'},
   {sel:'#card',title:'One action card',text:'Goal · Missing · Known (click a fact to see the customer\'s own words) · Verified vehicle · the draft. Two real appointment slots, verified against hours and existing bookings. When the customer picks one, this becomes a one-click Book + confirm.'},
   {sel:'#whyBtn',title:'Why this action?',text:'Click it and the card explains itself: what it read, what it remembers (with certainty), what it verified in inventory, which stage, which action, which claims it checked, and the human gate. No black box.'},
   {sel:'#impactBtn',title:'Business impact',text:'What this conversation has produced: rep attention saved, first-response time, claims kept out of the customer\'s inbox, expected gross once booked. Reps prove the work; managers see the return.'},
-  {sel:'.side',title:'Details, not clutter',text:'Vehicle card, evidence for every fact, the selected-thread momentum score, stage history, diagnostics. Behind disclosure. The demo simulator lives here too. Scan vibe across every lead on the left rail, not here.'},
+  {sel:'.side',title:'Signals and the deal file',text:'Five communication signals, evidence quotes, and a forwardable deal file for leadership and finance. Diagnostics stay collapsed. Scan show-likelihood across every lead on the left rail.'},
   {sel:'header .nav',title:'Owner dashboard',text:'Active conversations, median first response, rep attention saved, claims routed for verification — usage and return, with every assumption editable and visible.'},
   {sel:'#anaBtn',title:'Try a live inquiry',text:'Paste a message a real customer sent your store today. The whole pipeline runs against live inventory and shows the draft, the verdicts and the decision path — nothing is stored.'},
   {sel:'header .keys',title:'Keyboard-first',text:'J/K walk the queue, E edits, ⌘↵ sends and opens the next lead, 1/2 swap the slot pair. Built for volume.'},

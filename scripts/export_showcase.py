@@ -165,10 +165,12 @@ if __name__ == "__main__":
     data = build()
     docs = ROOT / "docs"
     docs.mkdir(exist_ok=True)
-    (docs / "index.html").write_text(render(data))
+    desk = render(data)
+    (docs / "index.html").write_text(desk)
+    (docs / "grok-demo.html").write_text(desk.replace("<title>LotBeacon · showcase</title>", "<title>LotBeacon · desk</title>", 1))
     (docs / ".nojekyll").write_text("")
     n_steps = sum(len(t["steps"]) for t in data["threads"].values())
-    print(f"docs/index.html — {len(data['threads'])} conversations, {n_steps} recorded states, {os.path.getsize(docs / 'index.html') / 1024:.0f} KB")
+    print(f"docs/index.html + docs/grok-demo.html — {len(data['threads'])} conversations, {n_steps} recorded states, {os.path.getsize(docs / 'index.html') / 1024:.0f} KB")
     if "--artifact" in sys.argv:
         (docs / "showcase-artifact.html").write_text(render(data, artifact=True))
         print("docs/showcase-artifact.html")
