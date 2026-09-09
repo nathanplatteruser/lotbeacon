@@ -229,6 +229,51 @@ def test_admin_note_always_has_ask_ack_hold():
         assert n["note"]
 
 
+PILOT_MAILTO = "mailto:nathanplatter@gmail.com?subject=LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29"
+FUNNEL_COPY = (
+    "This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.",
+    "Or skip the recording. Request a pilot with your name, shop, named Page, and what you will paste.",
+    "Draft language in this recording. The customer does not see it until a person sends. Not a certified translation.",
+    "This sets the shopper path in the recording. It does not set how long your reply will be.",
+    "Plays this recording forward. Does not send to Facebook.",
+)
+
+
+def test_recording_closes_analyze_and_keeps_language_path_controls():
+    html = HTML.read_text(encoding="utf-8")
+    head = html.split("LB_STATIC=", 1)[0]
+    for line in FUNNEL_COPY:
+        assert line in html
+        assert EM not in line
+    assert PILOT_MAILTO in html
+    assert 'id="anaRun"' not in html
+    assert ">Analyze<" not in html
+    assert "Try a live inquiry" not in html
+    assert "api('/api/analyze'" not in html
+    assert 'id="deskLang"' in html and 'id="deskPath"' in html
+    assert "English" in head and "Spanish" in head and "Vietnamese" in head and "Arabic" in head
+    assert "Quick" in head and "Medium" in head and "Guided" in head
+    assert 'title="Plays this recording forward. Does not send to Facebook."' in html
+
+
+def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
+    index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+    pricing = (ROOT / "docs" / "pricing.html").read_text(encoding="utf-8")
+    compare = (ROOT / "docs" / "compare.html").read_text(encoding="utf-8")
+    assert "This is not a live Facebook inbox" in index
+    assert 'href="grok-demo.html"' in index
+    assert "Open the desk" in index
+    for page in (pricing, compare):
+        assert 'href="grok-demo.html"' in page
+        assert "Open the desk" in page
+        assert "checkout.stripe.com" not in page
+    assert "Published price" not in compare
+    assert "$549" not in compare
+    assert "$1,347" not in compare
+    assert "$2,990" not in compare
+    assert "Solo $129" in compare and "Three Amigos $299" in compare and "Dealership $599" in compare
+
+
 def test_human_still_owns_send_and_next_step_vocab():
     html = HTML.read_text(encoding="utf-8")
     assert "Suggested wording is a draft" in html
