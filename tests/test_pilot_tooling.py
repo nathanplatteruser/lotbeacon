@@ -105,7 +105,7 @@ def test_every_seeded_lead_has_a_short_buddy_note(client):
 
 
 def test_queue_carries_momentum_series_for_left_rail(client):
-    """Left-rail scan uses the existing momentum model, not a new score. Same series as thread Details."""
+    """Left-rail scan is show-likelihood from the existing momentum model. Same series as thread detail."""
     rows = {r["customer"]: r for r in client.get("/api/queue").json()["rows"]}
     assert rows, "seeded queue is empty"
     for name, r in rows.items():
@@ -113,13 +113,14 @@ def test_queue_carries_momentum_series_for_left_rail(client):
         assert isinstance(m.get("series"), list), name
         assert len(m["series"]) <= 8, name
         assert m.get("trend") in {"up", "flat", "down"}, name
+        assert m.get("kind") == "show_likelihood", name
 
     sarah = rows["Sarah Miller"]["momentum"]
-    assert sarah["trend"] == "up" and sarah["label"] == "Gaining momentum"
+    assert sarah["trend"] == "up" and "climbing" in sarah["label"].lower()
     assert len(sarah["series"]) >= 2 and sarah["series"][-1] > sarah["series"][0]
 
     mike = rows["Mike Torres"]["momentum"]
-    assert mike["trend"] == "down" and mike["label"] == "Losing momentum"
+    assert mike["trend"] == "down" and "slipping" in mike["label"].lower()
     assert mike["series"][-1] < mike["series"][0]
 
     denise = rows["Denise Okafor"]["momentum"]
@@ -131,12 +132,55 @@ def test_queue_carries_momentum_series_for_left_rail(client):
     assert detail["momentum"] == sarah
 
 
+def test_thread_has_five_communication_signals_and_deal_file(client):
+    threads = {t["customer"]["name"]: t for t in [
+        client.get(f"/api/threads/{r['id']}").json() for r in client.get("/api/queue").json()["rows"]
+    ]}
+    keys = ["purchase_intent", "price_friction", "engagement", "visit_progression", "objection_hints"]
+    for name, d in threads.items():
+        sig = d["signals"]
+        assert [x["key"] for x in sig["signals"]] == keys, name
+        assert sig["events"] <= 8
+        for x in sig["signals"]:
+            assert x["why"] and "—" not in x["why"], name
+            assert len(x["series"]) == sig["events"]
+
+    sarah = threads["Sarah Miller"]
+    by = {x["key"]: x for x in sarah["signals"]["signals"]}
+    assert by["purchase_intent"]["trend"] == "up"
+    assert by["visit_progression"]["series"][-1] > by["visit_progression"]["series"][0]
+    assert by["price_friction"]["score"] == 0
+
+    mike = threads["Mike Torres"]
+    mby = {x["key"]: x for x in mike["signals"]["signals"]}
+    assert mby["price_friction"]["score"] >= 50
+    assert mby["price_friction"]["trend"] == "up"
+    assert mike["momentum"]["trend"] == "down"
+
+    denise = threads["Denise Okafor"]
+    dby = {x["key"]: x for x in denise["signals"]["signals"]}
+    assert dby["purchase_intent"]["series"][-1] > max(dby["purchase_intent"]["series"][:-1])
+
+    marcus = threads["Marcus Bell"]
+    keys_present = {n["key"] for n in marcus["deal_file"]["notes"]}
+    assert "discount_approval" in keys_present and "maintenance_approval" in keys_present
+    assert "$400" in marcus["deal_file"]["forward_text"] or "400" in marcus["deal_file"]["forward_text"]
+    assert "oil" in marcus["deal_file"]["forward_text"].lower()
+
+    linda = threads["Linda Schwartz"]
+    objs = [n["value"] for n in linda["deal_file"]["notes"] if n["key"] == "objection"]
+    assert any("spouse" in str(v).lower() for v in objs)
+
+
 def test_desk_html_draws_sparkline_on_every_queue_row():
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
-    for rel in ("lotbeacon/web/index.html", "docs/index.html"):
+    for rel in ("lotbeacon/web/index.html", "docs/index.html", "docs/grok-demo.html"):
         html = (root / rel).read_text()
         assert "${sparkRail(r.momentum)}" in html, rel
         assert "function sparkRail(" in html, rel
-        assert "function spark(" in html, rel
+        assert "nums:true" in html, rel
+        assert "Communication signal" in html, rel
+        assert "Deal file" in html, rel
+        assert "objection_hints" in html, rel
         assert ".row .spark-rail" in html, rel

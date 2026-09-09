@@ -48,9 +48,8 @@ def blocks_for(thread: Thread) -> list[list]:
     return blocks
 
 
-def series_for(s: Session, thread: Thread) -> list[int]:
-    """One point per communication block (last MAX_BLOCKS): scored from the pipeline's read of the block's final message,
-    which already carries everything the earlier messages in the block established (memory + state)."""
+def draft_blocks(s: Session, thread: Thread) -> list[dict]:
+    """Last MAX_BLOCKS communication blocks with the pipeline draft that scored each one."""
     drafts = s.scalars(select(Draft).where(Draft.thread_id == thread.id).order_by(Draft.id)).all()
     by_msg: dict[int, Draft] = {}
     for d in drafts:
@@ -60,8 +59,18 @@ def series_for(s: Session, thread: Thread) -> list[int]:
     for block in blocks_for(thread)[-MAX_BLOCKS:]:
         chosen = next((by_msg[m.id] for m in reversed(block) if m.id in by_msg), None)
         if chosen:
-            out.append(score_point(chosen.structured))
+            out.append({
+                "structured": chosen.structured or {},
+                "text": " ".join(m.text for m in block),
+                "message_id": block[-1].id,
+            })
     return out
+
+
+def series_for(s: Session, thread: Thread) -> list[int]:
+    """One point per communication block (last MAX_BLOCKS): scored from the pipeline's read of the block's final message,
+    which already carries everything the earlier messages in the block established (memory + state)."""
+    return [score_point(b["structured"]) for b in draft_blocks(s, thread)]
 
 
 def trend(series: list[int]) -> tuple[str, int]:
@@ -85,5 +94,9 @@ def trend(series: list[int]) -> tuple[str, int]:
 def view(s: Session, thread: Thread) -> dict:
     ser = series_for(s, thread)
     direction, delta = trend(ser)
-    label = {"up": "Gaining momentum", "flat": "Holding steady", "down": "Losing momentum"}[direction]
-    return {"series": ser, "trend": direction, "delta": delta, "label": label, "score": ser[-1] if ser else None, "blocks": len(blocks_for(thread))}
+    label = {"up": "Show-likelihood climbing", "flat": "Show-likelihood holding", "down": "Show-likelihood slipping"}[direction]
+    return {
+        "kind": "show_likelihood",
+        "series": ser, "trend": direction, "delta": delta, "label": label,
+        "score": ser[-1] if ser else None, "blocks": len(blocks_for(thread)),
+    }
