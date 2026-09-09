@@ -355,6 +355,12 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 .deskbar .desk-pulse.up{color:var(--ok);border-color:var(--ok)}
 .deskbar .desk-pulse.down{color:var(--bad);border-color:var(--bad)}
 .deskbar .desk-pulse.flat{color:var(--warn);border-color:var(--warn)}
+
+.deskbar details.desk-notes{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.deskbar details.desk-notes>summary{cursor:pointer;list-style:none;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);min-height:36px;display:flex;align-items:center;gap:8px;user-select:none}
+.deskbar details.desk-notes>summary::-webkit-details-marker{display:none}
+.deskbar details.desk-notes>summary::before{content:"▸";font-size:12px;color:var(--msgr)}
+.deskbar details.desk-notes[open]>summary::before{content:"▾"}
 .cal-links{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 16px 4px}
 .cal-links a{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line-strong);font-size:13px;font-weight:700;color:var(--ford);text-decoration:none;background:var(--surface)}
 .cal-links a:hover{border-color:var(--msgr);color:var(--msgr)}
@@ -380,14 +386,11 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
   <span class="sub" id="dealer">—</span>
   <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="admin" aria-selected="false">Admin</button><button data-view="owner" aria-selected="false">Owner dashboard</button><a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn" title="This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.">Request a pilot</button></nav>
   <div class="right"><button class="tourbtn" id="tourBtn" title="Guided tour">?</button><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
-</header><div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Interactive showcase · recorded Sep 09, 2026 · Synthetic shopper. Not a live Facebook inbox. Send stays with a person.</div>
+</header><div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Alias of the live desk · bookmark <a href="./" style="color:inherit;font-weight:700">nathanplatteruser.github.io/lotbeacon/</a> · Synthetic shopper. Not a live Facebook inbox. Send stays with a person.</div>
 <div class="deskbar" id="deskbar">
   <div class="desk-row">
     <div class="desk-field">
-      <div class="desk-labrow">
-        <label class="desk-lab" for="deskLang">Language</label>
-        <span class="desk-help">Draft language in this recording. The customer does not see it until a person sends. Not a certified translation.</span>
-      </div>
+      <label class="desk-lab" for="deskLang">Language</label>
       <select id="deskLang" aria-label="Language">
         <option value="en">English</option>
         <option value="es">Spanish</option>
@@ -404,11 +407,15 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
       </select>
     </div>
   </div>
-  <div class="desk-note" id="deskBlurb">Average path. A normal number of DMs before a clear yes or no.</div>
-  <p class="desk-help">This sets the shopper path in the recording. It does not set how long your reply will be.</p>
-  <div class="desk-note">Synthetic shopper. Not a live Facebook inbox. Suggested wording is a draft. A person still sends.</div>
-  <p class="desk-outcome" id="deskOutcome"><b>Point of the desk</b> Confidence and clarity. More of the window-shopper threads handled, higher chance they convert, higher odds they show. Not a measured claim.</p>
-  <div class="desk-admin" id="deskAdmin"></div>
+  <details class="desk-notes">
+    <summary>Recording notes — average path, agentic shopper, point of the desk, admin</summary>
+    <div class="desk-help">Draft language in this recording. The customer does not see it until a person sends. Not a certified translation.</div>
+    <div class="desk-note" id="deskBlurb">Average path. A normal number of DMs before a clear yes or no.</div>
+    <p class="desk-help">This sets the shopper path in the recording. It does not set how long your reply will be.</p>
+    <div class="desk-note"><b>Agentic shopper.</b> Guided lets the shopper hop vehicles and change the subject; the desk recovers momentum. Quick and Medium stay linear. Synthetic shopper. Not a live Facebook inbox. Suggested wording is a draft. A person still sends.</div>
+    <p class="desk-outcome" id="deskOutcome"><b>Point of the desk</b> Confidence and clarity. More of the window-shopper threads handled, higher chance they convert, higher odds they show. Not a measured claim.</p>
+    <div class="desk-admin" id="deskAdmin"></div>
+  </details>
 </div>
 
 <div class="app">
@@ -965,7 +972,7 @@ function onDeskChange(){
   else {showView('work');open(LB_DESK.THREAD_ID);loadQueue();}
 }
 (async()=>{
-  if(window.LB_DESK){LB_DESK.fromQuery();paintDeskbar();$('#deskLang').onchange=onDeskChange;$('#deskPath').onchange=onDeskChange;window.addEventListener('resize',syncDeskbarH);}
+  if(window.LB_DESK){LB_DESK.fromQuery();paintDeskbar();$('#deskLang').onchange=onDeskChange;$('#deskPath').onchange=onDeskChange;window.addEventListener('resize',syncDeskbarH);const notes=$('.desk-notes');if(notes)notes.addEventListener('toggle',syncDeskbarH);}
   await loadMeta();await loadQueue();setInterval(loadQueue,20000);
 })();
 </script>

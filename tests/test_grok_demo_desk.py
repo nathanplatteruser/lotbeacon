@@ -1,4 +1,4 @@
-"""Desk demo at grok-demo.html: language + thread-length controls. Offline, synthetic only."""
+"""Desk demo at docs/index.html (canonical). grok-demo.html is an alias. Language + thread-length. Offline, synthetic only."""
 from __future__ import annotations
 
 import json
@@ -7,7 +7,8 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = ROOT / "docs" / "grok-demo.html"
+HTML = ROOT / "docs" / "index.html"
+HTML_ALIAS = ROOT / "docs" / "grok-demo.html"
 JS = ROOT / "docs" / "grok-demo-desk.js"
 NEXT = {"yes, come in", "won't come in", "not yet"}
 BOOKED_BAIT = re.compile(
@@ -399,8 +400,8 @@ PARENT_CLOSE = (
 def test_parent_closes_live_inquiry_to_four_field_pilot():
     index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
     assert PARENT_BANNER in index
-    assert "Open the desk" in index
-    assert 'href="grok-demo.html"' in index
+    assert 'id="deskLang"' in index and 'id="deskPath"' in index
+    assert 'data-view="admin"' in index
     assert PARENT_CLOSE in index
     assert PILOT_MAILTO in index
     assert "your name" in index and "the shop" in index and "named Page" in index and "what you will paste" in index
@@ -438,8 +439,8 @@ def test_export_showcase_closes_live_inquiry_and_leaves_desk_alone():
     assert "nathanplatter@gmail.com" in src
     assert "LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29" in src
     assert "def close_live_inquiry" in src
-    assert '(docs / "grok-demo.html").write_text' not in src
-    assert "left alone" in src
+    assert "canonical desk" in src or "docs/index.html" in src
+    assert "inject_static" in src or "window.LB_STATIC" in src
     assert "This recording cannot run a live inquiry." in src
     assert "The live-inquiry analyzer runs Claude against live inventory" not in src
 
@@ -449,15 +450,13 @@ def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     pricing = (ROOT / "docs" / "pricing.html").read_text(encoding="utf-8")
     compare = (ROOT / "docs" / "compare.html").read_text(encoding="utf-8")
     assert PARENT_BANNER in index
-    assert 'href="grok-demo.html"' in index
-    assert "Open the desk" in index
-    assert 'href="./">try the interactive demo' not in pricing
-    assert 'href="grok-demo.html">try the interactive demo' in pricing
-    assert 'href="./">try the demo' not in compare
-    assert 'href="grok-demo.html">try the demo' in compare
+    assert 'id="deskLang"' in index and 'data-view="admin"' in index
+    assert 'href="./">try the interactive demo' in pricing
+    assert 'href="grok-demo.html">try the interactive demo' not in pricing
+    assert 'href="./">try the demo' in compare
+    assert 'href="grok-demo.html">try the demo' not in compare
     for page in (pricing, compare):
-        assert 'href="grok-demo.html"' in page
-        assert "Open the desk" in page
+        assert 'href="./">Interactive demo' in page
         assert "checkout.stripe.com" not in page
     assert "Published price" not in compare
     assert "$549" not in compare
@@ -482,3 +481,14 @@ def test_human_still_owns_send_and_next_step_vocab():
         """
     )
     assert set(data["nexts"]) <= NEXT
+
+
+def test_grok_demo_html_is_alias_of_canonical_desk():
+    alias = HTML_ALIAS.read_text(encoding="utf-8")
+    canon = HTML.read_text(encoding="utf-8")
+    assert "grok-demo-desk.js" in alias
+    assert 'id="deskLang"' in alias and 'id="deskPath"' in alias
+    assert "nathanplatteruser.github.io/lotbeacon/" in alias
+    assert 'data-view="admin"' in alias
+    assert "desk-notes" in canon and "desk-notes" in alias
+    assert "Agentic shopper" in canon

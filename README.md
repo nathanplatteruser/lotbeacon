@@ -1,4 +1,16 @@
-# LotBeacon — Messenger Copilot for dealership reps (MVP v0.9 — explainable, pilot-instrumented)
+# LotBeacon — Messenger copilot for dealership reps
+
+**Bookmark this forever:** [https://nathanplatteruser.github.io/lotbeacon/](https://nathanplatteruser.github.io/lotbeacon/)
+
+That simple URL is the live desk. Queue, Admin, Owner dashboard, language + thread-length, sales signals, before & after, pricing, vs the field, request a pilot. Notes about the average path, the agentic shopper, the point of the desk, and the admin note stay on the page — collapsed until someone opens them.
+
+`/lotbeacon/grok-demo.html` still works. It is an alias, not a second product. Do not text that path as the demo.
+
+This GitHub repo is the Python pipeline + the Pages site under `docs/`. Sibling experiments (`LotBeacon_G2`, `LotBeacon_open`) are not the live demo. Share the simple URL.
+
+---
+
+## Pipeline (MVP v0.9 — explainable, pilot-instrumented)
 
 > AI does the remembering, researching, prioritizing, drafting, and follow-up preparation.
 > The salesperson owns the relationship and consequential promises.
@@ -220,7 +232,9 @@ Every seeded lead carries a ≤10-word "buddy note" — the two keywords a cowor
 
 ## Zero-backend showcase (GitHub Pages)
 
-`python -m scripts.export_showcase` plays every seeded conversation forward through the real pipeline and writes `docs/index.html`: the real UI with the API replaced by those recordings. No server, no key, no cost — serve it from GitHub Pages (Settings → Pages → Deploy from a branch → `main` / `/docs`). Send & next and Book play the recording forward; why-this-action, evidence, Impact and the Owner dashboard all work. Free-text edit re-validation, reply styles and the live-inquiry analyzer need the hosted demo (see above). Rebuild after any pipeline change and commit `docs/`.
+The bookmark URL is `docs/index.html` on GitHub Pages: Queue + Admin + Owner dashboard + language/thread-length, with recordings swapped in for the API. `docs/grok-demo.html` is an alias of that same desk.
+
+`python -m scripts.export_showcase` refreshes `window.LB_STATIC` inside those two shells. It does not strip the desk chrome and it does not rebuild a thinner showcase as the product URL. Send & next and Book play the recording forward; why-this-action, evidence, Impact, Admin, and the Owner dashboard all work. Free-text edit re-validation, reply styles and the live-inquiry analyzer need the hosted demo (see above). Rebuild after any pipeline change and commit `docs/`.
 
 ## Before & after one-pager + link previews
 

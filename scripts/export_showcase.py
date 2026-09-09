@@ -1,18 +1,20 @@
-"""Build the zero-backend showcase: docs/index.html.
+"""Build the zero-backend showcase recordings and inject them into the canonical desk.
 
 Runs the real app in-process, plays every seeded conversation forward (send → scripted customer reply → new draft → …,
-booking when the customer picks a time) and records each state. The showcase page is the real UI with the API swapped
-for those recordings, so it can be served from GitHub Pages (or any static host) with no server, no key, no cost.
+booking when the customer picks a time) and records each state.
 
-    python -m scripts.export_showcase            # writes docs/index.html
-    python -m scripts.export_showcase --artifact  # also writes docs/showcase-artifact.html (no doctype/html/head/body)
+The live Pages URL is docs/index.html — the desk (Queue, Admin, Owner dashboard, language, thread length).
+grok-demo.html is an alias of that same desk. This script injects window.LB_STATIC into both shells and does not
+strip the desk chrome. The old thin showcase (no Admin / language) is not the product URL.
+
+    python -m scripts.export_showcase            # refreshes recordings in docs/index.html + docs/grok-demo.html
+    python -m scripts.export_showcase --artifact  # also writes docs/showcase-artifact.html
 
 What still works: queue, every thread, Send & next (advances the recording), Book, why-this-action, inventory evidence,
-Impact, Owner dashboard, tour, keyboard. What is disabled (needs the live server): free-text edits being re-validated,
-reply-style changes, follow-up nudges, fact corrections, inventory events. The live-inquiry analyzer is closed on this
-recording: the button and modal ask for a four-field pilot (name, shop, named Page, what you will paste) and do not
-claim the pipeline runs against live inventory. grok-demo.html is the separately maintained desk; this script does
-not overwrite it.
+Impact, Owner dashboard, Admin, language + thread-length, tour, keyboard. What is disabled (needs the live server):
+free-text edits being re-validated, reply-style changes, follow-up nudges, fact corrections, inventory events.
+The live-inquiry analyzer is closed on this recording: the button asks for a four-field pilot (name, shop, named Page,
+what you will paste) and does not claim the pipeline runs against live inventory.
 """
 import json
 import os
@@ -26,10 +28,6 @@ os.environ["LOTBEACON_AI_PROVIDER"] = "mock"
 os.environ["LOTBEACON_DATABASE_URL"] = f"sqlite:///{ROOT / 'showcase-build.db'}"
 if (ROOT / "showcase-build.db").exists():
     (ROOT / "showcase-build.db").unlink()
-
-from fastapi.testclient import TestClient  # noqa: E402
-
-from lotbeacon.api import app  # noqa: E402
 
 MAX_STEPS = 12
 
@@ -80,6 +78,9 @@ def close_live_inquiry(html: str) -> str:
 
 
 def build() -> dict:
+    from fastapi.testclient import TestClient
+    from lotbeacon.api import app
+
     data = {"built_at": datetime.now(timezone.utc).isoformat(), "threads": {}, "evidence": {}, "queue_rows": {}}
     with TestClient(app) as c:
         data["meta"] = c.get("/api/meta").json()
@@ -183,6 +184,21 @@ async function api(path,opts={}){
 """
 
 
+def inject_static(html: str, data: dict) -> str:
+    """Replace window.LB_STATIC=... in an existing desk shell. Canonical desk chrome stays put."""
+    payload = "window.LB_STATIC=" + json.dumps(data, separators=(",", ":")).replace("</", "<\\/") + ";"
+    start = html.find("window.LB_STATIC=")
+    if start < 0:
+        raise SystemExit("export_showcase: canonical desk is missing window.LB_STATIC=; cannot inject recordings")
+    end_script = html.find("</script>", start)
+    if end_script < 0:
+        raise SystemExit("export_showcase: canonical desk is missing the LB_STATIC script close")
+    last_sc = html.rfind(";", start, end_script)
+    if last_sc < 0:
+        raise SystemExit("export_showcase: canonical desk LB_STATIC assignment has no terminator")
+    return html[:start] + payload + html[last_sc + 1 :]
+
+
 def render(data: dict, artifact: bool = False) -> str:
     html = (ROOT / "lotbeacon" / "web" / "index.html").read_text()
     # swap the network api() for the recorded one
@@ -196,13 +212,11 @@ def render(data: dict, artifact: bool = False) -> str:
     built = datetime.fromisoformat(data["built_at"]).strftime("%b %d, %Y")
     banner = (
         f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">'
-        f'Interactive showcase · recorded {built} · {PARENT_BANNER} '
-        f'<a href="grok-demo.html" style="color:inherit;font-weight:700">Open the desk</a></div>'
+        f'Interactive showcase · recorded {built} · {PARENT_BANNER}</div>'
     )
     html = html.replace("</header>", "</header>" + banner, 1)
     html = html.replace(
         '<button id="anaBtn"',
-        '<a class="navlink" href="grok-demo.html">Open the desk</a>'
         '<a class="navlink" href="impact-estimate.html">Before &amp; after</a>'
         '<a class="navlink" href="pricing.html">Pricing</a>'
         '<a class="navlink" href="compare.html">vs the field</a>'
@@ -226,11 +240,18 @@ if __name__ == "__main__":
     data = build()
     docs = ROOT / "docs"
     docs.mkdir(exist_ok=True)
-    page = render(data)
-    (docs / "index.html").write_text(page)
     (docs / ".nojekyll").write_text("")
     n_steps = sum(len(t["steps"]) for t in data["threads"].values())
-    print(f"docs/index.html — {len(data['threads'])} conversations, {n_steps} recorded states, {os.path.getsize(docs / 'index.html') / 1024:.0f} KB (desk at docs/grok-demo.html is left alone)")
+    for name in ("index.html", "grok-demo.html"):
+        path = docs / name
+        if not path.exists() or "window.LB_STATIC=" not in path.read_text(encoding="utf-8"):
+            raise SystemExit(f"export_showcase: {name} is not a canonical desk shell")
+        path.write_text(inject_static(path.read_text(encoding="utf-8"), data), encoding="utf-8")
+    print(
+        f"docs/index.html (canonical desk) + docs/grok-demo.html (alias) — "
+        f"{len(data['threads'])} conversations, {n_steps} recorded states, "
+        f"{(docs / 'index.html').stat().st_size / 1024:.0f} KB"
+    )
     if "--artifact" in sys.argv:
         (docs / "showcase-artifact.html").write_text(render(data, artifact=True))
         print("docs/showcase-artifact.html")
