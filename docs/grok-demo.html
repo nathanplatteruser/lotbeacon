@@ -652,7 +652,7 @@ async function pickVariant(vn){
 async function doSend(){
   const d=detail,dr=d.draft;if(!dr||$('#send')?.disabled)return;
   try{const r=await api(`/api/drafts/${dr.id}/send`,{method:'POST',body:{rep_id:repId(),text:$('#draft')?.value??dr.text}});
-    toast(r.demo?.replied?'Sent — customer replied':r.demo?.ghost_hours?`Sent — customer went quiet (${r.demo.ghost_hours}h)`:'Sent');
+    toast(r.demo?.replied?'Sent. Customer replied':r.demo?.ghost_hours?`Sent. Customer went quiet (${r.demo.ghost_hours}h)`:'Sent');
     await loadQueue();
     if(r.demo?.replied){open(d.id);} else if(r.next_thread_id&&r.next_thread_id!==d.id){open(r.next_thread_id);} else {open(d.id);}
   }catch(e){toast(e.message||'Blocked');await open(d.id);}
