@@ -82,16 +82,15 @@ Not a slam on the big groups. Sid Dillon, Woodhouse, and Baxter can out-advertis
 
 Full matrix: https://nathanplatteruser.github.io/lotbeacon/compare.html
 
-## Licenses (no per-message meter)
+## Book a pilot (no public list)
 
-| License | Price | Who |
-|---|---|---|
-| Solo | $129 / month | Kyle’s desk |
-| Three Amigos | $299 / month | Kyle + two on one queue |
-| Dealership | $599 / month (10 seats, +$39 over) | Tyler’s tower + the floor |
+Price after intro. No Stripe. No invented prices. No per-message meter.
 
-Founding-store note for Beatrice only: first 90 days at half list if you want to kick tires on live Marketplace threads. Still month to month.
-Price page: https://nathanplatteruser.github.io/lotbeacon/pricing.html
+**Book intro:** https://calendly.com/nathanplatter
+
+**Email:** nathanplatter@gmail.com (name, shop, named Page, what you will paste)
+
+Pilot page: https://nathanplatteruser.github.io/lotbeacon/pricing.html
 
 ## What Nathan is asking
 

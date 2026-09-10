@@ -445,10 +445,42 @@ def test_export_showcase_closes_live_inquiry_and_leaves_desk_alone():
     assert "The live-inquiry analyzer runs Claude against live inventory" not in src
 
 
+PUBLIC_SAAS_BLOBS = (
+    ROOT / "docs" / "pricing.html",
+    ROOT / "docs" / "compare.html",
+    ROOT / "docs" / "CLICK-HERE.html",
+    ROOT / "docs" / "tyler-kyle-leavebehind.md",
+    ROOT / "docs" / "email-tyler-kyle.md",
+    ROOT / "docs" / "impact-estimate.html",
+    ROOT / "README.md",
+)
+BANNED_SAAS_LIST = (
+    "Solo $129",
+    "Three Amigos $299",
+    "Dealership $599",
+    "Solo $549",
+    "Three Amigos $1,347",
+    "Umbrella $2,990",
+    "$549",
+    "$1,347",
+    "$2,990",
+    "$1347",
+    "$2990",
+    "Solo $65",
+    "Three Amigos $150",
+    "Dealership $300",
+    "+$39",
+    "One desk is",
+)
+
+
 def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
     pricing = (ROOT / "docs" / "pricing.html").read_text(encoding="utf-8")
     compare = (ROOT / "docs" / "compare.html").read_text(encoding="utf-8")
+    click = (ROOT / "docs" / "CLICK-HERE.html").read_text(encoding="utf-8")
+    leave = (ROOT / "docs" / "tyler-kyle-leavebehind.md").read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert PARENT_BANNER in index
     assert 'id="deskLang"' in index and 'data-view="admin"' in index
     assert 'href="./">try the interactive demo' in pricing
@@ -458,11 +490,23 @@ def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     for page in (pricing, compare):
         assert 'href="./">Interactive demo' in page
         assert "checkout.stripe.com" not in page
+        assert "Book a pilot" in page
+        assert "Book intro" in page
+        assert "nathanplatter@gmail.com" in page
+        assert "https://calendly.com/nathanplatter" in page
     assert "Published price" not in compare
-    assert "$549" not in compare
-    assert "$1,347" not in compare
-    assert "$2,990" not in compare
-    assert "Solo $129" in compare and "Three Amigos $299" in compare and "Dealership $599" in compare
+    for path in PUBLIC_SAAS_BLOBS:
+        text = path.read_text(encoding="utf-8")
+        assert "checkout.stripe.com" not in text
+        for banned in BANNED_SAAS_LIST:
+            assert banned not in text, f"{banned!r} still public in {path.name}"
+    assert "Book a pilot" in click and "Book intro" in click
+    assert "nathanplatter@gmail.com" in click
+    assert "https://calendly.com/nathanplatter" in click
+    assert "Book a pilot" in leave
+    assert "https://calendly.com/nathanplatter" in leave
+    assert "Book a pilot" in readme
+    assert "https://calendly.com/nathanplatter" in readme
 
 
 def test_human_still_owns_send_and_next_step_vocab():
