@@ -23,7 +23,8 @@ https://nathanplatteruser.github.io/lotbeacon/CLICK-HERE.html
 Tap the first door. Fake customers. Sarah is the easy one — black Tahoe, Accord trade, Saturday. Book her. Then try to break it (Tyler will enjoy that part).
 
 Attached / linked so you don’t have to be a nerd:
-- One-pager: who the window shoppers are, what the admin view is, why this is different from Podium / Meta AI / cheap auto-reply, and the three license prices.
+- One-pager: who the window shoppers are, what the admin view is, why this is different from Podium / Meta AI / cheap auto-reply, and how to book intro.
+- Book intro: https://calendly.com/nathanplatter
 - Comparison page if you get curious: https://nathanplatteruser.github.io/lotbeacon/compare.html
 
 Can I swing by next week, or the week after if the calendar is ugly? Fifteen minutes on the showroom iPad or my laptop. I’ll bring the case study (me) and you can tell me what a Beatrice Saturday actually looks like so I stop inventing Fairbury guys named Dan.
