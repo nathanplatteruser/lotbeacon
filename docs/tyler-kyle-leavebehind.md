@@ -82,13 +82,11 @@ Not a slam on the big groups. Sid Dillon, Woodhouse, and Baxter can out-advertis
 
 Full matrix: https://nathanplatteruser.github.io/lotbeacon/compare.html
 
-## Book a pilot (no public list)
+## Book intro (no public list)
 
-Price after intro. No Stripe. No invented prices. No per-message meter.
+No Stripe. No invented prices. No package dollars. No per-message meter.
 
 **Book intro:** https://calendly.com/nathanplatter
-
-**Email:** nathanplatter@gmail.com (name, shop, named Page, what you will paste)
 
 Pilot page: https://nathanplatteruser.github.io/lotbeacon/pricing.html
 

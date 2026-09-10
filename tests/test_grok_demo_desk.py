@@ -471,6 +471,11 @@ BANNED_SAAS_LIST = (
     "Dealership $300",
     "+$39",
     "One desk is",
+    "1 seat",
+    "3 seats",
+    "10 seats",
+    "priced under",
+    "Price after we talk",
 )
 
 
@@ -490,22 +495,24 @@ def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
     for page in (pricing, compare):
         assert 'href="./">Interactive demo' in page
         assert "checkout.stripe.com" not in page
-        assert "Book a pilot" in page
         assert "Book intro" in page
-        assert "nathanplatter@gmail.com" in page
         assert "https://calendly.com/nathanplatter" in page
+        assert "class=\"plans\"" not in page
     assert "Published price" not in compare
     for path in PUBLIC_SAAS_BLOBS:
         text = path.read_text(encoding="utf-8")
         assert "checkout.stripe.com" not in text
         for banned in BANNED_SAAS_LIST:
             assert banned not in text, f"{banned!r} still public in {path.name}"
-    assert "Book a pilot" in click and "Book intro" in click
-    assert "nathanplatter@gmail.com" in click
+    impact = (ROOT / "docs" / "impact-estimate.html").read_text(encoding="utf-8")
+    assert "modeled store gross" in impact
+    assert "not a LotBeacon package" in impact
+    assert "https://calendly.com/nathanplatter" in impact
+    assert "Book intro" in click
     assert "https://calendly.com/nathanplatter" in click
-    assert "Book a pilot" in leave
+    assert "Book intro" in leave
     assert "https://calendly.com/nathanplatter" in leave
-    assert "Book a pilot" in readme
+    assert "Book intro" in readme
     assert "https://calendly.com/nathanplatter" in readme
 
 
