@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LotBeacon — Soft launch for Zoellner Ford of Beatrice</title>
+  <style>
+    :root {
+      --ink: #09090b;
+      --paper: #f4f1ea;
+      --elev: #121214;
+      --stone: #9a958c;
+      --rule: #38383c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #e8e4db; color: var(--ink); }
+    body {
+      font: 16px/1.45 "Times New Roman", Times, serif;
+    }
+    .sheet {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 24px auto;
+      padding: 0.55in 0.58in 0.5in;
+      background: var(--paper);
+      box-shadow: 0 1px 8px rgba(0,0,0,.12);
+      position: relative;
+    }
+    header.bar {
+      position: absolute; left: 0; right: 0; top: 0;
+      height: 0.4in; background: var(--ink); color: var(--paper);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0.58in; font-size: 15px;
+    }
+    header.bar strong { font-size: 16px; }
+    h1 { font-size: 28px; line-height: 1.15; margin: 0.55in 0 8px; font-weight: 700; }
+    h2 { font-size: 18px; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 0.5px solid var(--rule); }
+    p.lead { font-size: 16px; margin: 0 0 16px; }
+    .panes, .metrics { display: grid; gap: 8px; margin: 0 0 8px; }
+    .panes { grid-template-columns: 1fr 1fr 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .pane {
+      background: var(--elev); color: var(--paper);
+      border-radius: 4px; padding: 10px 12px 12px; min-height: 148px;
+    }
+    .pane h3, .metric h3 { margin: 0 0 6px; font-size: 14px; }
+    .pane p, .metric p { margin: 0; font-size: 12.5px; line-height: 1.35; }
+    .metric { border: 0.6px solid var(--rule); border-radius: 4px; padding: 10px 12px; background: #fff; }
+    ul { margin: 0; padding: 0 0 0 1.1em; }
+    li { margin: 0 0 4px; }
+    .callout {
+      border: 0.6px solid var(--ink); background: #fff;
+      border-radius: 4px; padding: 12px 14px; margin-top: 14px;
+    }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0 14px; }
+    th { background: var(--ink); color: var(--paper); text-align: left; padding: 6px 8px; }
+    td { padding: 6px 8px; border-bottom: 0.4px solid #d8d2c8; }
+    tr:nth-child(even) td { background: #ece7de; }
+    td:first-child { font-weight: 700; width: 22%; }
+    .write {
+      border: 0.7px solid var(--ink); border-radius: 4px;
+      min-height: 1.35in; padding: 8px 12px; margin: 8px 0 14px;
+    }
+    .write .hint { color: var(--stone); font-style: italic; font-size: 12px; }
+    .write .line { border-bottom: 0.4px solid var(--rule); height: 22px; }
+    .sign { font-size: 13px; color: var(--stone); }
+    .sign strong { color: var(--ink); display: block; margin-bottom: 8px; }
+    footer.bar {
+      position: absolute; left: 0.58in; right: 0.58in; bottom: 0.22in;
+      border-top: 0.4px solid var(--rule); padding-top: 6px;
+      font-size: 11px; font-style: italic; color: var(--stone);
+      display: flex; justify-content: space-between;
+    }
+    @media print {
+      html, body { background: white; }
+      .sheet { box-shadow: none; margin: 0; page-break-after: always; }
+      .no-print { display: none; }
+    }
+    .no-print { max-width: 8.5in; margin: 16px auto 0; font: 13px/1.4 Georgia, serif; color: #444; padding: 0 12px; }
+  </style>
+</head>
+<body>
+  <p class="no-print">Print two-sided or one side each. Letter. Color if you have it — the bar is ink, the page is paper. Laminate after a test print.</p>
+
+  <article class="sheet">
+    <header class="bar"><strong>LotBeacon</strong><span>Soft launch · Path A · the floor runs it</span></header>
+    <h1>Thirty days. Two desks. Live books.</h1>
+    <p class="lead">This is the ask: let Kyle and one other person run LotBeacon as the appointment desk for one month. Fake threads first if you want. Live Marketplace when you say so. Nothing sends itself. If it does not earn the hour, we stop.</p>
+    <div class="panes">
+      <div class="pane"><h3>Who sits in it</h3><p>Kyle, plus one person you name. Tyler sees the queue and the intercept log from the tower. I sit with the first five live sends, then I get out of the way.</p></div>
+      <div class="pane"><h3>What they do</h3><p>Inbox is home. Draft is waiting. They read it. They hit Send — or they rewrite it. Two real Saturday or Thursday slots. Book is a tap, not a calendar scavenger hunt.</p></div>
+      <div class="pane"><h3>What it will not do</h3><p>No bot talking to your customers. No discount, payment, Sunday hours, or sold unit in a thread. No personal cell. Store number only. Opt-out is forever.</p></div>
+    </div>
+    <h2>How we know it worked — four numbers, not a vibe</h2>
+    <div class="metrics">
+      <div class="metric"><h3>Reply</h3><p>Minutes from inbound to a human Send on the threads they own.</p></div>
+      <div class="metric"><h3>Books</h3><p>Appointments offered vs appointments actually on the book.</p></div>
+      <div class="metric"><h3>Holds</h3><p>Sends the firewall stopped — discount, payment, dead unit, Sunday.</p></div>
+      <div class="metric"><h3>Shows</h3><p>Of the visits this month set from this desk, who actually walked in.</p></div>
+    </div>
+    <h2>The month, in money</h2>
+    <p>Crew — $399 for the 30 days if two people sit in it. Rooftop — $1,190 if you would rather put the whole floor on it from day one (about twenty seats). Month to month. No setup fee. If you stay, this first invoice credits the next 30 days. Founding-store courtesy for Beatrice only — neighbors, not a rate card from Omaha.</p>
+    <p style="font-style:italic">Solo at $129 exists if Kyle wants the desk alone for a week before a second person joins. I would rather start at two desks so you are not measuring one man’s Tuesday.</p>
+    <h2>What I am doing in the room — and what I am not</h2>
+    <ul>
+      <li>I will walk the fake desk first so nobody learns the product on a live shopper.</li>
+      <li>I will sit with the first five live Sends. After that, the floor owns the button.</li>
+      <li>I will not talk to your customers as LotBeacon. If I am on a thread, it is as a named person you approved.</li>
+      <li>I will not install anything on a personal Facebook. Paste-in or the Page inbox. That is the legal on-ramp.</li>
+      <li>A fail on the four numbers pauses the month. We do not quietly extend a weak pilot.</li>
+    </ul>
+    <div class="callout">Recommended start. Software on two of your people is the only way to find out if the desk is a store asset — or just Nathan with a laptop. Path B (next page) exists if you want me setting appointments with the same tool while we measure. It is a bridge. It is not the company.</div>
+    <footer class="bar"><span>Zoellner Ford of Beatrice · 4115 N. 6th Street · a person still hits Send</span><span>1 / 2</span></footer>
+  </article>
+
+  <article class="sheet">
+    <header class="bar"><strong>LotBeacon</strong><span>Soft launch · Path B · paid on the set · Path C is blank</span></header>
+    <h1>I set. The floor talks in person.</h1>
+    <p class="lead">Commission on a confirmed appointment — not on a walk-in, not on a sale. The proof is a third send on the thread, next to the GSM packet and the F&amp;I packet: Set visit. That click builds a desk brief and mails it to a mailbox we name. For this draft the mailbox is nathanplatter@gmail.com. We swap it to the store address before the first live set.</p>
+    <div class="panes">
+      <div class="pane"><h3>Set visit</h3><p>Sits beside Send to sales manager and Send to finance. One click. The book gets a time. The packet leaves.</p></div>
+      <div class="pane"><h3>What the packet carries</h3><p>Customer, unit, confirmed slot, last turns, facts, show-likelihood, who they ask for. Same brief the closer already gets — written for the desk, not for F&amp;I.</p></div>
+      <div class="pane"><h3>What it is not</h3><p>Not a sold unit. Not a show. I do not take the up. Sunday stays closed. A person still hit Send on the customer thread first.</p></div>
+    </div>
+    <h2>The number: $40 per confirmed set. Show rate writes the check.</h2>
+    <p>No hourly. No retainer. A set is a named time the shopper confirmed, plus the Set visit packet on the book. Ghosts are cheap to print and expensive to staff. So the month’s show rate on my books discounts the rate. Target is seven walks in ten.</p>
+    <div class="metrics">
+      <div class="metric"><h3>70%+ show</h3><p><strong>$40 / set</strong><br />Paid in full</p></div>
+      <div class="metric"><h3>60–69%</h3><p><strong>$32 / set</strong><br />20% off the month</p></div>
+      <div class="metric"><h3>50–59%</h3><p><strong>$24 / set</strong><br />40% off the month</p></div>
+      <div class="metric"><h3>Under 50%</h3><p><strong>$16 / set</strong><br />Ghost month. We talk.</p></div>
+    </div>
+    <p>Worked: twelve sets at 75% show is $480. Twelve sets at 58% show is $288. Sixteen sets at 70% is $640. Who tallies: the Set visit click is the set. The closer marks showed or no-show the day of. Tyler initials the month. Paid by the 7th. Book beats memory.</p>
+    <p style="font-style:italic">If even $16–$40 a set feels like a second payroll, that is Path A. Crew $399. Rooftop $1,190. The point of this month is that his people spend it on the lot, not in Messenger.</p>
+    <table>
+      <thead><tr><th></th><th>Path A · floor license</th><th>Path B · Nathan sets</th></tr></thead>
+      <tbody>
+        <tr><td>Who hits Send</td><td>Your people</td><td>Nathan, then Set visit</td></tr>
+        <tr><td>What you are buying</td><td>A desk the store keeps</td><td>Confirmed books, at $40</td></tr>
+        <tr><td>30-day start</td><td>$399 Crew or $1,190 Rooftop</td><td>Sets × rate after show cut</td></tr>
+        <tr><td>If it works</td><td>Stay month to month</td><td>Keep the cap, or move to A</td></tr>
+        <tr><td>If it does not</td><td>We stop. Credit is honest.</td><td>We stop. You owe the sets.</td></tr>
+      </tbody>
+    </table>
+    <h2>Path C — the shape we write together</h2>
+    <p>Example, not a demand: I cover Marketplace after the floor goes home, ten hours a week, while Kyle runs the same inbox in daylight. Or you name a third person and I only coach. The point of a blank line is that Beatrice is not a template.</p>
+    <div class="write">
+      <div class="hint">Path C · write it here</div>
+      <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
+    </div>
+    <p class="sign">
+      <strong>We can start the week you name.</strong>
+      Path A / B / C &nbsp;&nbsp; Second desk _____________ &nbsp;&nbsp; Start date _____________<br /><br />
+      Zoellner ______________________________ &nbsp;&nbsp; Nathan ______________________________<br /><br />
+      Nathan · 612-210-8590 · calendly.com/nathanplatter
+    </p>
+    <footer class="bar"><span>Zoellner Ford of Beatrice · 4115 N. 6th Street · a person still hits Send</span><span>2 / 2</span></footer>
+  </article>
+</body>
+</html>
