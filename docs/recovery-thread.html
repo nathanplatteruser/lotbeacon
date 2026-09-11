@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sample Marketplace thread</title>
+  <style>
+    :root {
+      --ink: #111111;
+      --muted: #8e8e93;
+      --paper: #f2f1ed;
+      --blue: #0084ff;
+      --bubble: #e9e9eb;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: #d8d3c8;
+      font: 15px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--ink);
+    }
+    .stage {
+      width: 390px;
+      margin: 8px auto 16px;
+      background: #fff;
+      border-radius: 36px;
+      box-shadow: 0 18px 40px rgba(20,16,10,.18);
+      overflow: hidden;
+      border: 10px solid #1c1c1e;
+    }
+    .notch {
+      height: 28px;
+      background: #1c1c1e;
+      color: #fff;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 18px 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    header.chat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 10px;
+      border-bottom: 1px solid #ececec;
+    }
+    .ava {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #3a3a3c; color: #f4f1ea;
+      display: grid; place-items: center;
+      font: 700 13px/1 Georgia, serif;
+    }
+    .who { font-weight: 600; font-size: 15px; }
+    .meta { font-size: 11px; color: var(--muted); }
+    .banner {
+      background: #f6f4ef;
+      color: #6f6a62;
+      font-size: 11px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 7px 12px;
+      border-bottom: 1px solid #ece8df;
+    }
+    .thread { padding: 8px 12px 10px; background: #fff; }
+    .day {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin: 8px 0 12px;
+    }
+    .row { display: flex; margin: 0 0 8px; }
+    .row.out { justify-content: flex-end; }
+    .b {
+      max-width: 78%;
+      padding: 8px 12px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.32;
+    }
+    .in .b { background: var(--bubble); color: #111; border-bottom-left-radius: 5px; }
+    .out .b { background: var(--blue); color: #fff; border-bottom-right-radius: 5px; }
+    .stamp { font-size: 10px; color: var(--muted); margin: -2px 8px 10px; }
+    .row.out + .stamp { text-align: right; }
+    footer.hint {
+      background: #1c1c1e;
+      color: #c8c2b6;
+      font: 12px/1.4 Georgia, "Times New Roman", serif;
+      padding: 12px 16px 16px;
+    }
+    footer.hint strong { color: #f4f1ea; display: block; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="notch"><span>9:14</span><span>LTE</span></div>
+    <header class="chat">
+      <div class="ava">S</div>
+      <div>
+        <div class="who">Sarah M.</div>
+        <div class="meta">Marketplace · Explorer listing</div>
+      </div>
+    </header>
+    <div class="banner">Sample thread · not a live customer</div>
+    <div class="thread">
+      <div class="day">Friday afternoon</div>
+
+      <div class="row in"><div class="b">Still got that black Explorer on the lot?</div></div>
+      <div class="row out"><div class="b">Yes. Black 2026 Explorer Platinum, on the ground in Beatrice. Want to see it Saturday?</div></div>
+      <div class="row in"><div class="b">If that’s the real window price I can work with it.</div></div>
+      <div class="row out"><div class="b">That’s the listed price on this unit. Saturday morning still open before we close at 3.</div></div>
+
+      <div class="day">Friday evening — going quiet</div>
+      <div class="row in"><div class="b">Been looking at Expeditions in Lincoln. Not sure this is worth the drive down.</div></div>
+
+      <div class="day">Saturday morning</div>
+      <div class="row out"><div class="b">Heard you. Explorer stays here. I can park an Expedition next to it. Saturday 10:00 or 11:30 — which can you actually make?</div></div>
+      <div class="row in"><div class="b">10 works. Who do I ask for?</div></div>
+      <div class="row out"><div class="b">Ask for Kyle. 4115 N. 6th. Both on the pad.</div></div>
+      <div class="stamp">Saturday 8:11 AM · on the book</div>
+    </div>
+    <footer class="hint">
+      <strong>What changed</strong>
+      Window shopper going to Lincoln. Same thread, next morning, Saturday 10:00 on the book.
+    </footer>
+  </div>
+</body>
+</html>
