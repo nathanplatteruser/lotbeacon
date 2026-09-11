@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LotBeacon — Set visit</title>
+  <style>
+    :root { --ink:#09090b; --paper:#f4f1ea; --elev:#121214; --stone:#9a958c; --rule:#38383c; --ok:#3f6b4a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 Georgia, "Times New Roman", serif; }
+    header { background: var(--ink); color: var(--paper); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+    header a { color: var(--paper); }
+    main { max-width: 720px; margin: 0 auto; padding: 28px 20px 64px; }
+    h1 { font-size: 28px; line-height: 1.15; margin: 0 0 8px; }
+    .lede { margin: 0 0 22px; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 22px; }
+    button, .btn {
+      font: 15px/1.2 Georgia, serif; border: 0.7px solid var(--ink); background: #fff;
+      padding: 10px 14px; border-radius: 4px; cursor: pointer; color: var(--ink); text-decoration: none; display: inline-block;
+    }
+    button.primary { background: var(--ink); color: var(--paper); }
+    button:disabled { opacity: .4; cursor: default; }
+    .card { border: 0.6px solid var(--rule); background: #fff; padding: 16px 18px; border-radius: 4px; margin: 0 0 16px; }
+    .kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--stone); }
+    pre { white-space: pre-wrap; font: 13px/1.45 ui-monospace, Menlo, monospace; margin: 8px 0 0; }
+    .ok { color: var(--ok); font-style: italic; }
+    label { display: block; font-size: 13px; color: var(--stone); margin: 12px 0 4px; }
+    input { width: 100%; max-width: 28em; font: 15px Georgia, serif; padding: 8px 10px; border: 0.6px solid var(--rule); background: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>LotBeacon</strong>
+    <a href="./soft-launch.html">Soft launch folio</a>
+  </header>
+  <main>
+    <p class="kicker">Path B · the third send</p>
+    <h1>Set visit</h1>
+    <p class="lede">Sits next to Send to sales manager and Send to finance. One click marks the book and mails the desk brief. A person still hit Send on the customer first. This click is the set — $40, then the month’s show rate writes the check.</p>
+    <div class="card">
+      <p class="kicker">Sarah Miller · Beatrice · Marketplace</p>
+      <p>Black 2026 Explorer Platinum · stock T2401 · Saturday 10:00 AM confirmed.</p>
+      <p style="font-style:italic">“Third message. If nobody’s reading this I’ll just go to Lincoln.” — then she took 10:00.</p>
+    </div>
+    <label for="to">Mailbox the packet hits (swap to the store before a live set)</label>
+    <input id="to" type="email" value="nathanplatter@gmail.com" />
+    <div class="row">
+      <button type="button" disabled>Send to sales manager</button>
+      <button type="button" disabled>Send to finance</button>
+      <button type="button" class="primary" id="set">Set visit</button>
+    </div>
+    <p id="status" class="ok" hidden>Packet queued. Check the mailbox. This set is on the book.</p>
+    <div class="card">
+      <p class="kicker">Desk brief · what leaves</p>
+      <pre id="body"></pre>
+    </div>
+  </main>
+  <script>
+    const PACKET = [
+      "LotBeacon desk brief — SET VISIT",
+      "Zoellner Ford of Beatrice · 4115 N. 6th Street",
+      "",
+      "Customer: Sarah Miller · Beatrice · (402) 555-0144",
+      "Channel: Messenger · source: Facebook Marketplace",
+      "Unit: 2026 Ford Explorer Platinum Black · stock T2401 · 4WD · 1,840 mi · $57,990",
+      "Confirmed: Saturday 10:00 AM",
+      "Ask for: the assigned closer",
+      "Trade: 2018 Honda Accord — walk it on the lot. No number in-thread.",
+      "Show-likelihood: recovering after a ghosted stall",
+      "",
+      "Last turns:",
+      "  Shopper — Third message. If nobody’s reading this I’ll just go to Lincoln.",
+      "  Desk — Sorry for the gap. Unit is here. Saturday 10:00 or 11:30. Accord invited.",
+      "  Shopper — 10:00. I’ll come in.",
+      "",
+      "This click is the set. Not a show. Not a sold unit.",
+      "A person still hit Send on the customer thread.",
+    ].join("\n");
+    document.getElementById("body").textContent = PACKET;
+    document.getElementById("set").addEventListener("click", function () {
+      const to = document.getElementById("to").value.trim() || "nathanplatter@gmail.com";
+      const subject = "Set visit · Sarah Miller · Saturday 10:00 · Zoellner Ford of Beatrice";
+      const href = "mailto:" + encodeURIComponent(to) +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(PACKET);
+      window.location.href = href;
+      document.getElementById("status").hidden = false;
+    });
+  </script>
+</body>
+</html>
