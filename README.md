@@ -6,7 +6,7 @@ That simple URL is the live desk. Queue, Admin, Owner dashboard, language + thre
 
 `/lotbeacon/grok-demo.html` still works. It is an alias, not a second product. Do not text that path as the demo.
 
-This GitHub repo is the Python pipeline + the Pages site under `docs/`. Sibling experiments (`LotBeacon_G2`, `LotBeacon_open`) are not the live demo. Share the simple URL.
+This GitHub repo is the Python pipeline + the Pages site under `docs/`. Stealth v2 TypeScript desk lives in [LotBeacon_G2](https://github.com/nathanplatteruser/LotBeacon_G2) and is not the live demo. Share the simple URL until v2 ships.
 
 ---
 
