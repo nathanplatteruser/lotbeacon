@@ -1,4 +1,4 @@
-"""Desk demo at docs/index.html (canonical). grok-demo.html is an alias. Language + thread-length. Offline, synthetic only."""
+"""Archived phone-skin desk (not the visitor product). Language + thread-length. Offline, synthetic only."""
 from __future__ import annotations
 
 import json
@@ -7,9 +7,12 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML = ROOT / "docs" / "index.html"
-HTML_ALIAS = ROOT / "docs" / "grok-demo.html"
+HTML = ROOT / "docs" / "archive-phone-skin.html"
+HTML_ALIAS = ROOT / "docs" / "archive-grok-demo.html"
 JS = ROOT / "docs" / "grok-demo-desk.js"
+DOOR = ROOT / "docs" / "index.html"
+GROK_REDIRECT = ROOT / "docs" / "grok-demo.html"
+G2_HOST = "https://pine-rocket-gold-plaza.grok.me"
 NEXT = {"yes, come in", "won't come in", "not yet"}
 BOOKED_BAIT = re.compile(
     r"\b(you're booked|you are booked|you're set|you are set|see you tomorrow|locked in|i booked|all set for)\b",
@@ -398,22 +401,24 @@ PARENT_CLOSE = (
 
 
 def test_parent_closes_live_inquiry_to_four_field_pilot():
-    index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
-    assert PARENT_BANNER in index
-    assert 'id="deskLang"' in index and 'id="deskPath"' in index
-    assert 'data-view="admin"' in index
-    assert PARENT_CLOSE in index
-    assert PILOT_MAILTO in index
-    assert "your name" in index and "the shop" in index and "named Page" in index and "what you will paste" in index
-    assert "Try a live inquiry" not in index
-    assert 'id="anaRun"' not in index
-    assert ">Analyze<" not in index
-    assert "api('/api/analyze'" not in index
-    assert "Paste a real customer message" not in index
-    assert "pipeline runs against live inventory" not in index
-    assert "checkout.stripe.com" not in index
+    archive = HTML.read_text(encoding="utf-8")
+    assert PARENT_BANNER in archive
+    assert 'id="deskLang"' in archive and 'id="deskPath"' in archive
+    assert 'data-view="admin"' in archive
+    assert PARENT_CLOSE in archive
+    assert PILOT_MAILTO in archive
+    assert "your name" in archive and "the shop" in archive and "named Page" in archive and "what you will paste" in archive
+    assert "Try a live inquiry" not in archive
+    assert 'id="anaRun"' not in archive
+    assert ">Analyze<" not in archive
+    assert "api('/api/analyze'" not in archive
+    assert "Paste a real customer message" not in archive
+    assert "pipeline runs against live inventory" not in archive
+    assert "checkout.stripe.com" not in archive
     assert EM not in PARENT_BANNER
     assert EM not in PARENT_CLOSE
+    assert "Archived phone-skin" in archive
+    assert G2_HOST in archive
 
 
 def test_close_live_inquiry_rewrites_live_app_source():
@@ -439,7 +444,8 @@ def test_export_showcase_closes_live_inquiry_and_leaves_desk_alone():
     assert "nathanplatter@gmail.com" in src
     assert "LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29" in src
     assert "def close_live_inquiry" in src
-    assert "canonical desk" in src or "docs/index.html" in src
+    assert "docs/index.html" in src
+    assert "archive-phone-skin.html" in src
     assert "inject_static" in src or "window.LB_STATIC" in src
     assert "This recording cannot run a live inquiry." in src
     assert "The live-inquiry analyzer runs Claude against live inventory" not in src
@@ -479,22 +485,23 @@ RETIRED_SAAS_LIST = (
 )
 
 
-def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
-    index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+def test_parent_pricing_compare_point_at_g2_and_drop_retired_prices():
+    index = DOOR.read_text(encoding="utf-8")
     pricing = (ROOT / "docs" / "pricing.html").read_text(encoding="utf-8")
     compare = (ROOT / "docs" / "compare.html").read_text(encoding="utf-8")
     click = (ROOT / "docs" / "CLICK-HERE.html").read_text(encoding="utf-8")
     leave = (ROOT / "docs" / "tyler-kyle-leavebehind.md").read_text(encoding="utf-8")
     email = (ROOT / "docs" / "email-tyler-kyle.md").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert PARENT_BANNER in index
-    assert 'id="deskLang"' in index and 'data-view="admin"' in index
-    assert 'href="./">try the interactive demo' in pricing
+    assert G2_HOST in index
+    assert "thin door" in index.lower() or "This page is the door" in index
+    assert 'id="deskLang"' not in index
+    assert "window.LB_STATIC=" not in index
+    assert G2_HOST in pricing and G2_HOST in compare and G2_HOST in click
     assert 'href="grok-demo.html">try the interactive demo' not in pricing
-    assert 'href="./">try the demo' in compare
     assert 'href="grok-demo.html">try the demo' not in compare
     for page in (pricing, compare):
-        assert 'href="./">Interactive demo' in page
+        assert "Interactive demo" not in page
         assert "checkout.stripe.com" not in page
         assert "buy.stripe.com" not in page
         assert "https://calendly.com/nathanplatter" in page
@@ -514,6 +521,10 @@ def test_parent_pricing_compare_point_at_desk_and_drop_retired_prices():
         for banned in RETIRED_SAAS_LIST:
             assert banned not in text, f"{banned!r} still sold as current in {path.name}"
     assert "Retired showcase cards" in pricing and "Solo $549" in pricing
+    assert "LotBeacon_G2 is source code / an experiment" not in click
+    assert "come back here instead" not in click
+    assert G2_HOST in readme
+    assert "thin door" in readme.lower()
     impact = (ROOT / "docs" / "impact-estimate.html").read_text(encoding="utf-8")
     assert "modeled store gross" in impact
     assert "not a LotBeacon package" in impact
@@ -548,7 +559,7 @@ def test_human_still_owns_send_and_next_step_vocab():
     assert set(data["nexts"]) <= NEXT
 
 
-def test_grok_demo_html_is_alias_of_canonical_desk():
+def test_archived_grok_demo_html_is_alias_of_archived_desk():
     alias = HTML_ALIAS.read_text(encoding="utf-8")
     canon = HTML.read_text(encoding="utf-8")
     assert "grok-demo-desk.js" in alias
@@ -557,3 +568,24 @@ def test_grok_demo_html_is_alias_of_canonical_desk():
     assert 'data-view="admin"' in alias
     assert "desk-notes" in canon and "desk-notes" in alias
     assert "Agentic shopper" in canon
+    assert "Archived phone-skin" in canon and "Archived" in alias
+
+
+def test_pages_index_is_thin_g2_door_not_phone_skin():
+    door = DOOR.read_text(encoding="utf-8")
+    redirect = GROK_REDIRECT.read_text(encoding="utf-8")
+    assert G2_HOST in door
+    assert "Human Send" in door
+    assert "Soft ROI" in door
+    assert "Solo $129" in door and "Three Amigos $299" in door and "Dealership $599" in door
+    assert "SOC 2" in door
+    assert "Not Beakon" in door
+    assert "window.LB_STATIC=" not in door
+    assert "grok-demo-desk.js" not in door
+    assert 'id="deskbar"' not in door
+    assert G2_HOST in redirect
+    assert 'http-equiv="refresh"' in redirect
+    assert "location.replace" in redirect
+    assert "archive-phone-skin.html" in redirect
+    assert "window.LB_STATIC=" not in redirect
+    assert 'id="deskbar"' not in redirect

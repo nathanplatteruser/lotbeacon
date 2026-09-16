@@ -1,13 +1,13 @@
-"""Build the zero-backend showcase recordings and inject them into the canonical desk.
+"""Build the zero-backend showcase recordings and inject them into the archived desk.
 
 Runs the real app in-process, plays every seeded conversation forward (send → scripted customer reply → new draft → …,
 booking when the customer picks a time) and records each state.
 
-The live Pages URL is docs/index.html — the desk (Queue, Admin, Owner dashboard, language, thread length).
-grok-demo.html is an alias of that same desk. This script injects window.LB_STATIC into both shells and does not
-strip the desk chrome. The old thin showcase (no Admin / language) is not the product URL.
+docs/index.html is the Pages door to G2 — never inject recordings there.
+The archived phone-skin is docs/archive-phone-skin.html (and docs/archive-grok-demo.html).
+This script injects window.LB_STATIC into those archived shells only.
 
-    python -m scripts.export_showcase            # refreshes recordings in docs/index.html + docs/grok-demo.html
+    python -m scripts.export_showcase            # refreshes recordings in the archived phone-skin shells
     python -m scripts.export_showcase --artifact  # also writes docs/showcase-artifact.html
 
 What still works: queue, every thread, Send & next (advances the recording), Book, why-this-action, inventory evidence,
@@ -125,13 +125,13 @@ def build() -> dict:
 OG_TAGS = """<meta property="og:type" content="website">
 <meta property="og:site_name" content="LotBeacon">
 <meta property="og:title" content="LotBeacon — Messenger copilot for dealership reps">
-<meta property="og:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger. Pessimistic pilot estimate for Zoellner Ford. Tap to try the interactive demo.">
+<meta property="og:description" content="Archived phone-skin recording. Not the product. Soft ROI modeled only — not a case study. Human Send. Solo $129 · Three Amigos $299 · Dealership $599.">
 <meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="LotBeacon — Messenger copilot for dealership reps">
-<meta name="twitter:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger.">
+<meta name="twitter:description" content="Archived phone-skin. Not the product. Soft ROI modeled only. Human Send. Solo $129 · Three Amigos $299 · Dealership $599.">
 <meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
 <meta name="description" content="LotBeacon: AI copilot for dealership sales reps on Facebook Messenger. It remembers, verifies and drafts; a person sends every message.">
 """
@@ -212,7 +212,7 @@ def render(data: dict, artifact: bool = False) -> str:
     built = datetime.fromisoformat(data["built_at"]).strftime("%b %d, %Y")
     banner = (
         f'<div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">'
-        f'Interactive showcase · recorded {built} · {PARENT_BANNER}</div>'
+        f'Archived phone-skin · recorded {built} · {PARENT_BANNER} Not the product.</div>'
     )
     html = html.replace("</header>", "</header>" + banner, 1)
     html = html.replace(
@@ -242,15 +242,18 @@ if __name__ == "__main__":
     docs.mkdir(exist_ok=True)
     (docs / ".nojekyll").write_text("")
     n_steps = sum(len(t["steps"]) for t in data["threads"].values())
-    for name in ("index.html", "grok-demo.html"):
+    door = docs / "index.html"
+    if door.exists() and "window.LB_STATIC=" in door.read_text(encoding="utf-8"):
+        raise SystemExit("export_showcase: docs/index.html is the Pages door; do not inject recordings into it")
+    for name in ("archive-phone-skin.html", "archive-grok-demo.html"):
         path = docs / name
         if not path.exists() or "window.LB_STATIC=" not in path.read_text(encoding="utf-8"):
-            raise SystemExit(f"export_showcase: {name} is not a canonical desk shell")
+            raise SystemExit(f"export_showcase: {name} is not an archived desk shell")
         path.write_text(inject_static(path.read_text(encoding="utf-8"), data), encoding="utf-8")
     print(
-        f"docs/index.html (canonical desk) + docs/grok-demo.html (alias) — "
+        f"docs/archive-phone-skin.html + docs/archive-grok-demo.html (archived desk) — "
         f"{len(data['threads'])} conversations, {n_steps} recorded states, "
-        f"{(docs / 'index.html').stat().st_size / 1024:.0f} KB"
+        f"{(docs / 'archive-phone-skin.html').stat().st_size / 1024:.0f} KB"
     )
     if "--artifact" in sys.argv:
         (docs / "showcase-artifact.html").write_text(render(data, artifact=True))
