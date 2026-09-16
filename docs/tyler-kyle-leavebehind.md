@@ -87,7 +87,7 @@ Full matrix: https://nathanplatteruser.github.io/lotbeacon/compare.html
 | License | Price | Who |
 |---|---|---|
 | Solo | $129 / month | Kyle’s desk |
-| Three Amigos | $299 / month | Kyle + two on one queue |
+| Crew | $399 / month | Five on the floor |
 | Dealership | $599 / month (10 seats, +$39 over) | Tyler’s tower + the floor |
 
 Founding-store note for Beatrice only: first 90 days at half list if you want to kick tires on live Marketplace threads. Still month to month.
