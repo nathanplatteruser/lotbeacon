@@ -62,6 +62,13 @@ header kbd{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);co
 .qhead{padding:12px 14px 6px;display:flex;justify-content:space-between;align-items:baseline}
 .qhead h2{margin:0;font-size:18px;font-weight:700}
 .qhead span{font-size:12px;color:var(--ink-3)}
+.qfilters{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.qchip{border:1.5px solid var(--line-strong);border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;color:var(--ink-2);line-height:1.2}
+.qchip[aria-pressed="true"]{background:var(--msgr-soft);border-color:var(--msgr);color:var(--ford)}
+.qchip .n{font-weight:700;margin-left:3px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.qchip[aria-pressed="true"] .n{color:var(--msgr)}
+.qtag{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--ink-2);background:var(--surface-2);border-radius:999px;padding:1px 7px}
+.row .qtags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin-top:1px}
 .bucket{position:sticky;top:0;z-index:2;background:var(--surface);padding:10px 14px 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700;display:flex;justify-content:space-between;border-top:1px solid var(--line)}
 .bucket.hot{color:var(--msgr)}
 .bucket .n{font-weight:600;letter-spacing:0}
@@ -329,7 +336,7 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 </header>
 
 <div class="app">
-  <aside class="queue" id="queue"><div class="qhead"><h2>Queue</h2><span id="qcount"></span></div><div id="qrows"></div></aside>
+  <aside class="queue" id="queue"><div class="qhead"><h2>Queue</h2><span id="qcount"></span></div><div class="qfilters" id="qfilters"></div><div id="qrows"></div></aside>
   <main class="main" id="main"><div class="empty">Pick a lead.</div></main>
   <aside class="side" id="side"></aside>
 </div>
@@ -341,7 +348,7 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let META=null,current=null,detail=null,Q=null,editTimer=null,slotVariant=0;
+let META=null,current=null,detail=null,Q=null,editTimer=null,slotVariant=0,QFILTERS=[];
 
 async function api(path,opts={}){
   const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});
@@ -359,10 +366,22 @@ async function loadMeta(){
 }
 
 /* ---------------- queue ---------------- */
+const FILTER_LABEL={tire_kicker:'Tire-kicker',price_grinder:'Price grinder',same_day:'Same-day',window_closing:'Window closing'};
+function renderFilters(){
+  const box=$('#qfilters'); if(!box||!Q) return;
+  box.innerHTML=(Q.filters||[]).map(f=>`<button type="button" class="qchip" data-filter="${esc(f.key)}" aria-pressed="${QFILTERS.includes(f.key)}" title="${esc(f.hint)}">${esc(f.label)}<span class="n">${f.count}</span></button>`).join('');
+  box.querySelectorAll('.qchip').forEach(btn=>btn.onclick=()=>{
+    const k=btn.dataset.filter;
+    QFILTERS=QFILTERS.includes(k)?QFILTERS.filter(x=>x!==k):QFILTERS.concat(k);
+    loadQueue();
+  });
+}
 async function loadQueue(){
-  Q=await api('/api/queue');
+  const qs=QFILTERS.length?('?filter='+encodeURIComponent(QFILTERS.join(','))):'';
+  Q=await api('/api/queue'+qs);
   const active=Q.rows.filter(r=>!['closed','waiting'].includes(r.bucket)).length;
-  $('#qcount').textContent=`${active} need you · ${Q.rows.length} total`;
+  $('#qcount').textContent=QFILTERS.length?`${Q.rows.length} in filter · ${active} need you`:`${active} need you · ${Q.rows.length} total`;
+  renderFilters();
   let html='';
   for(const b of Q.buckets){
     const rows=Q.rows.filter(r=>r.bucket===b.key); if(!rows.length) continue;
@@ -373,12 +392,14 @@ async function loadQueue(){
       <span class="wait ${r.waiting_seconds>600?'hot':''}">${r.waiting?'waiting '+esc(r.waiting):(r.window_left&&r.bucket!=='closed'?`<span class="win ${r.window_hours_left<4?'hot':''}">${esc(r.window_left)} left</span>`:'')}</span>
       ${sparkRail(r.momentum)}
       <span class="what">${esc(r.summary)}</span>
+      ${(r.filters&&r.filters.length)?`<span class="qtags">${r.filters.map(k=>`<span class="qtag">${esc(FILTER_LABEL[k]||k)}</span>`).join('')}</span>`:''}
       ${r.hint?`<span class="buddy" title="Buddy note (demo): how this lead has behaved so far">${esc(r.hint)}</span>`:''}
       <span class="next ${r.blocked?'bad':r.needs_person?'person':''}">→ ${esc(r.next_action)}</span>
     </button>`).join('');
   }
   $('#qrows').innerHTML=html;
-  if(!current){const first=Q.rows.find(r=>!['closed','waiting'].includes(r.bucket))||Q.rows[0];if(first)open(first.id);}
+  if(!Q.rows.length){$('#main').innerHTML='<div class="empty">No leads in this filter.</div>';current=null;return;}
+  if(!current||!Q.rows.some(r=>r.id===current)){const first=Q.rows.find(r=>!['closed','waiting'].includes(r.bucket))||Q.rows[0];if(first)open(first.id);}
 }
 function visibleOrder(){return Q?Q.rows.filter(r=>r.bucket!=='closed').map(r=>r.id):[];}
 function step(dir){const ids=visibleOrder();if(!ids.length)return;let i=ids.indexOf(current);i=(i+dir+ids.length)%ids.length;open(ids[i]);}
@@ -676,7 +697,9 @@ async function renderOwner(){
   const dmax=Math.max(1,...sp.response_distribution.map(x=>x.n));
   $('#owner').innerHTML=`
     <div class="ownerbar"><div><h2>Owner dashboard</h2><div class="sub">${esc(META.dealership.name)} · last ${m.window_days} days · every dollar is derived from the assumptions at the bottom — edit them to your store</div></div>
-      <button class="btn quiet sm" id="expAll" title="Events, drafts with firewall verdicts, stage transitions — the bundle a compliance reviewer asks for">Export audit log (JSON)</button></div>
+      <button class="btn quiet sm" id="expAll" title="Events, drafts with firewall verdicts, stage transitions — the bundle a compliance reviewer asks for">Export audit log (JSON)</button>
+      <button class="btn quiet sm" id="expFwJson" title="Blocked-invent events for GSM Monday review">Blocked-invent (JSON)</button>
+      <button class="btn quiet sm" id="expFwCsv" title="Blocked-invent events for GSM Monday review">Blocked-invent (CSV)</button></div>
     <div class="hero">
       <div class="panel2 cap" data-tour="t-cap"><h3>Capacity per rep-hour</h3><div class="big">${cap.multiplier}×</div><div class="line">${esc(cap.line)}</div>
         <div class="bars"><span>Unassisted (${cap.baseline_minutes} min/reply)</span><div class="bar"><i style="width:${Math.round(100*cap.baseline_per_rep_hour/cmax)}%"></i></div><b>${cap.baseline_per_rep_hour}</b>
@@ -708,6 +731,8 @@ async function renderOwner(){
       ${[['baseline_minutes_per_reply','Minutes per reply, unassisted'],['assisted_minutes_accept','Minutes to read + approve a draft'],['assisted_minutes_edit','Minutes to edit + approve'],['manual_minutes','Minutes when rep types it (AI paused)'],['loaded_rep_hourly_cost','Loaded rep cost, $/hour'],['appointment_show_rate','Appointment → show rate (0–1)'],['show_close_rate','Show → sold rate (0–1)'],['gross_per_unit','Gross per unit, $'],['value_of_prevented_false_claim','Value of one prevented false claim, $']].map(([k,l])=>`<span>${l}</span><input data-k="${k}" value="${a[k]}">`).join('')}
     </div><div class="small" style="margin-top:8px">Usage numbers (conversations, replies, acceptance, response times, claims routed) are measured. Return numbers are usage × your assumptions. Pilot hypothesis from the blueprint: 7.0 min unassisted vs 1.8 min assisted per reply ≈ 3.9× capacity.</div></div>`;
   $('#expAll').onclick=()=>window.open('/api/audit/export','_blank');
+  $('#expFwJson').onclick=()=>window.open('/api/firewall/export?format=json','_blank');
+  $('#expFwCsv').onclick=()=>window.open('/api/firewall/export?format=csv','_blank');
   document.querySelectorAll('.assump input').forEach(i=>i.onkeydown=async e=>{if(e.key!=='Enter')return;const vals={};document.querySelectorAll('.assump input').forEach(x=>vals[x.dataset.k]=x.value);await api('/api/metrics/assumptions',{method:'POST',body:{values:vals}});toast('Assumptions updated');renderOwner();});
 }
 document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));
@@ -715,7 +740,8 @@ document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.onclick=
 /* ---------------- guided tour ---------------- */
 const TOUR=[
   {sel:'.queue',title:'The queue',text:'Not a leaderboard. Each row: who, how long they have waited, show-likelihood of making the appointment (green climbing, yellow holding, red slipping), what happened, and the exact next action.'},
-  {sel:'.row .buddy',title:'Buddy notes (demo)',text:'The amber line is the two-second briefing a coworker would text you: "price grinder", "serial ghoster", "angry be-back". It tells you which situation you are about to watch LotBeacon handle. Demo-only for now — beta testers decide if it ships.'},
+  {sel:'.qfilters',title:'Quick filters',text:'Tire-kicker, price grinder, same-day, and window closing. These come from the thread — intent, stated timing, price friction, and the Messenger window — not from the buddy note. They actually filter this queue.'},
+  {sel:'.row .buddy',title:'Buddy notes (demo)',text:'The amber line is still the two-second briefing a coworker would text you. Demo-only. The chips above are the product filters.'},
   {sel:'.thead .meta',title:'Channel, window, ownership',text:'Facebook Messenger with a live countdown on the 24-hour reply window, and one plain line saying who drafts and who sends. No autonomous sends, ever.'},
   {sel:'.stages',title:'Four stages, auto-derived',text:'Engage → Qualify → Book → Visit outcome. The sub-state is precise: "visit interest (tentative)" is not "appointment requested."'},
   {sel:'#card',title:'One action card',text:'Goal · Missing · Known (click a fact to see the customer\'s own words) · Verified vehicle · the draft. Two real appointment slots, verified against hours and existing bookings. When the customer picks one, this becomes a one-click Book + confirm.'},

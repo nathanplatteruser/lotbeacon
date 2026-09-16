@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import booking, inventory, memory, policy, voices
+from . import booking, firewall_log, inventory, memory, policy, voices
 from .ai.base import AIProvider, Classification, DraftContext, ExtractedFact, get_provider
 from .config import RULES_VERSION
 from .models import (
@@ -284,6 +284,8 @@ def process_message(s: Session, thread: Thread, msg: Message, provider: AIProvid
     s.add(draft)
     s.flush()
     audit(s, thread, f"ai:{provider.name}", "draft.created", {"draft_id": draft.id, "risk": risk, "status": status, "action": action})
+    if result.blocked:
+        firewall_log.record(s, thread, actor=f"ai:{provider.name}", source="draft.created", draft=draft, text=text, validation=result.to_dict())
     return draft
 
 
@@ -312,6 +314,8 @@ def revalidate(s: Session, draft: Draft, new_text: str) -> Draft:
     draft.risk_level = res.risk_level
     draft.status = "blocked" if res.blocked else "pending"
     audit(s, thread, "rep", "draft.edited", {"draft_id": draft.id, "risk": draft.risk_level, "blocked": res.blocked})
+    if res.blocked:
+        firewall_log.record(s, thread, actor="rep", source="draft.edited", draft=draft, text=new_text, validation=res.to_dict())
     return draft
 
 

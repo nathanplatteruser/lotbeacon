@@ -172,6 +172,74 @@ def test_thread_has_five_communication_signals_and_deal_file(client):
     assert any("spouse" in str(v).lower() for v in objs)
 
 
+def test_queue_quick_filters_actually_filter(client):
+    """LB-P0-QUICK-FILTERS: chips come from pipeline facts and shrink the action queue."""
+    q = client.get("/api/queue").json()
+    assert [f["key"] for f in q["filters"]] == ["tire_kicker", "price_grinder", "same_day", "window_closing"]
+    assert q["active_filters"] == []
+    by = {r["customer"]: r for r in q["rows"]}
+    assert "price_grinder" in by["Mike Torres"]["filters"]
+    assert "price_grinder" in by["Craig Bauer"]["filters"]
+    assert "price_grinder" in by["Priya Raman"]["filters"]
+    assert "price_grinder" not in by["Sarah Miller"]["filters"]
+    assert "same_day" in by["Harold Finch"]["filters"]
+    assert "tire_kicker" in by["Jen Alvarez"]["filters"]
+    assert "tire_kicker" not in by["Craig Bauer"]["filters"]
+    assert by["Lee Nakamura"]["filters"] == []
+
+    grinders = client.get("/api/queue?filter=price_grinder").json()
+    names = {r["customer"] for r in grinders["rows"]}
+    assert {"Mike Torres", "Craig Bauer", "Priya Raman"} <= names
+    assert "Sarah Miller" not in names
+    assert grinders["active_filters"] == ["price_grinder"]
+    assert all("price_grinder" in r["filters"] for r in grinders["rows"])
+
+    same = client.get("/api/queue?filter=same_day").json()
+    assert any(r["customer"] == "Harold Finch" for r in same["rows"])
+    assert same["active_filters"] == ["same_day"]
+    assert all("same_day" in r["filters"] for r in same["rows"])
+
+
+def test_firewall_export_json_and_csv(client):
+    """LB-P0-FIREWALL-LOG: GSM Monday pack of persisted invent-discount refuses."""
+    r = client.get("/api/firewall/export")
+    assert r.status_code == 200 and "attachment" in r.headers["content-disposition"]
+    assert "lotbeacon-firewall-" in r.headers["content-disposition"]
+    b = r.json()
+    assert b["autonomous_sends"] == 0 and b["human_send_only"] is True
+    assert "GSM Monday" in b["purpose"]
+    assert b["counts"]["blocked_invent"] >= 1
+    assert any(e["customer"] == "Craig Bauer" and e["source"] == "seed.break_test" for e in b["events"])
+    kinds = {c["kind"] for e in b["events"] for c in e["claims"]}
+    assert "discount" in kinds
+
+    csv = client.get("/api/firewall/export?format=csv")
+    assert csv.status_code == 200 and "text/csv" in csv.headers["content-type"]
+    body = csv.text
+    assert "claim_kind" in body and "Craig Bauer" in body and "discount" in body
+
+
+def test_rep_edit_invent_appends_firewall_event(client):
+    before = client.get("/api/firewall/export").json()["counts"]["blocked_invent"]
+    craig = next(r for r in client.get("/api/queue").json()["rows"] if r["customer"] == "Craig Bauer")
+    draft = client.get(f"/api/threads/{craig['id']}").json()["draft"]
+    assert draft, "Craig must have a live draft"
+    edited = client.post(f"/api/drafts/{draft['id']}/edit", json={"rep_id": 1, "text": "I can do $2,500 off and you're approved at 3.9% APR."})
+    assert edited.status_code == 200 and edited.json()["status"] == "blocked"
+    after = client.get("/api/firewall/export").json()
+    assert after["counts"]["blocked_invent"] == before + 1
+    assert any(e["source"] == "draft.edited" and e["customer"] == "Craig Bauer" for e in after["events"])
+
+
+def test_desk_html_has_quick_filters_and_firewall_export():
+    from pathlib import Path
+    html = (Path(__file__).resolve().parents[1] / "lotbeacon/web/index.html").read_text()
+    assert 'id="qfilters"' in html and "QFILTERS" in html
+    assert "/api/queue'+qs" in html or "/api/queue" in html
+    assert "/api/firewall/export?format=json" in html
+    assert "/api/firewall/export?format=csv" in html
+
+
 def test_desk_html_draws_sparkline_on_every_queue_row():
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
