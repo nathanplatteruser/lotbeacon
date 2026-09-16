@@ -537,7 +537,8 @@ def test_pages_door_points_at_g2_and_keeps_one_ladder():
         text = path.read_text(encoding="utf-8")
         for banned in RETIRED_SAAS_LIST:
             assert banned not in text, f"{banned!r} still sold as current in {path.name}"
-    assert "Retired showcase cards" in pricing and "Solo $549" in pricing
+    assert "Retired showcase stickers are gone" in pricing
+    assert "Solo $549" not in pricing
     impact = (ROOT / "docs" / "impact-estimate.html").read_text(encoding="utf-8")
     assert "modeled store gross" in impact
     assert "not a LotBeacon package" in impact
