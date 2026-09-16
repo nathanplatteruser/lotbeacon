@@ -31,8 +31,8 @@ h2{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;c
 .plan .price{font-size:34px;font-weight:900;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1}
 .plan .price small{font-size:13px;font-weight:600;color:var(--ink-3);letter-spacing:0}
 .plan .seat{font-size:13px;color:var(--ink-2)} .plan .seat b{color:var(--ink)}
-.roi{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
-.roi b{font-variant-numeric:tabular-nums;text-align:right;color:var(--ink)} .roi b.g{color:var(--ok)}
+.roi{display:grid;grid-template-columns:1fr;gap:3px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.roi b{font-weight:600;color:var(--ink-3)} .roi .lab{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
 .inc{font-size:12.5px;color:var(--ink-2);margin:0;padding-left:16px;line-height:1.5} .inc li{margin:2px 0}
 .badge{position:absolute;top:-11px;right:14px;background:var(--warn-soft);color:var(--warn);font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
 .panel{background:var(--surface);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 12px rgba(0,9,91,.06);padding:14px 16px}
@@ -61,8 +61,8 @@ tr.total td{font-weight:700;border-top:2px solid var(--line-strong);border-botto
 </head>
 <body>
 <div class="page">
-<header><span class="mark">L</span><h1>LotBeacon pricing — HITL Messenger copilot</h1><div class="sub">Per rooftop · Sept 2026 · SoT: Solo $129 · Three Amigos $299 · Dealership $599<br><a href="./">try the interactive demo</a></div></header>
-<nav class="tabs"><a href="./">Interactive demo</a><a href="./#why">Why us</a><a href="impact-estimate.html">Before &amp; after</a><a href="pricing.html" aria-current="page">Pricing</a><a href="compare.html">vs the field</a></nav>
+<header><span class="mark">L</span><h1>LotBeacon pricing — HITL Messenger copilot</h1><div class="sub">Per rooftop · Sept 2026 · SoT: Solo $129 · Three Amigos $299 · Dealership $599<br><a href="https://pine-rocket-gold-plaza.grok.me">open LotBeacon on G2</a></div></header>
+<nav class="tabs"><a href="https://pine-rocket-gold-plaza.grok.me">Open LotBeacon</a><a href="./">Door</a><a href="pricing.html" aria-current="page">Pricing</a><a href="compare.html">vs the field</a></nav>
 <main>
 
 <p class="disambig" id="seeded-line"><b>Seeded preview.</b> Human Send. Not live Messenger. No Stripe on this page.</p>
@@ -197,15 +197,15 @@ tr.total td{font-weight:700;border-top:2px solid var(--line-strong);border-botto
 <section class="plans">
   <div class="plan"><div class="name">Solo</div><div class="for">Tyler — top rep on Messenger who still hits Send.</div>
     <div class="price">$129<small> /month</small></div><div class="seat"><b>1 seat</b> · ~$99/mo if billed yearly · about $4 a day</div>
-    <div class="roi"><span>3× value bar (Nathan rule)</span><b>~$387 / mo</b><span>Conservative story</span><b class="g">3–5 hrs ROT or 1 rescued same-day path / 6–8 wks</b></div>
+    <div class="roi"><span class="lab">Soft ROI (modeled)</span><b>Clears 3× list if it saves a few hours a month finding buy-today threads, or rescues one same-day path every several weeks. Not measured. Not a case study.</b></div>
     <ul class="inc"><li>Attention / action queue</li><li>Conversation state + thread memory</li><li>Intent ≠ sentiment (price friction, same-day visit)</li><li>Next-reply draft · human Send</li><li>Hallucination firewall · manager escalate</li></ul></div>
   <div class="plan mid"><div class="badge">Pod</div><div class="name">Three Amigos</div><div class="for">Three floor / BDC-assist reps on one shared queue.</div>
     <div class="price">$299<small> /month</small></div><div class="seat"><b>3 seats</b> · ~$249/mo yearly · matches LotDesk entry sticker, HITL not auto-book</div>
-    <div class="roi"><span>3× value bar</span><b>~$897 / mo</b><span>Conservative story</span><b class="g">Shared queue vs 3 Meta logins · ~⅓ unit / mo across the pod</b></div>
+    <div class="roi"><span class="lab">Soft ROI (modeled)</span><b>Shared queue vs three Meta logins. Modeled only — not a unit guarantee.</b></div>
     <ul class="inc"><li>Everything in Solo</li><li>Multi-rep assignment / shared queue</li><li>Audit log of drafts/sends (◐)</li><li>Role permissions / store playbook (◐)</li></ul></div>
   <div class="plan big"><div class="name">Dealership</div><div class="for">Kyle + floor — owner escalation + audit. Up to 10 seats.</div>
     <div class="price">$599<small> /month</small></div><div class="seat"><b>Up to 10 seats</b> · +$39/seat overage · ~$499/mo yearly</div>
-    <div class="roi"><span>3× value bar</span><b>~$1,797 / mo</b><span>Conservative story</span><b class="g">&lt;1 incremental unit / mo or one avoided bad price quote</b></div>
+    <div class="roi"><span class="lab">Soft ROI (modeled)</span><b>Clears 3× if it helps avoid one bad AI-quoted price event or surfaces less than one incremental unit path a month. Not measured.</b></div>
     <ul class="inc"><li>Everything in Three Amigos</li><li>Owner / GM escalation dashboard</li><li>Full audit log · store playbook</li><li>CRM note export when available (◐)</li></ul></div>
 </section>
 

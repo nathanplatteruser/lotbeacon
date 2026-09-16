@@ -8,7 +8,11 @@ Written so you can read it on a phone between ups.
 Nathan bought a car from you off Facebook Marketplace. He is Exhibit A: inquired, shopped, and CLOSED WON because a real person (Kyle) treated him like a human instead of a Twilio drip. LotBeacon is the tool Nathan has been building since that purchase. It does not replace Kyle. It makes Kyle more Kyle, and Tyler more Tyler — faster replies that still sound like the store, with a firewall so the lot never invents a price.
 
 **One door** (iPhone or MacBook, nothing to install):
-https://nathanplatteruser.github.io/lotbeacon/CLICK-HERE.html
+https://pine-rocket-gold-plaza.grok.me
+
+That is G2, the live LotBeacon desk. Seeded threads. Human Send. Not live Meta Page send.
+
+Public door + pricing FAQ: https://nathanplatteruser.github.io/lotbeacon/
 
 ## Here’s what you’re looking at
 

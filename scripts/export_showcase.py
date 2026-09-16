@@ -1,20 +1,21 @@
-"""Build the zero-backend showcase recordings and inject them into the canonical desk.
+"""Build the zero-backend showcase recordings and inject them into the archived desk shell.
 
 Runs the real app in-process, plays every seeded conversation forward (send → scripted customer reply → new draft → …,
 booking when the customer picks a time) and records each state.
 
-The live Pages URL is docs/index.html — the desk (Queue, Admin, Owner dashboard, language, thread length).
-grok-demo.html is an alias of that same desk. This script injects window.LB_STATIC into both shells and does not
-strip the desk chrome. The old thin showcase (no Admin / language) is not the product URL.
+The live product is G2 (pine-rocket-gold-plaza.grok.me). docs/index.html is the public door to G2.
+docs/grok-demo.html redirects to G2. This script refreshes window.LB_STATIC in the archived
+Python desk only (docs/craig-phone-showcase.html). It must not overwrite the public door.
 
-    python -m scripts.export_showcase            # refreshes recordings in docs/index.html + docs/grok-demo.html
+    python -m scripts.export_showcase            # refreshes recordings in docs/craig-phone-showcase.html
     python -m scripts.export_showcase --artifact  # also writes docs/showcase-artifact.html
 
-What still works: queue, every thread, Send & next (advances the recording), Book, why-this-action, inventory evidence,
-Impact, Owner dashboard, Admin, language + thread-length, tour, keyboard. What is disabled (needs the live server):
-free-text edits being re-validated, reply-style changes, follow-up nudges, fact corrections, inventory events.
-The live-inquiry analyzer is closed on this recording: the button asks for a four-field pilot (name, shop, named Page,
-what you will paste) and does not claim the pipeline runs against live inventory.
+What still works on the archive: queue, every thread, Send & next (advances the recording), Book, why-this-action,
+inventory evidence, Impact, Owner dashboard, Admin, language + thread-length, tour, keyboard. What is disabled
+(needs the live server): free-text edits being re-validated, reply-style changes, follow-up nudges, fact
+corrections, inventory events. The live-inquiry analyzer is closed on this recording: the button asks for a
+four-field pilot (name, shop, named Page, what you will paste) and does not claim the pipeline runs against
+live inventory. Do not market the archive as the live product.
 """
 import json
 import os
@@ -125,13 +126,13 @@ def build() -> dict:
 OG_TAGS = """<meta property="og:type" content="website">
 <meta property="og:site_name" content="LotBeacon">
 <meta property="og:title" content="LotBeacon — Messenger copilot for dealership reps">
-<meta property="og:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger. Pessimistic pilot estimate for Zoellner Ford. Tap to try the interactive demo.">
+<meta property="og:description" content="Archived static showcase — not the live product. Open G2 at pine-rocket-gold-plaza.grok.me. Human Send. Soft ROI modeled only. Solo $129 · Three Amigos $299 · Dealership $599.">
 <meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/">
+<meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/craig-phone-showcase.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="LotBeacon — Messenger copilot for dealership reps">
-<meta name="twitter:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger.">
+<meta name="twitter:description" content="Archived static showcase — not the live product. Human Send. Soft ROI modeled only.">
 <meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
 <meta name="description" content="LotBeacon: AI copilot for dealership sales reps on Facebook Messenger. It remembers, verifies and drafts; a person sends every message.">
 """
@@ -242,15 +243,15 @@ if __name__ == "__main__":
     docs.mkdir(exist_ok=True)
     (docs / ".nojekyll").write_text("")
     n_steps = sum(len(t["steps"]) for t in data["threads"].values())
-    for name in ("index.html", "grok-demo.html"):
-        path = docs / name
-        if not path.exists() or "window.LB_STATIC=" not in path.read_text(encoding="utf-8"):
-            raise SystemExit(f"export_showcase: {name} is not a canonical desk shell")
-        path.write_text(inject_static(path.read_text(encoding="utf-8"), data), encoding="utf-8")
+    name = "craig-phone-showcase.html"
+    path = docs / name
+    if not path.exists() or "window.LB_STATIC=" not in path.read_text(encoding="utf-8"):
+        raise SystemExit(f"export_showcase: {name} is not an archived desk shell")
+    path.write_text(inject_static(path.read_text(encoding="utf-8"), data), encoding="utf-8")
     print(
-        f"docs/index.html (canonical desk) + docs/grok-demo.html (alias) — "
+        f"docs/craig-phone-showcase.html (archived desk, not the public hero) — "
         f"{len(data['threads'])} conversations, {n_steps} recorded states, "
-        f"{(docs / 'index.html').stat().st_size / 1024:.0f} KB"
+        f"{path.stat().st_size / 1024:.0f} KB"
     )
     if "--artifact" in sys.argv:
         (docs / "showcase-artifact.html").write_text(render(data, artifact=True))

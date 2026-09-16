@@ -19,6 +19,8 @@ Attached are two letter pages. Same paper as the last leave-behind. One is the a
 
 There is a blank third line on purpose. Beatrice is not a template.
 
+Live desk for the walkthrough: https://pine-rocket-gold-plaza.grok.me (G2). Seeded. Human Send. Not live Meta Page send. Public door + pricing: https://nathanplatteruser.github.io/lotbeacon/
+
 Twenty minutes on the floor is enough. You try to break it. We pick A, B, or we write C.
 
 Nathan  

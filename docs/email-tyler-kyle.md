@@ -18,9 +18,12 @@ LotBeacon is a copilot for the thread — not a bot that talks for you. It draft
 I want to make Kyle even more Kyle, and Tyler even more Tyler. More appointments from the same hour. Same voice. No ghosting. No Twilio novel. No “sorry that unit sold two days ago.”
 
 **The only link you need** (iPhone or MacBook, nothing to install):
-https://nathanplatteruser.github.io/lotbeacon/CLICK-HERE.html
+https://pine-rocket-gold-plaza.grok.me
 
-Tap the first door. Fake customers. Sarah is the easy one — black Tahoe, Accord trade, Saturday. Book her. Then try to break it (Tyler will enjoy that part).
+That is G2, the live LotBeacon desk. Seeded threads. You still hit Send. Not a live Facebook Page inbox.
+
+Public door + pricing FAQ if the stealth URL is fussy:
+https://nathanplatteruser.github.io/lotbeacon/
 
 Attached / linked so you don’t have to be a nerd:
 - One-pager: who the window shoppers are, what the admin view is, why this is different from Podium / Meta AI / cheap auto-reply, and the three license prices.

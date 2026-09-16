@@ -17,6 +17,8 @@ every consequential promise. Maturity target L1–L3; architect for L4; L5 is no
 `api.py` routes · `pipeline.py` orchestrator · `validator.py` firewall · `firewall_log.py` blocked-invent export · `filters.py` queue chips · `policy.py` gates · `inventory.py` ·
 `memory.py` · `models.py` · `ai/{base,mock,anthropic_provider}.py` · `seed.py` · `web/index.html` · `scripts/eval.py`
 
+Public Pages (`docs/index.html`) is a thin door to G2 (`https://pine-rocket-gold-plaza.grok.me`). Do not market the Python workspace or `docs/craig-phone-showcase.html` as the live product.
+
 ## Commands
 ```
 ./run.sh                    # serve on :8080 (auto: Claude if ANTHROPIC_API_KEY, else mock)

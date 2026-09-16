@@ -243,7 +243,7 @@ def test_desk_html_has_quick_filters_and_firewall_export():
 def test_desk_html_draws_sparkline_on_every_queue_row():
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
-    for rel in ("lotbeacon/web/index.html", "docs/index.html", "docs/grok-demo.html"):
+    for rel in ("lotbeacon/web/index.html", "docs/craig-phone-showcase.html"):
         html = (root / rel).read_text()
         assert "${sparkRail(r.momentum)}" in html, rel
         assert "function sparkRail(" in html, rel

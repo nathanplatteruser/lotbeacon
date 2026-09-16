@@ -1,12 +1,14 @@
 # LotBeacon — Messenger copilot for dealership reps
 
-**Bookmark this forever:** [https://nathanplatteruser.github.io/lotbeacon/](https://nathanplatteruser.github.io/lotbeacon/)
+**Canonical product (G2):** [https://pine-rocket-gold-plaza.grok.me](https://pine-rocket-gold-plaza.grok.me)
 
-That simple URL is the live desk. Queue, Admin, Owner dashboard, language + thread-length, sales signals, before & after, pricing, vs the field, request a pilot. Notes about the average path, the agentic shopper, the point of the desk, and the admin note stay on the page — collapsed until someone opens them.
+**Public door (GitHub Pages):** [https://nathanplatteruser.github.io/lotbeacon/](https://nathanplatteruser.github.io/lotbeacon/)
 
-`/lotbeacon/grok-demo.html` still works. It is an alias, not a second product. Do not text that path as the demo.
+`docs/index.html` is a thin door: one-liner, primary CTA to G2, secondary link to the pricing FAQ. It is **not** a second desk. `/lotbeacon/grok-demo.html` redirects to G2. The old static / Python phone desk is archived at `docs/craig-phone-showcase.html` (showcase only).
 
-This GitHub repo is the Python pipeline + the Pages site under `docs/`. Stealth v2 TypeScript desk lives in [LotBeacon_G2](https://github.com/nathanplatteruser/LotBeacon_G2) and is not the live demo. Share the simple URL until v2 ships.
+This GitHub repo keeps the Python engine, API, validator, and tests until that work is ported into G2. Run it locally with `./run.sh`. Do not market the Python workspace or the archived Pages showcase as the live product.
+
+Seeded walkthrough. Human Send. Not live Meta Page send. Soft ROI modeled only. Solo $129 · Three Amigos $299 · Dealership $599.
 
 ---
 
@@ -234,11 +236,9 @@ Cost: Render Starter is ~$7/month always-on. The free plan also works but sleeps
 
 Every seeded lead carries a ≤10-word "buddy note" — the two keywords a coworker would text you about a prospect ("price grinder · ghosts waiting on manager", "angry be-back · manager de-escalates"). It shows as an amber line in the queue row and under the name in the thread. Demo-only (`Thread.demo_hint`). First-class queue filters (tire-kicker / price grinder / same-day / window closing) are separate: they come from pipeline facts and actually filter `GET /api/queue`.
 
-## Zero-backend showcase (GitHub Pages)
+## Zero-backend showcase (archived — not the public hero)
 
-The bookmark URL is `docs/index.html` on GitHub Pages: Queue + Admin + Owner dashboard + language/thread-length, with recordings swapped in for the API. `docs/grok-demo.html` is an alias of that same desk.
-
-`python -m scripts.export_showcase` refreshes `window.LB_STATIC` inside those two shells. It does not strip the desk chrome and it does not rebuild a thinner showcase as the product URL. Send & next and Book play the recording forward; why-this-action, evidence, Impact, Admin, and the Owner dashboard all work. Free-text edit re-validation, reply styles and the live-inquiry analyzer need the hosted demo (see above). Rebuild after any pipeline change and commit `docs/`.
+GitHub Pages `docs/index.html` is the G2 door. The recorded Python desk lives at `docs/craig-phone-showcase.html` and is labeled archived. `python -m scripts.export_showcase` refreshes `window.LB_STATIC` in that archived shell only. It must not overwrite the public door. Rebuild after a pipeline change if you still need the recording; do not publish it as the live product.
 
 ## Before & after one-pager + link previews
 
@@ -246,4 +246,4 @@ The bookmark URL is `docs/index.html` on GitHub Pages: Queue + Admin + Owner das
 
 ## Business case pages (docs/)
 
-`impact-estimate.html` (before/after model of store hours and units, not a package price), `pricing.html` (Solo $129 · Three Amigos $299 · Dealership $599; founding-dealer beta half price 90 days; Book intro on https://calendly.com/nathanplatter; no Stripe), `compare.html` (honest better/worse/same vs Podium, Gubagoo, Impel, Conversica, Fullpath, Tekion, VinSolutions, DriveCentric, CARVID, Meta's own AI). All share a tab bar with the interactive demo. Research notes: Meta removed business-Page vehicle listings Jan 2023, so Marketplace profile threads are not API-reachable — LotBeacon's stance is Page Messenger via official API + paste-in today + a read-only browser companion (v1.1); human-approved sends qualify for Meta's 7-day human-agent window (v1.0).
+`impact-estimate.html` (before/after model of store hours and units, Soft ROI modeled, not a package price), `pricing.html` (Solo $129 · Three Amigos $299 · Dealership $599; founding-dealer beta half price 90 days; Book intro on https://calendly.com/nathanplatter; no Stripe), `compare.html` (honest better/worse/same vs Podium, Gubagoo, Impel, Conversica, Fullpath, Tekion, VinSolutions, DriveCentric, CARVID, Meta's own AI). Tabs open G2 as the product and keep pricing/FAQ on Pages. Research notes: Meta removed business-Page vehicle listings Jan 2023, so Marketplace profile threads are not API-reachable — LotBeacon's stance is Page Messenger via official API + paste-in today + a read-only browser companion (v1.1); human-approved sends qualify for Meta's 7-day human-agent window (v1.0). Live Page send is not claimed.
