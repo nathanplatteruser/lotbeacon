@@ -242,7 +242,7 @@ The bookmark URL is `docs/index.html` on GitHub Pages: Queue + Admin + Owner das
 
 ## Before & after one-pager + link previews
 
-`docs/impact-estimate.html` — a deliberately pessimistic one-page estimate (time, funnel, units, gross) for the three decision makers: owner/GM, sales reps, marketing/BDC. Sources and every assumption are on the page. Live at `/lotbeacon/impact-estimate.html` on GitHub Pages. `docs/og.png` (1200×630) is the link-preview card — one headline metric per persona — referenced by Open Graph/Twitter tags on both the showcase and the one-pager, so a texted or emailed link unfurls with the outcomes instead of a blank compass icon. Regenerate the card from the HTML in `scripts/og_card.html` if the numbers change.
+`docs/impact-estimate.html` — a deliberately pessimistic one-page estimate (time, funnel, units, gross) for the three decision makers: owner/GM, sales reps, marketing/BDC. Sources and every assumption are on the page. Live at `/lotbeacon/impact-estimate.html` on GitHub Pages. `docs/og.png` (1200×630) is the link-preview card — Human Send, firewall at Send time, and the locked list Solo $129 · Three Amigos $299 · Dealership $599. Open Graph/Twitter descriptions are Soft ROI modeled only (not a case study). Regenerate the card from `scripts/og_card.html` if the GTM spine changes.
 
 ## Business case pages (docs/)
 
