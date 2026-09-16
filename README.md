@@ -68,6 +68,8 @@ Everything the reference demo showed, built on real pipeline data instead of sta
 | Owner dashboard → **Responsible AI scorecard** | Ring of 7 hard checks computed from the record (human approval, firewall coverage, clean sends, opt-outs, 24h window, consequential topics routed, corrections captured) | `owner.responsible_ai` |
 | Owner dashboard → **Pilot decision gates** | 7 go/no-go gates with live value, target, pass/watch/fail and why it matters | `owner.gates` |
 | Owner dashboard / ⋯ menu → **Export audit** | JSON bundle: events, drafts with firewall verdicts and citations, stage transitions, `autonomous_sends: 0` | `GET /api/audit/export[?thread_id=]` |
+| Queue → **Quick filters** | First-class chips: tire-kicker · price grinder · same-day · window closing. Derived from pipeline facts (intent, timing, price friction, Messenger window), not buddy notes. They filter the action queue. | `GET /api/queue[?filter=price_grinder]` |
+| Owner dashboard → **Blocked-invent export** | GSM Monday pack of persisted invent-discount / payment / hold / sold-as-available refuses. JSON or CSV. Human Send only. | `GET /api/firewall/export[?format=json\|csv]` |
 
 Dealer data is the real store: Zoellner Ford, 4115 N. 6th Street, Beatrice, NE 68310 · Mon–Fri 8–6, Sat 8–3, Sun closed. Slot proposals respect those hours (Saturday slots are 8–3). Seeded conversations are owned by the two demo reps so the by-rep table and "reps active" gate are live from the first screen.
 
@@ -201,6 +203,8 @@ lotbeacon/
   booking.py       Resolve 'Saturday' to a date · propose two verified slots · read the customer's pick · one-click book
   metrics.py       Usage + return metrics, thread impact, editable assumptions
   queue.py         Action queue: buckets, waiting timers, next-action text
+  filters.py       First-class queue chips: tire-kicker · price grinder · same-day · window closing
+  firewall_log.py  Persist + export blocked-invent events (JSON/CSV) for GSM Monday review
   momentum.py      Propensity-to-show score per message + trend (the sparkline)
   timefmt.py       Two-level human durations (2d 4h · 3h 5m · 6m 22s)
   seed.py          Pilot dealership, 10 vehicles, 6 conversations
@@ -228,7 +232,7 @@ Cost: Render Starter is ~$7/month always-on. The free plan also works but sleeps
 
 ## Buddy notes (demo only)
 
-Every seeded lead carries a ≤10-word "buddy note" — the two keywords a coworker would text you about a prospect ("price grinder · ghosts waiting on manager", "angry be-back · manager de-escalates"). It shows as an amber line in the queue row and under the name in the thread. The vocabulary is what reps actually complain about: grinders, payment shoppers, serial ghosters, cancel/reschedulers, tire kickers, price-match shoppers, hold/deposit askers, mid-thread vehicle switchers, angry be-backs, out-of-towners wanting delivery. Purpose: a demo viewer sees which situation they're about to watch get handled. Stored in `Thread.demo_hint`, seeded from `seed.HINTS`. Not a product feature yet — if beta testers want it, it becomes an AI-written summary of observed behavior.
+Every seeded lead carries a ≤10-word "buddy note" — the two keywords a coworker would text you about a prospect ("price grinder · ghosts waiting on manager", "angry be-back · manager de-escalates"). It shows as an amber line in the queue row and under the name in the thread. Demo-only (`Thread.demo_hint`). First-class queue filters (tire-kicker / price grinder / same-day / window closing) are separate: they come from pipeline facts and actually filter `GET /api/queue`.
 
 ## Zero-backend showcase (GitHub Pages)
 

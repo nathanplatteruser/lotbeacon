@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import momentum, policy, timefmt
+from . import filters, momentum, policy, timefmt
 from .models import Customer, Draft, LeadState, Thread, Vehicle
 
 BUCKETS = [
@@ -120,7 +120,7 @@ def row_for(s: Session, t: Thread, ghost: dict | None) -> dict:
         if d and d.status == "blocked":
             next_action = "Fix the flagged sentence, then send"
 
-    return {
+    row = {
         "id": t.id, "customer": cust.display_name or cust.psid, "channel": "Facebook Messenger", "bucket": bucket,
         "waiting": timefmt.since(waiting_since) if customer_waiting else "", "waiting_seconds": int((datetime.now(timezone.utc) - (waiting_since if waiting_since.tzinfo else waiting_since.replace(tzinfo=timezone.utc))).total_seconds()) if (customer_waiting and waiting_since) else 0,
         "summary": " · ".join(bits), "hint": t.demo_hint or "", "next_action": next_action, "vehicle": f"{v.year} {v.model}" if v else None,
@@ -132,9 +132,11 @@ def row_for(s: Session, t: Thread, ghost: dict | None) -> dict:
         "momentum": momentum.view(s, t),
         "state": state.value, "priority": t.priority,
     }
+    row["filters"] = filters.classify(row, st)
+    return row
 
 
-def build(s: Session, ghost_view) -> dict:
+def build(s: Session, ghost_view, filter: str | None = None) -> dict:
     rows = [row_for(s, t, ghost_view(t)) for t in s.scalars(select(Thread))]
     order = {k: i for i, (k, _, _) in enumerate(BUCKETS)}
 
@@ -143,5 +145,13 @@ def build(s: Session, ghost_view) -> dict:
         return (order[r["bucket"]], (r["window_hours_left"] if r["bucket"] == "window_closing" and r["window_hours_left"] is not None else 99), -r["waiting_seconds"])
 
     rows.sort(key=sort_key)
-    counts = {k: sum(1 for r in rows if r["bucket"] == k) for k, _, _ in BUCKETS}
-    return {"buckets": [{"key": k, "label": l, "hint": h, "count": counts[k]} for k, l, h in BUCKETS], "rows": rows}
+    catalog = filters.catalog(rows)
+    requested = filters.parse(filter)
+    visible = filters.apply(rows, requested)
+    counts = {k: sum(1 for r in visible if r["bucket"] == k) for k, _, _ in BUCKETS}
+    return {
+        "filters": catalog,
+        "active_filters": requested,
+        "buckets": [{"key": k, "label": l, "hint": h, "count": counts[k]} for k, l, h in BUCKETS],
+        "rows": visible,
+    }

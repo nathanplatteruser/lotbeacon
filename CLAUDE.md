@@ -14,7 +14,7 @@ every consequential promise. Maturity target L1–L3; architect for L4; L5 is no
 - PSID identity is Page-scoped; never merge customers on name similarity.
 
 ## Layout
-`api.py` routes · `pipeline.py` orchestrator · `validator.py` firewall · `policy.py` gates · `inventory.py` ·
+`api.py` routes · `pipeline.py` orchestrator · `validator.py` firewall · `firewall_log.py` blocked-invent export · `filters.py` queue chips · `policy.py` gates · `inventory.py` ·
 `memory.py` · `models.py` · `ai/{base,mock,anthropic_provider}.py` · `seed.py` · `web/index.html` · `scripts/eval.py`
 
 ## Commands

@@ -196,7 +196,36 @@ def run():
                 thread.demo_script = script
                 thread.demo_cursor = 0
                 thread.demo_hint = HINTS.get(name, "")
+        _seed_firewall_break_test(s)
         return {"seeded": True, "dealership_id": dealer.id, "conversations": len(CONVERSATIONS)}
+
+
+def _seed_firewall_break_test(s):
+    """One invent-discount refuse on Craig so GSM Monday export is inspectable on a fresh seed.
+
+    Does not replace the live draft. Human Send still owns the thread.
+    """
+    from . import firewall_log
+    from .models import Customer
+    from .validator import validate
+
+    craig = s.scalar(select(Customer).where(Customer.display_name == "Craig Bauer"))
+    if not craig:
+        return
+    thread = s.scalar(select(Thread).where(Thread.customer_id == craig.id))
+    if not thread:
+        return
+    text = "I can do $2,500 off today and you're approved at 3.9% APR. I'll hold the Ram for you."
+    res = validate(
+        text,
+        vehicle=None,
+        vehicle_fresh=False,
+        alternatives=[],
+        hours_today=None,
+        appointment_confirmed=False,
+        messaging={"eligible": True, "reason": "inbound_within_window"},
+    )
+    firewall_log.record(s, thread, actor="system:seed", source="seed.break_test", draft=None, text=text, validation=res.to_dict())
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import __version__, booking, inventory, memory, metrics, momentum, policy, queue, signals, timefmt, voices
+from . import __version__, booking, firewall_log, inventory, memory, metrics, momentum, policy, queue, signals, timefmt, voices
 from .ai.base import resolve_provider_name
 from .config import RULES_VERSION
 from .db import get_session, init_db
@@ -24,7 +24,7 @@ WEB = Path(__file__).parent / "web"
 import os  # noqa: E402
 
 from fastapi import Request  # noqa: E402
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse  # noqa: E402
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse  # noqa: E402
 
 DEMO_CODE = os.getenv("LOTBEACON_DEMO_CODE", "").strip()
 GATE_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LotBeacon · demo</title>
@@ -141,9 +141,9 @@ def meta(s: Session = Depends(get_session)):
 
 
 @app.get("/api/queue")
-def action_queue(s: Session = Depends(get_session)):
-    """The rep's work list. Buckets + next action + momentum series for the left-rail sparkline."""
-    return queue.build(s, ghost_view)
+def action_queue(filter: str | None = None, s: Session = Depends(get_session)):
+    """The rep's work list. Buckets + next action + momentum series + first-class quick filters."""
+    return queue.build(s, ghost_view, filter=filter)
 
 
 @app.get("/api/metrics/owner")
@@ -755,6 +755,22 @@ def audit_export(thread_id: int | None = None, s: Session = Depends(get_session)
               "autonomous_sends": 0, "events": events, "drafts": drafts, "transitions": transitions}
     name = f"lotbeacon-audit-{'thread-' + str(thread_id) if thread_id else 'all'}-{datetime.now(timezone.utc):%Y%m%d-%H%M}.json"
     return JSONResponse(bundle, headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+@app.get("/api/firewall/export")
+def firewall_export(format: str = "json", s: Session = Depends(get_session)):
+    """GSM Monday pack: every blocked-invent event for this rooftop. JSON or CSV. Human Send only."""
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
+    data = firewall_log.bundle(s)
+    if (format or "json").lower() == "csv":
+        name = f"lotbeacon-firewall-{stamp}.csv"
+        return PlainTextResponse(
+            firewall_log.to_csv(data),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{name}"'},
+        )
+    name = f"lotbeacon-firewall-{stamp}.json"
+    return JSONResponse(data, headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
 @app.get("/api/inventory")
