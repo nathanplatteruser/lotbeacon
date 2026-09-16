@@ -7,15 +7,15 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="LotBeacon">
 <meta property="og:title" content="LotBeacon — Messenger copilot for dealership reps">
-<meta property="og:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger. Pessimistic pilot estimate for Zoellner Ford. Tap to try the interactive demo.">
+<meta property="og:description" content="HITL Messenger copilot for the dealership desk. Human Send. Firewall at Send time. Soft ROI modeled only — not a case study. Solo $129 · Three Amigos $299 · Dealership $599. Not Beakon (lot GPS).">
 <meta property="og:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://nathanplatteruser.github.io/lotbeacon/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="LotBeacon — Messenger copilot for dealership reps">
-<meta name="twitter:description" content="+47% units per rep · 2.8× conversations per rep-hour · +45% foot traffic from Messenger.">
+<meta name="twitter:description" content="HITL Messenger copilot. Human Send. Soft ROI modeled only — not a case study. Solo $129 · Three Amigos $299 · Dealership $599. Not Beakon.">
 <meta name="twitter:image" content="https://nathanplatteruser.github.io/lotbeacon/og.png">
-<meta name="description" content="LotBeacon: AI copilot for dealership sales reps on Facebook Messenger. It remembers, verifies and drafts; a person sends every message.">
+<meta name="description" content="LotBeacon is the sales-engagement layer for the dealership desk. Human Send. Firewall refuses invented discounts. Soft ROI modeled only. Solo $129 · Three Amigos $299 · Dealership $599. Not Beakon.">
 
 <style>
 /* Ford chrome + Messenger conversation. Color is reserved for two things: needs attention (blue), blocked/error (red). */
@@ -206,6 +206,16 @@ header .tourbtn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba
 .money{color:var(--ok)}
 .drawer .explain{font-size:11.5px;color:var(--ink-3);line-height:1.5;border-top:1px solid var(--line);padding-top:10px}
 .drawer .close{position:absolute;top:12px;right:14px;font-size:20px;color:var(--ink-3)}
+.why-gtm{max-width:840px}
+.why-gtm .talk{font-size:15px;line-height:1.55;color:var(--ink-2);margin:0 0 16px}
+.why-gtm .talk b{color:var(--ink)}
+.why-gtm .soft{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin:0 0 16px}
+.why-gtm ul.why-list{margin:0 0 18px;padding-left:18px}
+.why-gtm ul.why-list li{margin:0 0 8px;font-size:14.5px;line-height:1.45;color:var(--ink-2)}
+.why-gtm ul.why-list li b{color:var(--ink)}
+.why-gtm .faq h3{margin:14px 0 4px;font-size:15px}
+.why-gtm .faq p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.45}
+.why-gtm .faq p b{color:var(--ink)}
 .owner{grid-column:1/-1;overflow-y:auto;padding:18px 22px;background:var(--bg)}
 .owner h2{margin:0;font-size:22px}
 .owner .sub{color:var(--ink-3);font-size:13px;margin:2px 0 14px}
@@ -384,7 +394,7 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
 <header>
   <h1><span class="mark">L</span>LotBeacon</h1>
   <span class="sub" id="dealer">—</span>
-  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="admin" aria-selected="false">Admin</button><button data-view="owner" aria-selected="false">Owner dashboard</button><a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn" title="This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.">Request a pilot</button></nav>
+  <nav class="nav"><button data-view="work" aria-selected="true">Queue</button><button data-view="admin" aria-selected="false">Admin</button><button data-view="owner" aria-selected="false">Owner dashboard</button><button data-view="why" aria-selected="false">Why us</button><a class="navlink" href="impact-estimate.html">Before &amp; after</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="compare.html">vs the field</a><button id="anaBtn" title="This recording cannot run a live inquiry. Request a pilot. Send your name, the shop, the named Page, and what you will paste. A person replies. Nothing here sends to Facebook.">Request a pilot</button></nav>
   <div class="right"><button class="tourbtn" id="tourBtn" title="Guided tour">?</button><span class="keys"><kbd>J</kbd>/<kbd>K</kbd> next lead · <kbd>E</kbd> edit · <kbd>⌘↵</kbd> send &amp; next · <kbd>1</kbd>/<kbd>2</kbd> slot pair</span><label>You: <select id="rep"></select></label></div>
 </header><div style="background:#FFF3DF;color:#7A4A00;font-size:12.5px;padding:6px 20px;text-align:center;border-bottom:1px solid #F0D9B0">Interactive showcase · recorded Sep 09, 2026 · Synthetic shopper. Not a live Facebook inbox. A person still sends.</div>
 <div class="deskbar" id="deskbar">
@@ -422,6 +432,38 @@ summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);font-weight:600;paddi
   <aside class="queue" id="queue"><div class="qhead"><h2>Queue</h2><span id="qcount"></span></div><div id="qrows"></div></aside>
   <main class="main" id="main"><div class="empty">Pick a lead.<p class="skip"><a href="mailto:nathanplatter@gmail.com?subject=LotBeacon%20pilot%20request%20%28shop%2C%20named%20Page%2C%20what%20we%20will%20paste%29">Or skip the recording. Request a pilot with your name, shop, named Page, and what you will paste.</a></p></div></main>
   <aside class="side" id="side"></aside>
+  <section class="owner why-gtm" id="whyView" hidden>
+    <h2>Why us</h2>
+    <p class="soft"><b>Soft ROI modeled only.</b> Not measured. Not a case study. Not guaranteed units. Human Send. Seeded demo. Live Page wiring is the pilot deliverable. Not Beakon.</p>
+    <p class="talk">LotBeacon is the sales-engagement layer for the dealership desk: who needs you on Messenger, what they asked, what you acknowledged, and what happens next, with a hard rule that a human still owns Send. Open a price thread like Craig. A sentiment tool marks him cold. We say same-day intent plus price friction, draft a grounded reply, and block you if you try to invent twenty-five hundred off. Momentum on long guided chats shows rising or falling interest so quick filters can push tire-kickers down and hot paths up. Keep your DMS. Keep your people. Pilot starts on seeded judgment so you see the path; live Page wiring is the scoped deliverable for a named rooftop. Soft ROI: modeled only. Pays for itself if it surfaces one same-day buyer Meta buried or stops one invented-discount moment. Solo $129 to prove it on one top rep, Three Amigos $299 for a pod, Dealership $599 when the owner wants escalate and audit in one place.</p>
+    <ul class="why-list">
+      <li><b>Judgment on the money thread.</b> Queue who needs attention, draft the next reply, escalate price friction. Your person still hits Send.</li>
+      <li><b>Controls at Send time.</b> Firewall refuses invented discounts, payments, holds, and sold-as-available. Not a yearly training slide.</li>
+      <li><b>Intent ≠ sentiment.</b> “$2,500 off and I’m there today” is buy-today + price friction, not a cold emoji score.</li>
+      <li><b>Fits the desk you have.</b> Meta Inbox stays. DMS/CRM stays. We are the engagement layer, not a rip-and-replace suite.</li>
+      <li><b>Rising / falling in the chat.</b> Multi-turn guided threads show momentum (gaining / holding / losing) so tire-kickers and grinders stop looking the same.</li>
+      <li><b>Quiet list.</b> Solo $129 · Three Amigos $299 · Dealership $599. Month-to-month conversation. Founding Soft ROI only when labeled and Nathan-approved.</li>
+      <li><b>Not Beakon.</b> Lot GPS is a different product. We are the Messenger / lot sales copilot.</li>
+    </ul>
+    <div class="faq">
+      <h2>FAQ</h2>
+      <h3>Is this live on our Facebook Page today?</h3>
+      <p>Meeting demos are seeded so you see judgment. Live official Page wiring is the pilot deliverable for a named store. Human Send stays.</p>
+      <h3>Does it replace our BDC?</h3>
+      <p>No. HITL copilot for your setters and floor. We do not sell “fire the desk.”</p>
+      <h3>Why not free Meta Inbox or a cheap bot?</h3>
+      <p>Free inbox has no intent OS and no invent-discount refuse. Cheap bots win the demo by sending for you. That is the liability on price asks.</p>
+      <h3>Do you write to our DMS?</h3>
+      <p>Not as a rip-and-replace. CRM note / export when scoped for your rooftop. We do not fake “DMS connected” badges.</p>
+      <h3>What about ROI?</h3>
+      <p><b>Soft ROI (modeled):</b> Solo clears 3× if it saves a few hours a month finding buy-today threads or rescues one same-day path every several weeks. Dealership clears 3× if it helps avoid one bad AI-quoted price event or surfaces less than one incremental unit path a month. Not a case study. Not guaranteed units.</p>
+      <h3>Are you Beakon?</h3>
+      <p>No. Beakon is lot GPS. LotBeacon is Messenger / desk sales judgment.</p>
+      <h3>SOC 2?</h3>
+      <p>Not claimed. You get inspectable Send discipline, firewall behavior, and audit export in the workspace. Enterprise paper when earned.</p>
+    </div>
+    <p class="talk" style="margin-top:18px"><a class="btn primary" href="https://calendly.com/nathanplatter">Book intro on Calendly</a> · <a class="btn quiet" href="pricing.html">Public list</a></p>
+  </section>
 </div>
 <div class="toast" id="toast"></div>
 <div class="overlay" id="overlay"></div>
@@ -826,12 +868,15 @@ let VIEW='work';
 async function showView(v){
   VIEW=v;document.querySelectorAll('header .nav button[data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));
   const app=document.querySelector('.app');
-  const hideDesk=v==='owner'||v==='admin';
+  const hideDesk=v==='owner'||v==='admin'||v==='why';
   app.querySelector('.queue').hidden=hideDesk;app.querySelector('.side').hidden=hideDesk;$('#main').hidden=hideDesk;
   let o=$('#owner');if(o)o.hidden=v!=='owner';
   let a=$('#adminView');if(a)a.hidden=v!=='admin';
+  let w=$('#whyView');if(w)w.hidden=v!=='why';
   if(v==='owner'){if(!o){o=document.createElement('section');o.id='owner';o.className='owner';app.appendChild(o);}o.hidden=false;await renderOwner();}
   if(v==='admin'){if(!a){a=document.createElement('section');a.id='adminView';a.className='owner';app.appendChild(a);}a.hidden=false;renderAdmin();}
+  if(v==='why'){if(location.hash!=='#why')history.replaceState(null,'','#why');}
+  else if(location.hash==='#why')history.replaceState(null,'',location.pathname+location.search);
 }
 function renderAdmin(){
   const n=window.LB_DESK?LB_DESK.adminNote():null;
@@ -974,6 +1019,7 @@ function onDeskChange(){
 (async()=>{
   if(window.LB_DESK){LB_DESK.fromQuery();paintDeskbar();$('#deskLang').onchange=onDeskChange;$('#deskPath').onchange=onDeskChange;window.addEventListener('resize',syncDeskbarH);const notes=$('.desk-notes');if(notes)notes.addEventListener('toggle',syncDeskbarH);}
   await loadMeta();await loadQueue();setInterval(loadQueue,20000);
+  if(location.hash==='#why')showView('why');
 })();
 </script>
 </body>
