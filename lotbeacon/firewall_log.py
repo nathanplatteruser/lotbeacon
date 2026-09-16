@@ -83,6 +83,7 @@ def record(
         },
     )
     s.add(ev)
+    s.flush()
     return ev
 
 
