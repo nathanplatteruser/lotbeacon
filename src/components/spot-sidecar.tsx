@@ -18,6 +18,7 @@ import {
   SPOT_REPLY,
 } from "@/lib/spot";
 import { lookById, type SpotLookId } from "@/lib/spot-looks";
+import { firstTypeFormBlockReason } from "@/lib/type-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -128,6 +129,11 @@ export function SpotSidecar({ look = "now" }: { look?: SpotLookId }) {
   function humanSend() {
     const text = composer.trim();
     if (!text) return;
+    const blockedReason = firstTypeFormBlockReason(text);
+    if (blockedReason) {
+      toast(blockedReason);
+      return;
+    }
     const next: Msg[] = [...messages, { id: `r-${messages.length}`, who: "rep", text }];
     if (!sent) {
       next.push({ id: "sys-1", who: "system", text: "Sent by Jordan Hale · 0 auto-typed · 0 autonomous" });
