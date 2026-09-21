@@ -43,6 +43,7 @@ type TimeMention = {
   day: string | null;
   hour24: number;
   minute: number;
+  ambiguous?: boolean;
 };
 
 const NOUL_REASONS: Record<TypeFormNoul, string> = {
@@ -126,15 +127,14 @@ function extractTimeMentions(text: string): TimeMention[] {
     const hour = Number(match[1]);
     const minute = Number(match[2]);
     if (!mentions.some((item) => item.hour24 === hour && item.minute === minute && item.day === dayHint(text))) {
-      mentions.push({ day: dayHint(text), hour24: hour, minute });
+      mentions.push({ day: dayHint(text), hour24: hour, minute, ambiguous: true });
     }
   }
   for (const match of text.matchAll(/\b(\d{1,2}):(\d{2})\b/g)) {
-    let hour = Number(match[1]);
+    const hour = Number(match[1]);
     const minute = Number(match[2]);
-    if (hour > 0 && hour <= 8) hour += 12;
     if (!mentions.some((item) => item.hour24 === hour && item.minute === minute && item.day === dayHint(text))) {
-      mentions.push({ day: dayHint(text), hour24: hour, minute });
+      mentions.push({ day: dayHint(text), hour24: hour, minute, ambiguous: true });
     }
   }
   return mentions;
@@ -144,10 +144,11 @@ function parseSlotMentions(slots: Slot[]) {
   return slots.flatMap((slot) => extractTimeMentions(slot.label).map((time) => ({ ...time, day: dayHint(slot.label) ?? time.day })));
 }
 
-function matchesSlot(mention: TimeMention, slots: Slot[]) {
-  const slotMentions = parseSlotMentions(slots);
+function matchesParsedSlot(mention: TimeMention, slotMentions: TimeMention[]) {
   return slotMentions.some((slot) => {
-    if (slot.hour24 !== mention.hour24 || slot.minute !== mention.minute) return false;
+    const hourMatch =
+      slot.hour24 === mention.hour24 || (mention.ambiguous && mention.hour24 < 12 && slot.hour24 === mention.hour24 + 12);
+    if (!hourMatch || slot.minute !== mention.minute) return false;
     if (!mention.day) return true;
     return slot.day === mention.day;
   });
@@ -273,7 +274,8 @@ export function judgeTypeForm(input: JudgeContext | string): TypeFormJudgment {
 
   const mentionedTimes = extractTimeMentions(text);
   if (slots.length > 0 && mentionedTimes.length > 0) {
-    const unmatched = mentionedTimes.some((mention) => !matchesSlot(mention, slots));
+    const slotMentions = parseSlotMentions(slots);
+    const unmatched = mentionedTimes.some((mention) => !matchesParsedSlot(mention, slotMentions));
     if (unmatched) {
       judgment.noul.invents_slot = 0.95;
     }
@@ -308,7 +310,7 @@ function typeFormClaimsFromJudgment(judgment: TypeFormJudgment): Claim[] {
       reason: `${TYPE_FORM_REASON_PREFIX}gate action is suppress_dnc, so nothing should be sent.`,
     });
   }
-  if (judgment.score.groundedness < 1) {
+  if (judgment.score.groundedness < 2) {
     claims.push({
       text: "groundedness",
       severity: "warn",

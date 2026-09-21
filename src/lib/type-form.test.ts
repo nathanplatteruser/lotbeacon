@@ -95,6 +95,15 @@ describe("judgeTypeForm", () => {
     assert.ok(judgment.noul.invents_slot >= TYPE_FORM_HARD_THRESHOLD);
   });
 
+  it("does not block a valid bare morning slot", () => {
+    const slots: Slot[] = [
+      { id: "s1", at: new Date().toISOString(), label: "Saturday 8:00 AM" },
+      { id: "s2", at: new Date().toISOString(), label: "Saturday 10:00 AM" },
+    ];
+    const judgment = judgeTypeForm({ text: "Saturday 8:00 works for me.", slots });
+    assert.equal(judgment.noul.invents_slot, 0);
+  });
+
   it("blocks a credit-score ask", () => {
     const judgment = judgeTypeForm("What's your credit score and how much can you put down?");
     assert.ok(judgment.noul.asks_credit_or_income >= TYPE_FORM_HARD_THRESHOLD);

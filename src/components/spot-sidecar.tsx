@@ -19,12 +19,33 @@ import {
 } from "@/lib/spot";
 import { lookById, type SpotLookId } from "@/lib/spot-looks";
 import { firstTypeFormBlockReason } from "@/lib/type-form";
+import type { Slot, Vehicle } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 type Msg = { id: string; who: "customer" | "rep" | "system"; text: string };
 type AbortKind = "autotype" | "autosend" | "stealth" | null;
 type SpotKey = "inbound" | "composer" | "send";
+
+const SPOT_TYPE_FORM_VEHICLE: Vehicle = {
+  stock: SPOT_CUSTOMER.stock,
+  vin: "1FM5K8GC0TGA00001",
+  year: 2026,
+  make: "Ford",
+  model: "Explorer",
+  trim: "Platinum",
+  color: "Black",
+  body: "SUV",
+  miles: 1840,
+  price: 57990,
+  status: "available",
+  drivetrain: "4WD",
+};
+
+const SPOT_TYPE_FORM_SLOTS: Slot[] = [
+  { id: "spot-1", at: new Date().toISOString(), label: "Saturday 10:00 AM" },
+  { id: "spot-2", at: new Date().toISOString(), label: "Saturday 11:30 AM" },
+];
 
 export function SpotSidecar({ look = "now" }: { look?: SpotLookId }) {
   const spec = lookById(look);
@@ -129,7 +150,12 @@ export function SpotSidecar({ look = "now" }: { look?: SpotLookId }) {
   function humanSend() {
     const text = composer.trim();
     if (!text) return;
-    const blockedReason = firstTypeFormBlockReason(text);
+    const blockedReason = firstTypeFormBlockReason({
+      text,
+      thread: { dnc: false },
+      vehicle: SPOT_TYPE_FORM_VEHICLE,
+      slots: SPOT_TYPE_FORM_SLOTS,
+    });
     if (blockedReason) {
       toast(blockedReason);
       return;
