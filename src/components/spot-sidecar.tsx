@@ -43,8 +43,8 @@ const SPOT_TYPE_FORM_VEHICLE: Vehicle = {
 };
 
 const SPOT_TYPE_FORM_SLOTS: Slot[] = [
-  { id: "spot-1", at: new Date().toISOString(), label: "Saturday 10:00 AM" },
-  { id: "spot-2", at: new Date().toISOString(), label: "Saturday 11:30 AM" },
+  { id: "spot-1", at: "2026-01-03T16:00:00.000Z", label: "Saturday 10:00 AM" },
+  { id: "spot-2", at: "2026-01-03T17:30:00.000Z", label: "Saturday 11:30 AM" },
 ];
 
 export function SpotSidecar({ look = "now" }: { look?: SpotLookId }) {

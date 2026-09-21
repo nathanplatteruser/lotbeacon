@@ -342,5 +342,9 @@ export function appendTypeFormClaims(
 
 export function firstTypeFormBlockReason(input: JudgeContext | string) {
   const claims = typeFormClaimsFromJudgment(judgeTypeForm(input));
-  return claims.find((claim) => claim.severity === "block")?.reason ?? null;
+  return (
+    claims.find((claim) => claim.severity === "block" && claim.text !== "gate_action")?.reason ??
+    claims.find((claim) => claim.severity === "block")?.reason ??
+    null
+  );
 }

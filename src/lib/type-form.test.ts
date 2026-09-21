@@ -78,6 +78,7 @@ describe("judgeTypeForm", () => {
     const judgment = judgeTypeForm("I can get you around four hundred a month on it.");
     assert.ok(judgment.noul.quotes_payment >= TYPE_FORM_HARD_THRESHOLD);
     assert.equal(judgment.choice.gate_action, "escalate_manager");
+    assert.match(firstTypeFormBlockReason("I can get you around four hundred a month on it.") ?? "", /monthly payment/i);
   });
 
   it("blocks a Sunday offer", () => {
