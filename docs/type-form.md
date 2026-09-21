@@ -1,11 +1,8 @@
 # Type form
 
-Additional Send-time safety. Does not replace Human Send, `validateClaims`, or `VOICE_LAW`.
+Type form is an additional Send-time safety gate for LotBeacon.
 
-- Module: `src/lib/type-form.ts`
-- Tests: `src/lib/type-form.test.ts`
-- Live path: local deterministic judge. Same answer shape as TypeSafe Jev (Noul / Choice / Score).
-- Jev is optional behind `TYPESAFE_API_KEY`. No SDK in this repo.
-- Claims are prefixed `Type form · ` and feed the existing `blocked()` gate.
-
-Questions and thresholds live in the module. The company skill is `type-form` (recall: run type form on [draft]).
+- Local deterministic judge is the live path.
+- It appends typed judgments (Noul / Choice / Score) to the existing claim firewall.
+- It does not replace `validateClaims`, `VOICE_LAW`, or Human Send.
+- Jev is optional behind `TYPESAFE_API_KEY`; no TypeSafe SDK is in this repo.

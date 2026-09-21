@@ -229,7 +229,7 @@ export function explainThread(thread: Thread, vehicle: Vehicle | null): ExplainS
     { step: "Decide", label: thread.goal, detail: thread.intel.coaching },
     {
       step: "Check",
-      label: "Firewall",
+      label: "Firewall + type form",
       detail: thread.draft.claims.map((c) => c.reason).join(" · ") || "No claims extracted.",
       claims: thread.draft.claims.map((c) => ({
         text: c.text,

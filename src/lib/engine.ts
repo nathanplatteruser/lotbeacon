@@ -13,6 +13,7 @@ import type {
 import { channelClaims, channelOf, shapeForChannel } from "./channels";
 import { inboundFlags, TENSION_RE, tempCheck } from "./temp";
 import { factValue } from "./facts";
+import { appendTypeFormClaims } from "./type-form";
 
 export const WINDOW_MS = 24 * 60 * 60 * 1000;
 export const FRESHNESS_MS = 30 * 60 * 1000;
@@ -587,10 +588,12 @@ export function validateClaims(text: string, thread: Thread, vehicle: Vehicle | 
   if (/sunday/i.test(text)) {
     claims.push({ text: "Sunday", severity: "block", reason: "Sales floor is closed Sunday." });
   }
-  if (claims.length === 0) {
-    claims.push({ text: "Grounded", severity: "ok", reason: "No prohibited or unverifiable claims." });
+  const slots = thread.draft.slots.length ? thread.draft.slots : proposeSlots(thread);
+  const allClaims = appendTypeFormClaims(claims, text, thread, vehicle, slots);
+  if (allClaims.length === 0) {
+    allClaims.push({ text: "Grounded", severity: "ok", reason: "No prohibited or unverifiable claims." });
   }
-  return claims;
+  return allClaims;
 }
 
 /** Strip LLM tells from every outbound voice. Customer-facing only. */

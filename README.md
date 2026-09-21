@@ -25,6 +25,7 @@ Reset demo, then:
 ## Product rules
 
 - A human hits Send. Nothing autonomous.
+- Type form appends typed judgments in front of Send. Does not replace Human Send.
 - Inventory is the only source of vehicle claims.
 - Payments, approvals, trade values, discounts, doc fees, and Sunday hours never go in-thread.
 - Opt-out is forever.
