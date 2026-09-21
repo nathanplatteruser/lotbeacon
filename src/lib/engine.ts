@@ -590,13 +590,10 @@ export function validateClaims(text: string, thread: Thread, vehicle: Vehicle | 
   }
   const slots = thread.draft.slots.length ? thread.draft.slots : proposeSlots(thread);
   const allClaims = appendTypeFormClaims(claims, text, thread, vehicle, slots);
-  if (allClaims.length > 0) {
-    return allClaims;
+  if (allClaims.length === 0) {
+    allClaims.push({ text: "Grounded", severity: "ok", reason: "No prohibited or unverifiable claims." });
   }
-  if (claims.length === 0) {
-    claims.push({ text: "Grounded", severity: "ok", reason: "No prohibited or unverifiable claims." });
-  }
-  return claims;
+  return allClaims;
 }
 
 /** Strip LLM tells from every outbound voice. Customer-facing only. */

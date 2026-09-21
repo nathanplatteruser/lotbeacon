@@ -157,4 +157,9 @@ describe("validateClaims integration", () => {
     assert.equal(claims[0]?.reason, "Payment quotes are F&I only.");
     assert.equal(claims.some((claim) => claim.reason.startsWith("Type form · ")), true);
   });
+
+  it("does not invent a slot warning when no draft slots were provided yet", () => {
+    const claims = appendTypeFormClaims([], "Saturday 10:00 works for me.", makeThread(), makeVehicle(), []);
+    assert.deepEqual(claims, []);
+  });
 });
