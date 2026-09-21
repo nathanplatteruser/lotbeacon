@@ -52,6 +52,7 @@ export function inboundFlags(text: string) {
   const commit = /i'?ll be there|see you then|i'?ll come|book it|you'?re on the books|saturday\. i'?ll be there/.test(t);
   const ghost = /hello\?|texted twice|nobody.?s reading|third message|if you.?re closed/.test(t);
   const offense = /time-?waster|you insulted|people who don'?t matter|like i'?m some|how you talk|insulted my/.test(t);
+  const dignity = /look stupid|embarrass me|make me look|in front of my (wife|husband|kids|family)/.test(t);
   const factQuestion =
     /\b(miles?|mileage|awd|4wd|four.?wheel|all.?wheel|on the lot|sold|title|park|who do i|photos?|third row|booster|car ?seat|latch|tow|snow)\b/i.test(
       text,
@@ -62,6 +63,7 @@ export function inboundFlags(text: string) {
   if (fears.includes("honesty")) heat += 28;
   if (fears.includes("ghost") || ghost) heat += 24;
   if (offense) heat += 46;
+  if (dignity) heat += 18;
   if (fears.includes("price") && /too expensive|come down|best (price|you can)/.test(t)) heat += 22;
   if (/\bdon'?t\b|just say so|if you'?re closed/.test(t)) heat += 12;
   if (text === text.toUpperCase() && text.replace(/\s/g, "").length > 12) heat += 20;
@@ -81,7 +83,7 @@ export function inboundFlags(text: string) {
   else if (ghost || (text.trim().length < 14 && /hello|you there|\?\s*$/.test(t))) band = "cool";
   else if (factQuestion) band = "warm";
 
-  return { fears, recover, commit, ghost, factQuestion, heat, band };
+  return { fears, recover, commit, ghost, factQuestion, heat, band, dignity, offense };
 }
 
 export function tempCheck(thread: Thread, latest?: string, _vehicle?: Vehicle | null): TempCheck {
@@ -100,7 +102,7 @@ export function tempCheck(thread: Thread, latest?: string, _vehicle?: Vehicle | 
   const fears = Array.from(new Set(recent.flatMap((f) => f.fears)));
   const stayOnUnit = band === "hot" || (recentHot && (flags.factQuestion || fears.includes("upsell")));
   const deescalate = band === "hot" || (flags.fears.length > 0 && flags.heat >= 28);
-  const skipAsk = band === "hot" || band === "cool" || flags.ghost || flags.recover || flags.commit || (recentHot && !flags.commit);
+  const skipAsk = band === "hot" || band === "cool" || flags.ghost || flags.recover || flags.commit || flags.dignity || (recentHot && !flags.commit);
   const holdVisit = band === "green" || (band === "warm" && !deescalate);
   const lowerPriceTalk = /too expensive|come down|best (price|you can)|discount|off today/.test(lastInbound.toLowerCase());
   const why =

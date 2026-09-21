@@ -387,7 +387,8 @@ function slotAlreadyStated(thread: Thread, slot: Slot) {
 }
 
 function askedCloseLoop(latest: string) {
-  return /confirm (the )?(time|date|appt|appointment)|confirm it|once more|calendar|i'?ll be there|i'?ll come|you'?re on the books|see you then/i.test(
+  if (isDignity(latest)) return false;
+  return /confirm (the )?(time|date|appt|appointment)|confirm it|once more|calendar|i'?ll be there|you'?re on the books|see you then/i.test(
     latest,
   );
 }
@@ -400,9 +401,14 @@ function askedWhere(latest: string) {
   return /address|where (are you|is (the )?(store|dealership|lot))|how do i get there/i.test(latest);
 }
 
+function isDignity(text: string) {
+  return /look stupid|embarrass me|make me look|in front of my (wife|husband|kids|family)/i.test(text);
+}
+
 function shouldRestateSlot(thread: Thread, latest: string) {
+  if (isDignity(latest)) return false;
   if (askedCloseLoop(latest) || askedWhen(latest) || askedWhere(latest)) return true;
-  return detectAsks(latest, 2).some((a) => a.kind === "confirm");
+  return detectAsks(latest, 2).some((a) => a.kind === "confirm") && !isDignity(latest);
 }
 
 function logisticsReply(thread: Thread, slots: Slot[], latest: string): string {
@@ -447,12 +453,36 @@ function closeLoopReply(thread: Thread, slots: Slot[], vehicle: Vehicle | null):
   return `${when} at Zoellner Ford, 4115 N. 6th Street, Beatrice. Ask for me, first-row visitor parking off 6th. I'll have the ${unit} pulled.${extra}`;
 }
 
+function dignityReply(thread: Thread, slots: Slot[], vehicle: Vehicle | null, latest: string): string {
+  const wife = /wife/i.test(latest) || /wife/i.test(factValue(thread, "spouse"));
+  const unit = vehicle ? `the ${vehicle.model} ${vehicle.trim}` : "it";
+  const greet = wife
+    ? "I won't. I'll greet you myself. Your wife is welcome."
+    : "I won't. I'll greet you myself.";
+  const walk = `We'll walk ${unit} together. Nobody's guessing at the desk.`;
+  const slot =
+    slots.find((s) => slotAlreadyStated(thread, s)) ??
+    slotFromThread(thread, inboundCluster(thread), slots) ??
+    slots[0];
+  if (slot && !slotAlreadyStated(thread, slot)) {
+    return `${greet} ${walk} ${slot.label}. I'll have it pulled.`;
+  }
+  return `${greet} ${walk}`;
+}
+
 function visitCloser(thread: Thread, slots: Slot[], draft: string): string {
   const visit = namedVisitFor(thread);
   const exact = exactSlotForVisit(visit, slots);
   if (!exact) return "";
   if (textHasSlot(draft, exact)) return "";
   const latest = inboundCluster(thread).latest;
+  if (isDignity(latest)) return "";
+  const kinds = detectAsks(latest, 2).map((a) => a.kind);
+  const factNow = kinds.some((k) =>
+    k === "miles" || k === "drivetrain" || k === "feature" || k === "payment" || k === "who" || k === "photos" || k === "price",
+  );
+  const visitNow = kinds.some((k) => k === "schedule" || k === "confirm" || k === "parking" || k === "logistics");
+  if (factNow && !visitNow) return "";
   const firstLock = !slotAlreadyStated(thread, exact);
   if (firstLock) return `${exact.label} still works. I'll have it pulled.`;
   if (shouldRestateSlot(thread, latest)) return `${exact.label}. I'll have it pulled.`;
@@ -471,6 +501,7 @@ function lowFrictionAsk(thread: Thread, draft: string): string {
   const askedTrade = /bringing a trade|trade, or just/i.test(reps);
   const askedRide = /anyone (riding|coming|with you)|riding along/i.test(reps);
   if (/don'?t send anyone|don'?t (call|text) me/i.test(inboundCluster(thread).latest)) return "";
+  if (/payment|don'?t quote/i.test(inboundCluster(thread).latest)) return "";
   const named = namedVisitFor(thread).clock;
   if (temp.band === "green") {
     if (factValue(thread, "spouse")) return "";
@@ -713,6 +744,7 @@ export function voiceWrap(base: string, voice: VoiceId, thread: Thread): string 
 type AskKind =
   | "ghost"
   | "offense"
+  | "dignity"
   | "tension"
   | "recover"
   | "payment"
@@ -736,6 +768,7 @@ type AskKind =
 const ASK_PRIORITY: AskKind[] = [
   "ghost",
   "offense",
+  "dignity",
   "tension",
   "recover",
   "payment",
@@ -766,11 +799,12 @@ function detectAsks(text: string, weight: number): { kind: AskKind; weight: numb
   };
   add("ghost", /hello\?|third message|nobody.?s reading|go to lincoln|texted twice|if you.?re closed|if nobody|i'?ll just go|two hours ago/);
   add("offense", /time-?waster|don'?t matter|insult|like i'?m some|how you talk|you insulted|insulted my (kids|children|family|wife)/);
+  add("dignity", /look stupid|embarrass me|make me look|in front of my (wife|husband|kids|family)/);
   add("tension", TENSION_RE);
   add("recover", /overreacted|i was short|sorry i snapped|it was a mistake|still coming|sorry again|kids\./);
   add("miles", /mile|mileage|odometer|how many miles/);
   add("photos", /photo|picture|\bpic\b|pics\b/);
-  add("availability", /on the lot|actually (here|there|on)|still (there|available|here)|in stock|is it real|pulled|\bsold\b/);
+  add("availability", /still available|still (here|there)|actually (here|there|on (the )?(lot|pad))|is it (still )?(here|there|real)|in stock|on the pad|is it on the lot|pulled yet|\bsold\b/);
   add("schedule", /saturday|sunday|thursday|friday|monday|tuesday|wednesday|weekend|what time|real time|\d\s?ish|\b\d{1,2}:\d{2}\b|\b\d{1,2}\s*(a\.?m\.?|p\.?m\.?)\b|afternoon|morning|come in|stop by|when can i come|this weekend/);
   add("price", /(?:how much|price|come down|best (?:you can|price)|discount)/);
   add("trade", /\btrade\b|bring the (accord|trade|f-150)|i'?ll bring (the |my (accord|trade))/);
@@ -790,11 +824,20 @@ function detectAsks(text: string, weight: number): { kind: AskKind; weight: numb
 
 function rankedAsks(cluster: InboundCluster): AskKind[] {
   const scored = new Map<AskKind, number>();
-  for (const a of detectAsks(cluster.latest, 2)) scored.set(a.kind, Math.max(scored.get(a.kind) ?? 0, a.weight));
-  for (const earlier of cluster.earlier) {
-    for (const a of detectAsks(earlier, 1)) scored.set(a.kind, Math.max(scored.get(a.kind) ?? 0, a.weight));
+  const latestHits = detectAsks(cluster.latest, 2);
+  for (const a of latestHits) scored.set(a.kind, Math.max(scored.get(a.kind) ?? 0, a.weight));
+  if (!latestHits.length) {
+    for (const earlier of cluster.earlier.slice(-1)) {
+      for (const a of detectAsks(earlier, 1)) scored.set(a.kind, Math.max(scored.get(a.kind) ?? 0, a.weight));
+    }
   }
   if (scored.has("photos") && scored.has("availability")) scored.delete("photos");
+  if (scored.has("dignity")) {
+    scored.delete("confirm");
+    scored.delete("availability");
+    scored.delete("schedule");
+  }
+  if (scored.has("parking") && scored.has("trade") && /park/i.test(cluster.latest)) scored.delete("trade");
   return [...scored.entries()]
     .sort((a, b) => b[1] - a[1] || ASK_PRIORITY.indexOf(a[0]) - ASK_PRIORITY.indexOf(b[0]))
     .map(([k]) => k);
@@ -851,6 +894,12 @@ function lastOutCovered(kind: AskKind, lastOut: Message, cluster?: InboundCluste
     }
     case "drivetrain":
       return /\b4wd\b|\bawd\b/.test(t);
+    case "dignity":
+      return /i won'?t|greet you myself|your wife is welcome/.test(t);
+    case "payment":
+      return /won'?t quote a payment|numbers at the desk/.test(t);
+    case "who":
+      return /ask for me/.test(t);
     case "feature":
       return /vin |booster|third row|window sticker|latch|tow rating/.test(t);
     case "price":
@@ -896,13 +945,15 @@ function sentenceFor(
   const latest = cluster.latest;
   switch (kind) {
     case "miles":
-      return vehicle ? `${vehicle.miles.toLocaleString()} miles on the window sticker.` : "";
+      return vehicle
+        ? `${vehicle.miles.toLocaleString()} miles on the window sticker. That's this truck, not a listing photo.`
+        : "";
     case "drivetrain": {
       if (!vehicle) return "";
       const drive = /snow/i.test(latest)
-        ? `It's ${vehicle.drivetrain}. That's the one you want for snow.`
+        ? `It's ${vehicle.drivetrain}. That's the one you want for snow. Sit in it and you'll know.`
         : `It's ${vehicle.drivetrain}.`;
-      if (tempCheck(thread).stayOnUnit) return `${drive} ${stayOnUnit(vehicle)}`;
+      if (tempCheck(thread).stayOnUnit && inboundFlags(latest).band === "hot") return `${drive} ${stayOnUnit(vehicle)}`;
       return drive;
     }
     case "feature":
@@ -963,7 +1014,7 @@ function sentenceFor(
     case "trade":
       return "Bring the trade. I won't guess a number in this thread. We'll walk it on the lot.";
     case "payment":
-      return "I won't quote a payment in Messenger. We'll do numbers at the desk when you come in.";
+      return "I won't quote a payment in Messenger. We'll walk the truck first. Numbers stay at the desk, not in this thread.";
     case "title":
       return "Bring the title if you have it. No pressure if you don't.";
     case "logistics":
@@ -978,16 +1029,35 @@ function sentenceFor(
       return "Pickup and delivery is a manager call so I don't freelance the route. I'll have someone confirm. Saturday drive-down is the sure backup.";
     case "who": {
       const spouse = factValue(thread, "spouse");
-      if (/wife/i.test(spouse)) return "Ask for me when you walk in. Your wife is welcome.";
+      if (/wife/i.test(spouse) || /wife/i.test(latest)) return "Ask for me when you walk in. Your wife is welcome.";
       if (spouse) return "Ask for me when you walk in. They're welcome too.";
       return "Ask for me when you walk in.";
     }
     case "parking": {
       if (askedCloseLoop(latest) || askedWhen(latest)) return closeLoopReply(thread, slots, vehicle);
+      if (/\btrade\b/i.test(latest)) {
+        return "Visitor parking is the first row facing the showroom, off 6th. Park the trade there. We'll walk it after you see the unit.";
+      }
       return "Visitor parking is the first row facing the showroom. Come in off 6th Street.";
     }
-    case "confirm":
-      return closeLoopReply(thread, slots, vehicle);
+    case "dignity":
+      return dignityReply(thread, slots, vehicle, latest);
+    case "confirm": {
+      if (isDignity(latest)) return "";
+      if (
+        askedWhen(latest) ||
+        askedWhere(latest) ||
+        /confirm|once more|i'?ll be there|see you then|you'?re on the books/i.test(latest)
+      ) {
+        return closeLoopReply(thread, slots, vehicle);
+      }
+      const slot =
+        slots.find((s) => slotAlreadyStated(thread, s)) ??
+        slotFromThread(thread, cluster, slots) ??
+        slots[0];
+      if (slot && slotAlreadyStated(thread, slot)) return "I'll greet you myself. I'll have it pulled.";
+      return slot ? `${slot.label}. I'll greet you myself. I'll have it pulled.` : "I'll greet you myself. I'll have it pulled.";
+    }
     case "tension": {
       const line = tensionReply(latest, vehicle) || tensionReply(combined, vehicle);
       if (line) return line;
@@ -1082,15 +1152,23 @@ function replyToCluster(
   lastOut: Message,
 ): string {
   const latestKinds = new Set(detectAsks(cluster.latest, 2).map((a) => a.kind));
-  if (latestKinds.has("offense") || latestKinds.has("ghost") || latestKinds.has("recover") || latestKinds.has("tension")) {
+  if (
+    latestKinds.has("dignity") ||
+    latestKinds.has("offense") ||
+    latestKinds.has("ghost") ||
+    latestKinds.has("recover") ||
+    latestKinds.has("tension")
+  ) {
     const kind: AskKind = latestKinds.has("offense")
       ? "offense"
-      : latestKinds.has("tension")
-        ? "tension"
-        : latestKinds.has("ghost")
-          ? "ghost"
-          : "recover";
-    if (!lastOutCovered(kind, lastOut, cluster)) {
+      : latestKinds.has("dignity")
+        ? "dignity"
+        : latestKinds.has("tension")
+          ? "tension"
+          : latestKinds.has("ghost")
+            ? "ghost"
+            : "recover";
+    if (!lastOutCovered(kind, lastOut, cluster) || latestKinds.has(kind)) {
       const s = sentenceFor(kind, thread, vehicle, slots, cluster, lastOut);
       if (s) return s;
     }
@@ -1098,7 +1176,7 @@ function replyToCluster(
   }
   const kinds = rankedAsks(cluster)
     .filter((kind) => latestKinds.has(kind) || !lastOutCovered(kind, lastOut, cluster))
-    .filter((kind) => kind !== "ghost" && kind !== "offense" && kind !== "recover" && kind !== "tension")
+    .filter((kind) => kind !== "ghost" && kind !== "offense" && kind !== "recover" && kind !== "tension" && kind !== "dignity")
     .slice(0, 2);
   const sentences: string[] = [];
   for (const kind of kinds) {
